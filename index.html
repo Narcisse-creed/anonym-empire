@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <script>
+      (function() {
+        try {
+          var origFetch = window.fetch;
+          var currentFetch = origFetch;
+          Object.defineProperty(window, 'fetch', {
+            configurable: true,
+            enumerable: true,
+            get: function() { return currentFetch; },
+            set: function(val) { currentFetch = val; }
+          });
+        } catch (e) {
+          // ignore if already configurable or unhandled
+        }
+      })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ANONYM — L'art de se démarquer | Bijoux, Parfums & Personnalisation</title>
+  <meta name="description" content="ANONYM — Marque de personnalisation sur mesure : bijoux gravés, emballages professionnels, parfums d'exception et accessoires personnalisables. Particuliers & entreprises au Bénin." />
+    <!-- Google Fonts for Engraving Preview & Luxury Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Cinzel+Decorative:wght@700&family=Cinzel:wght@600;700;900&family=Great+Vibes&family=Montserrat:wght@400;700;900&family=Playfair+Display:ital,wght@0,600;0,800;1,600&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+

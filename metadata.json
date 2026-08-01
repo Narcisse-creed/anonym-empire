@@ -1,0 +1,6 @@
+{
+  "name": "ANONYM — Anonyme Empire",
+  "description": "Site vitrine et catalogue en ligne de personnalisation haut de gamme (bijoux, parfums, emballages, accessoires). L'art de se démarquer.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
