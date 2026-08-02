@@ -21,7 +21,7 @@ export const UNIVERSE_CATEGORIES: UniverseCategory[] = [
   },
   {
     id: 'parfums',
-    title: 'Parfums',
+    title: 'ANONYM',
     subtitle: 'Identité olfactive & ANONYM INVITATION',
     description: "L'univers olfactif ANONYM. Une fragrance qui vous est propre, reconnaissable, qui définit votre présence. Découvrez ANONYM INVITATION, la porte d'entrée vers cet univers d'exception.",
     iconName: 'Sparkles',

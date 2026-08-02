@@ -33,9 +33,9 @@ export const SelectionBasketDrawer: React.FC<SelectionBasketDrawerProps> = ({
   const whatsappUrl = buildWhatsAppLink(storeInfo.whatsappNumber, whatsappMsg);
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden bg-black/80 backdrop-blur-sm animate-fadeIn">
+    <div className="fixed inset-0 z-50 overflow-hidden bg-black/80 backdrop-blur-sm animate-fadeIn" onClick={onClose}>
       <div className="absolute inset-y-0 right-0 max-w-full flex pl-10">
-        <div className="w-screen max-w-md bg-[#101010] border-l border-[#D4AF37]/30 text-white shadow-2xl flex flex-col">
+        <div className="w-screen max-w-md bg-[#101010] border-l border-[#D4AF37]/30 text-white shadow-2xl flex flex-col" onClick={(e) => e.stopPropagation()}>
           
           {/* Header */}
           <div className="p-6 border-b border-gray-800 flex items-center justify-between">

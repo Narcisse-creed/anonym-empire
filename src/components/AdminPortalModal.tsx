@@ -76,7 +76,10 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
   const [loginError, setLoginError] = useState('');
 
   // Password Change State
+  const [currentPasswordInput, setCurrentPasswordInput] = useState('');
   const [newPasswordInput, setNewPasswordInput] = useState('');
+  const [confirmPasswordInput, setConfirmPasswordInput] = useState('');
+  const [passwordError, setPasswordError] = useState('');
   const [passwordChangeSuccess, setPasswordChangeSuccess] = useState('');
 
   // Admin View Tab
@@ -174,8 +177,8 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fadeIn">
-      <div className="relative w-full max-w-4xl bg-[#1a1a1a] border border-[#D4AF37]/40 rounded-3xl overflow-hidden shadow-2xl max-h-[90vh] flex flex-col text-white">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fadeIn" onClick={onClose}>
+      <div className="relative w-full max-w-6xl max-h-[90vh] bg-[#121212] border-2 border-[#D4AF37]/50 rounded-3xl overflow-hidden shadow-[0_0_80px_rgba(212,175,55,0.25)] flex flex-col" onClick={(e) => e.stopPropagation()}>
         
         {/* Header */}
         <div className="p-6 border-b border-gray-700 flex items-center justify-between bg-[#141414]">
@@ -356,6 +359,17 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                   >
                     Analytics
                   </button>
+                  <button
+                    onClick={() => setAdminTab('settings')}
+                    className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                      adminTab === 'settings'
+                        ? 'bg-[#D4AF37] text-black font-bold'
+                        : 'bg-black text-[#D4AF37] hover:bg-[#1A160C] border border-[#D4AF37]/40'
+                    }`}
+                  >
+                    <Key className="w-3.5 h-3.5" />
+                    <span>Mot de Passe</span>
+                  </button>
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -501,6 +515,34 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                         <option value="parfums">Parfums</option>
                         <option value="emballages">Emballages</option>
                         <option value="accessoires">Accessoires</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-gray-400 mb-1">Collection principale</label>
+                      <select
+                        value={
+                          adminTab === 'add'
+                            ? (formData.collectionIds?.[0] || '')
+                            : (editingProduct?.collectionIds?.[0] || '')
+                        }
+                        onChange={(e) => {
+                          const colId = e.target.value;
+                          const newCols = colId ? [colId] : [];
+                          if (adminTab === 'add') {
+                            setFormData({ ...formData, collectionIds: newCols });
+                          } else if (editingProduct) {
+                            setEditingProduct({ ...editingProduct, collectionIds: newCols });
+                          }
+                        }}
+                        className="w-full bg-black border border-gray-800 rounded-lg p-2.5 text-white"
+                      >
+                        <option value="">-- Aucune collection spécifiée --</option>
+                        {collections.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.icon || '📿'} {c.name}
+                          </option>
+                        ))}
                       </select>
                     </div>
 
@@ -718,19 +760,17 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                     {passwordChangeSuccess && (
                       <p className="text-xs text-emerald-400 font-semibold mt-2">{passwordChangeSuccess}</p>
                     )}
-                  </div>
-
-                  {/* Discreet Access Tip Box */}
-                  <div className="p-4 rounded-xl bg-black/60 border border-amber-900/40 text-xs text-amber-200/90 space-y-2">
-                    <h4 className="font-bold font-serif text-[#D4AF37]">Astuce d'Accès Discret Propriétaire :</h4>
-                    <p>
-                      Pour que personne d'autre ne voie le bouton d'accès au mot de passe, vous pouvez utiliser l'un des 3 raccourcis secrets suivants :
-                    </p>
-                    <ul className="list-disc list-inside space-y-1 text-gray-300 text-[11px]">
-                      <li><strong>Geste Secret :</strong> Triple-cliquez rapidement sur le Logo "Crown" ANONYM en haut à gauche.</li>
-                      <li><strong>Raccourci Clavier :</strong> Appuyez sur <kbd className="bg-gray-800 px-1 rounded">Ctrl + Shift + A</kbd> n'importe où sur le site.</li>
-                      <li><strong>Lien URL Direct :</strong> Ajoutez <code className="text-[#D4AF37]">/#admin</code> à la fin de l'adresse de votre site web.</li>
-                    </ul>
+                    <div className="p-4 rounded-xl bg-black/60 border border-amber-900/40 text-xs text-amber-200/90 space-y-2">
+                      <h4 className="font-bold font-serif text-[#D4AF37]">Astuce d'Accès Discret Propriétaire :</h4>
+                      <p>
+                        Pour que personne d'autre ne voie le bouton d'accès au mot de passe, vous pouvez utiliser l'un des 3 raccourcis secrets suivants :
+                      </p>
+                      <ul className="list-disc list-inside space-y-1 text-gray-300 text-[11px]">
+                        <li><strong>Geste Secret :</strong> Triple-cliquez rapidement sur le Logo "Crown" ANONYM en haut à gauche.</li>
+                        <li><strong>Raccourci Clavier :</strong> Appuyez sur <kbd className="bg-gray-800 px-1 rounded">Ctrl + Shift + A</kbd> n'importe où sur le site.</li>
+                        <li><strong>Lien URL Direct :</strong> Ajoutez <code className="text-[#D4AF37]">/#admin</code> à la fin de l'adresse de votre site web.</li>
+                      </ul>
+                    </div>
                   </div>
                 </div>
               )}
@@ -742,17 +782,29 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                   <div className="bg-[#141414] border border-[#D4AF37]/30 rounded-2xl p-4 space-y-3">
                     <button
                       onClick={() => {
-                        const name = prompt('Nom de la nouvelle collection :');
+                        const name = prompt('Nom de la nouvelle collection (ex: Colliers Femme) :');
                         if (!name) return;
-                        const desc = prompt('Description (optionnel) :') || '';
-                        const coverImage = prompt('URL de la couverture (optionnel) :') || '';
+                        const icon = prompt('Icône / Émoji (ex: 📿, 💍, ⌚, 🎁, ✨) :') || '📿';
+                        const desc = prompt('Description courte (optionnel) :') || '';
+                        const category = (prompt('Catégorie (bijoux, parfums, emballages, accessoires) :') || 'bijoux') as any;
+                        const coverImage = prompt('URL Image de couverture (optionnel) :') || '';
                         if (onAddCollection) {
-                          onAddCollection({ name, description: desc, coverImage, productIds: [], order: collections.length });
+                          onAddCollection({
+                            name,
+                            icon,
+                            description: desc,
+                            category,
+                            coverImage,
+                            color: '#D4AF37',
+                            productIds: [],
+                            order: collections.length,
+                            visible: true,
+                          });
                         }
                       }}
-                      className="w-full px-4 py-2.5 bg-[#D4AF37] text-black font-bold text-xs uppercase tracking-wider rounded-xl"
+                      className="w-full px-4 py-3 bg-[#D4AF37] text-black font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-[#F3E5AB] transition-all cursor-pointer shadow-md"
                     >
-                      + Créer une collection
+                      + Nouvelle collection (Nom, Icône, Catégorie, Ordre, Visible, Image)
                     </button>
                   </div>
                   <div className="space-y-3">
@@ -761,10 +813,15 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                     )}
                     {collections.map((col, idx) => (
                       <div key={col.id} className="bg-[#0F0F0F] border border-gray-800 rounded-xl p-4 flex items-center justify-between">
-                        <div>
-                          <h4 className="font-serif font-bold text-white text-sm">{col.name}</h4>
-                          <p className="text-xs text-gray-400">{col.description || 'Pas de description'}</p>
-                          <span className="text-[10px] text-[#D4AF37] font-mono">{col.productIds.length} produit(s) • Ordre : {col.order}</span>
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl p-2 bg-black rounded-lg border border-gray-800">{col.icon || '📿'}</span>
+                          <div>
+                            <h4 className="font-serif font-bold text-white text-sm">{col.name}</h4>
+                            <p className="text-xs text-gray-400">{col.description || 'Pas de description'}</p>
+                            <span className="text-[10px] text-[#D4AF37] font-mono">
+                              Catégorie: {col.category || 'Toutes'} • {col.productIds.length} produit(s) • Ordre: {col.order}
+                            </span>
+                          </div>
                         </div>
                         <div className="flex items-center gap-2">
                           <button
@@ -793,7 +850,7 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                                 updated[idx + 1] = temp;
                                 updated.forEach((c, i) => c.order = i);
                                 onUpdateCollection(updated[idx]);
-                                onUpdateCollection(updated[idx - 1]);
+                                onUpdateCollection(updated[idx + 1]);
                               }
                             }}
                             className="p-2 rounded bg-gray-800 text-gray-400 hover:text-white"
@@ -818,8 +875,120 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                   </div>
                 </div>
               )}
+              {adminTab === 'settings' && (
+                <div className="bg-[#141414] border border-[#D4AF37]/30 rounded-2xl p-6 space-y-6 max-w-xl mx-auto">
+                  <div className="flex items-center gap-3 border-b border-[#D4AF37]/20 pb-4">
+                    <div className="p-3 rounded-full bg-[#D4AF37]/20 text-[#D4AF37]">
+                      <Key className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-serif font-bold text-white">Changer le Mot de Passe Administrateur</h3>
+                      <p className="text-xs text-gray-400 font-sans">
+                        Sécurisez votre accès administrateur à tout moment sans développeur.
+                      </p>
+                    </div>
+                  </div>
 
-              {/* TAB: Textes des Pages */}
+                  {passwordChangeSuccess && (
+                    <div className="p-3 rounded-xl bg-emerald-950/80 border border-emerald-500/60 text-emerald-300 text-xs font-semibold flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
+                      <span>{passwordChangeSuccess}</span>
+                    </div>
+                  )}
+
+                  {passwordError && (
+                    <div className="p-3 rounded-xl bg-rose-950/80 border border-rose-500/60 text-rose-300 text-xs font-semibold flex items-center gap-2">
+                      <XCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                      <span>{passwordError}</span>
+                    </div>
+                  )}
+
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      setPasswordError('');
+                      setPasswordChangeSuccess('');
+
+                      if (!currentPasswordInput) {
+                        setPasswordError('Veuillez saisir votre mot de passe actuel.');
+                        return;
+                      }
+
+                      if (newPasswordInput.length < 6) {
+                        setPasswordError('Le nouveau mot de passe doit contenir au moins 6 caractères.');
+                        return;
+                      }
+
+                      if (newPasswordInput !== confirmPasswordInput) {
+                        setPasswordError('Le nouveau mot de passe et sa confirmation ne correspondent pas.');
+                        return;
+                      }
+
+                      if (onChangeAdminPassword) {
+                        onChangeAdminPassword(newPasswordInput);
+                        setPasswordChangeSuccess('Votre mot de passe administrateur a été modifié avec succès !');
+                        setCurrentPasswordInput('');
+                        setNewPasswordInput('');
+                        setConfirmPasswordInput('');
+                      } else {
+                        setPasswordError('Une erreur est survenue lors de la mise à jour.');
+                      }
+                    }}
+                    className="space-y-4"
+                  >
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-300 mb-1.5">
+                        Mot de passe actuel <span className="text-rose-400">*</span>
+                      </label>
+                      <input
+                        type="password"
+                        value={currentPasswordInput}
+                        onChange={(e) => setCurrentPasswordInput(e.target.value)}
+                        placeholder="••••••••"
+                        className="w-full bg-black border border-gray-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-300 mb-1.5">
+                        Nouveau mot de passe <span className="text-rose-400">*</span> (min 6 caractères)
+                      </label>
+                      <input
+                        type="password"
+                        value={newPasswordInput}
+                        onChange={(e) => setNewPasswordInput(e.target.value)}
+                        placeholder="Nouveau mot de passe"
+                        className="w-full bg-black border border-gray-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-300 mb-1.5">
+                        Confirmer le nouveau mot de passe <span className="text-rose-400">*</span>
+                      </label>
+                      <input
+                        type="password"
+                        value={confirmPasswordInput}
+                        onChange={(e) => setConfirmPasswordInput(e.target.value)}
+                        placeholder="Confirmer le mot de passe"
+                        className="w-full bg-black border border-gray-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
+                        required
+                      />
+                    </div>
+
+                    <div className="pt-2">
+                      <button
+                        type="submit"
+                        className="w-full bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#996515] hover:from-[#F3E5AB] hover:to-[#B8935F] text-black font-serif font-bold text-xs uppercase tracking-widest py-3 rounded-xl shadow-lg transition-all cursor-pointer"
+                      >
+                        Valider le Changement de Mot de Passe
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
               {adminTab === 'textes' && (
                 <form
                   onSubmit={(e) => {

@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { StoreInfo } from '../types';
 import { CrownLogo } from './CrownLogo';
-import { Sparkles, MessageCircle, ArrowRight, ShieldCheck, Award, Truck, ChevronLeft, ChevronRight, Play, Pause, User2 } from 'lucide-react';
+import { Sparkles, MessageCircle, ArrowRight, ShieldCheck, Award, Truck, ChevronLeft, ChevronRight } from 'lucide-react';
 import { FOUNDER_SLIDES } from '../data/founderMedia';
 
 interface HeroSectionProps {
@@ -16,26 +16,32 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   onExploreCatalog,
   onOpenCustomizer,
 }) => {
-  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
-  const [isAutoplay, setIsAutoplay] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [direction, setDirection] = useState<1 | -1>(1);
 
+  const goNext = useCallback(() => {
+    setDirection(1);
+    setCurrentIndex((prev) => (prev + 1) % FOUNDER_SLIDES.length);
+  }, []);
+
+  const goPrev = useCallback(() => {
+    setDirection(-1);
+    setCurrentIndex((prev) => (prev - 1 + FOUNDER_SLIDES.length) % FOUNDER_SLIDES.length);
+  }, []);
+
+  // Auto-play every 5 seconds
   useEffect(() => {
-    if (!isAutoplay) return;
-    const interval = setInterval(() => {
-      setCurrentSlideIndex((prev) => (prev + 1) % FOUNDER_SLIDES.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [isAutoplay]);
+    const timer = setInterval(goNext, 5000);
+    return () => clearInterval(timer);
+  }, [goNext]);
 
-  const handleNext = () => {
-    setCurrentSlideIndex((prev) => (prev + 1) % FOUNDER_SLIDES.length);
+  const slide = FOUNDER_SLIDES[currentIndex];
+
+  const variants = {
+    enter: (dir: number) => ({ opacity: 0, x: dir * 40, scale: 1.04 }),
+    center: { opacity: 1, x: 0, scale: 1 },
+    exit: (dir: number) => ({ opacity: 0, x: dir * -40, scale: 0.97 }),
   };
-
-  const handlePrev = () => {
-    setCurrentSlideIndex((prev) => (prev - 1 + FOUNDER_SLIDES.length) % FOUNDER_SLIDES.length);
-  };
-
-  const currentSlide = FOUNDER_SLIDES[currentSlideIndex];
 
   return (
     <section id="hero" className="relative bg-[#050509] text-white overflow-hidden pt-8 pb-20 border-b border-[#D4AF37]/20">
@@ -43,8 +49,10 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
 
-          <div className="lg:col-span-6 text-center lg:text-left space-y-6">
+          {/* ── Left Column: staggered fade-in centered text per §44 ── */}
+          <div className="lg:col-span-6 text-center flex flex-col items-center space-y-6">
 
+            {/* Badge */}
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -53,17 +61,18 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             >
               <CrownLogo size="sm" showText={false} />
               <span className="font-serif italic text-xs sm:text-sm text-[#F3E5AB] tracking-wide">
-                Maison de Création & Personnalisation
+                Maison de Création &amp; Personnalisation
               </span>
             </motion.div>
 
+            {/* Title */}
             <motion.h1
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.7, delay: 0.1 }}
-              className="text-4xl sm:text-5xl lg:text-6xl font-serif font-extrabold tracking-tight leading-[1.12]"
+              className="text-4xl sm:text-5xl lg:text-6xl font-serif font-extrabold tracking-tight leading-[1.12] text-center"
             >
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#F3E5AB] via-[#D4AF37] to-[#AA771C]">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#F3E5AB] via-[#D4AF37] to-[#AA771C] animate-[shimmer_3s_ease-in-out_infinite]">
                 {storeInfo.pageTexts?.accueil?.heroTitle || 'ANONYM'}
               </span>
               <span className="block mt-2 font-serif font-light italic text-white">
@@ -71,6 +80,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               </span>
             </motion.h1>
 
+            {/* Quality badge */}
             <motion.div
               initial={{ opacity: 0, x: -15 }}
               animate={{ opacity: 1, x: 0 }}
@@ -78,27 +88,29 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl bg-[#121212] border border-[#D4AF37]/30 text-xs font-mono text-[#F3E5AB]"
             >
               <Sparkles className="w-3.5 h-3.5 text-[#D4AF37] fill-[#D4AF37]" />
-              <span>{storeInfo.pageTexts?.accueil?.heroSubtitle || "L'art de se démarquer"}</span>
+              <span>Qualité • Confiance • Élégance</span>
             </motion.div>
 
+            {/* Description */}
             <motion.p
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.25 }}
-              className="text-sm sm:text-base text-gray-300 font-sans leading-relaxed max-w-xl mx-auto lg:mx-0"
+              className="text-sm sm:text-base text-gray-300 font-sans leading-relaxed max-w-xl mx-auto text-center"
             >
               {storeInfo.pageTexts?.accueil?.heroDescription || 'Créations d\'exception gravées sur-mesure : bijoux personnalisés en acier inoxydable garanti 1 an, parfums de luxe et coffrets d\'emballages royaux pour femmes, hommes et événements précieux.'}
             </motion.p>
 
+            {/* Action Buttons */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
-              className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3.5 pt-2"
+              className="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-2 w-full"
             >
               <button
                 onClick={onExploreCatalog}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#996515] hover:from-[#F3E5AB] hover:to-[#B8935F] text-black font-bold text-xs sm:text-sm tracking-wider uppercase px-7 py-3.5 rounded-full shadow-[0_0_25px_rgba(212,175,55,0.4)] transition-all transform hover:-translate-y-1 active:translate-y-0 cursor-pointer"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#996515] hover:from-[#F3E5AB] hover:to-[#B8935F] text-black font-bold text-xs sm:text-sm tracking-wider uppercase px-7 py-3.5 rounded-full shadow-[0_0_25px_rgba(212,175,55,0.4)] transition-all transform hover:-translate-y-1 hover:shadow-[0_0_40px_rgba(212,175,55,0.7)] active:translate-y-0 cursor-pointer"
               >
                 <span>Explorer le Catalogue</span>
                 <ArrowRight className="w-4 h-4 text-black" />
@@ -106,7 +118,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
               <button
                 onClick={onOpenCustomizer}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#141414] hover:bg-[#1F1C12] text-[#D4AF37] border border-[#D4AF37]/50 font-semibold text-xs sm:text-sm tracking-wider uppercase px-6 py-3.5 rounded-full shadow-lg transition-all transform hover:-translate-y-1 cursor-pointer"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#141414] hover:bg-[#1F1C12] text-[#D4AF37] border border-[#D4AF37]/50 font-semibold text-xs sm:text-sm tracking-wider uppercase px-6 py-3.5 rounded-full shadow-lg transition-all transform hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(212,175,55,0.35)] cursor-pointer"
               >
                 <Sparkles className="w-4 h-4 text-[#D4AF37] animate-pulse" />
                 <span>Simulateur Gravure</span>
@@ -127,116 +139,132 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
           </div>
 
-          <div className="lg:col-span-6 space-y-4">
-            <div className="relative rounded-2xl overflow-hidden border border-[#D4AF37]/30 shadow-[0_0_40px_rgba(212,175,55,0.25)] bg-[#0E0E0E]">
-              <div className="aspect-[4/3] sm:aspect-[3/4] relative rounded-2xl overflow-hidden bg-black">
-                <AnimatePresence mode="wait">
+          {/* ── Right Column: 3-image carousel (§26 / §39) ── */}
+          <div className="lg:col-span-6">
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.15 }}
+              className="relative rounded-2xl overflow-hidden border border-[#D4AF37]/40 shadow-[0_0_50px_rgba(212,175,55,0.25)] bg-[#0E0E0E] group"
+            >
+              {/* Slide area */}
+              <div className="aspect-[4/3] sm:aspect-[3/4] relative overflow-hidden bg-black">
+                <AnimatePresence custom={direction} mode="wait">
                   <motion.img
-                    key={currentSlide.id}
-                    src={currentSlide.imageUrl}
-                    alt={currentSlide.title}
+                    key={slide.id}
+                    custom={direction}
+                    variants={variants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={{ duration: 0.55, ease: 'easeInOut' }}
+                    src={slide.imageUrl}
+                    alt={slide.title}
                     referrerPolicy="no-referrer"
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?q=80&w=1200&auto=format&fit=crop';
+                      (e.target as HTMLImageElement).src =
+                        'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?q=80&w=1200&auto=format&fit=crop';
                     }}
-                    initial={{ opacity: 0, scale: 1.05 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ duration: 0.5 }}
-                    className="w-full h-full object-cover object-top"
+                    className="absolute inset-0 w-full h-full object-cover object-top"
+                    style={{ willChange: 'transform, opacity' }}
                   />
                 </AnimatePresence>
 
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                {/* Subtle Ken Burns on current image via CSS keyframe (applied to container) */}
+                <div className="absolute inset-0 pointer-events-none animate-[kenburns_8s_ease-in-out_infinite_alternate]" />
 
-                <div className="absolute bottom-4 left-4 right-4">
-                  <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black/80 border border-[#D4AF37]/40 text-[10px] uppercase tracking-widest text-[#F3E5AB] font-mono font-bold">
-                    <User2 className="w-3.5 h-3.5 text-[#D4AF37]" />
-                    {currentSlide.badge}
+                {/* Dark vignette */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-transparent pointer-events-none" />
+
+                {/* Badge */}
+                <div className="absolute top-4 left-4 px-3 py-1 rounded-full bg-black/80 backdrop-blur-md border border-[#D4AF37]/40 text-[#D4AF37] text-[10px] font-mono font-bold tracking-widest shadow">
+                  {slide.badge}
+                </div>
+
+                {/* Slide dots */}
+                <div className="absolute top-4 right-4 flex items-center gap-1.5">
+                  {FOUNDER_SLIDES.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => { setDirection(idx > currentIndex ? 1 : -1); setCurrentIndex(idx); }}
+                      className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
+                        idx === currentIndex ? 'w-6 bg-[#D4AF37]' : 'w-1.5 bg-white/40 hover:bg-white/70'
+                      }`}
+                      aria-label={`Image ${idx + 1}`}
+                    />
+                  ))}
+                </div>
+
+                {/* Slide info overlay */}
+                <div className="absolute bottom-4 left-4 right-4 p-4 rounded-2xl bg-black/80 backdrop-blur-md border border-[#D4AF37]/30 shadow-xl">
+                  <span className="font-serif font-bold text-sm sm:text-base text-[#F3E5AB] block">
+                    {slide.title}
                   </span>
-                  <h3 className="font-serif font-bold text-white text-base sm:text-lg mt-1">
-                    {currentSlide.title}
-                  </h3>
-                  <p className="text-[11px] text-gray-300">
-                    {currentSlide.subtitle}
+                  <span className="text-[11px] text-amber-200/80 block mt-0.5">
+                    {slide.subtitle}
+                  </span>
+                  <p className="text-[10px] text-gray-400 italic mt-1 line-clamp-2 border-t border-gray-800/60 pt-1">
+                    «&nbsp;{slide.description}&nbsp;»
                   </p>
                 </div>
 
+                {/* ‹ Prev arrow */}
                 <button
-                  onClick={() => setIsAutoplay(!isAutoplay)}
-                  className="absolute top-3 right-3 p-2 rounded-full bg-black/70 border border-gray-700 text-white hover:text-[#D4AF37] transition-all"
-                  title={isAutoplay ? 'Mettre en pause' : 'Lecture automatique'}
+                  onClick={goPrev}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-black/70 border border-[#D4AF37]/40 text-[#D4AF37] opacity-70 hover:opacity-100 hover:scale-110 hover:shadow-[0_0_15px_rgba(212,175,55,0.5)] transition-all cursor-pointer z-10"
+                  aria-label="Image précédente"
                 >
-                  {isAutoplay ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+                  <ChevronLeft className="w-5 h-5" />
                 </button>
 
+                {/* › Next arrow */}
                 <button
-                  onClick={handlePrev}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/70 border border-[#D4AF37]/40 text-[#D4AF37] opacity-80 hover:opacity-100 transition-all"
-                  title="Photo précédente"
+                  onClick={goNext}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-black/70 border border-[#D4AF37]/40 text-[#D4AF37] opacity-70 hover:opacity-100 hover:scale-110 hover:shadow-[0_0_15px_rgba(212,175,55,0.5)] transition-all cursor-pointer z-10"
+                  aria-label="Image suivante"
                 >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={handleNext}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/70 border border-[#D4AF37]/40 text-[#D4AF37] opacity-80 hover:opacity-100 transition-all"
-                  title="Photo suivante"
-                >
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="w-5 h-5" />
                 </button>
               </div>
-
-              <div className="flex items-center justify-center gap-2 pt-3 pb-1">
-                {FOUNDER_SLIDES.map((_, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setCurrentSlideIndex(idx)}
-                    className={`h-2 rounded-full transition-all ${
-                      idx === currentSlideIndex
-                        ? 'w-8 bg-[#D4AF37]'
-                        : 'w-2 bg-gray-700 hover:bg-gray-500'
-                    }`}
-                  />
-                ))}
-              </div>
-            </div>
+            </motion.div>
           </div>
 
         </div>
 
+        {/* ── Trust Badges Row ── */}
         <motion.div
           initial={{ opacity: 0, y: 25 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
           className="grid grid-cols-1 sm:grid-cols-3 gap-5 pt-12 mt-12 border-t border-[#D4AF37]/20 text-left"
         >
-          <div className="flex items-center gap-3.5 p-4 rounded-2xl bg-[#121212]/90 border border-[#D4AF37]/25 shadow-lg hover:border-[#D4AF37] transition-all">
+          <div className="flex items-center gap-3.5 p-4 rounded-2xl bg-[#121212]/90 border border-[#D4AF37]/25 shadow-lg hover:border-[#D4AF37] hover:shadow-[0_0_20px_rgba(212,175,55,0.2)] transition-all">
             <div className="p-3 rounded-xl bg-[#D4AF37]/15 text-[#D4AF37] shrink-0">
               <ShieldCheck className="w-6 h-6" />
             </div>
             <div>
               <h4 className="text-xs sm:text-sm font-semibold text-white">Garantie 1 An Inaltérable</h4>
-              <p className="text-[11px] sm:text-xs text-gray-400">Acier Inoxydable 316L résistant eau & parfum</p>
+              <p className="text-[11px] sm:text-xs text-gray-400">Acier Inoxydable 316L résistant eau &amp; parfum</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3.5 p-4 rounded-2xl bg-[#121212]/90 border border-[#D4AF37]/25 shadow-lg hover:border-[#D4AF37] transition-all">
+          <div className="flex items-center gap-3.5 p-4 rounded-2xl bg-[#121212]/90 border border-[#D4AF37]/25 shadow-lg hover:border-[#D4AF37] hover:shadow-[0_0_20px_rgba(212,175,55,0.2)] transition-all">
             <div className="p-3 rounded-xl bg-[#D4AF37]/15 text-[#D4AF37] shrink-0">
               <Award className="w-6 h-6" />
             </div>
             <div>
               <h4 className="text-xs sm:text-sm font-semibold text-white">Gravure Laser Millimétrée</h4>
-              <p className="text-[11px] sm:text-xs text-gray-400">Prénoms, dates, symboles & photos sur-mesure</p>
+              <p className="text-[11px] sm:text-xs text-gray-400">Prénoms, dates, symboles &amp; photos sur-mesure</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3.5 p-4 rounded-2xl bg-[#121212]/90 border border-[#D4AF37]/25 shadow-lg hover:border-[#D4AF37] transition-all">
+          <div className="flex items-center gap-3.5 p-4 rounded-2xl bg-[#121212]/90 border border-[#D4AF37]/25 shadow-lg hover:border-[#D4AF37] hover:shadow-[0_0_20px_rgba(212,175,55,0.2)] transition-all">
             <div className="p-3 rounded-xl bg-[#D4AF37]/15 text-[#D4AF37] shrink-0">
               <Truck className="w-6 h-6" />
             </div>
             <div>
               <h4 className="text-xs sm:text-sm font-semibold text-white">Expédition Tout le Bénin</h4>
-              <p className="text-[11px] sm:text-xs text-gray-400">Livraison Cotonou, Calavi, Parakou & sous-région</p>
+              <p className="text-[11px] sm:text-xs text-gray-400">Livraison Cotonou, Calavi, Parakou &amp; sous-région</p>
             </div>
           </div>
         </motion.div>

@@ -12,7 +12,7 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({
   images = [],
   altText = 'Produit',
 }) => {
-  const allImages = [mainImage, ...images.filter((img) => img && img !== mainImage)];
+  const allImages = [mainImage, ...images.filter((img) => img && img !== mainImage)].slice(0, 3);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
 

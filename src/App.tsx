@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StoreInfo, Product, CartItem, CategoryId, Collection, Notification, QuoteRequest, Order, AnalyticsData, Review } from './types';
 import { STORE_INFO } from './data/storeInfo';
 import { INITIAL_PRODUCTS } from './data/products';
@@ -9,17 +9,15 @@ import { UniverseGrid } from './components/UniverseGrid';
 import { ProductCatalog } from './components/ProductCatalog';
 import { ProductDetailModal } from './components/ProductDetailModal';
 import { CustomizerPreview } from './components/CustomizerPreview';
-import { PerfumesSection } from './components/PerfumesSection';
 import { AboutFounder } from './components/AboutFounder';
 import { OrderingRulesSection } from './components/OrderingRulesSection';
 import { QuoteRequestSection } from './components/QuoteRequestSection';
 import { ContactSection } from './components/ContactSection';
 import { ReviewsSection } from './components/ReviewsSection';
-import { CollectionsSection } from './components/CollectionsSection';
 import { Footer } from './components/Footer';
 import { SelectionBasketDrawer } from './components/SelectionBasketDrawer';
 import { AdminPortalModal } from './components/AdminPortalModal';
-import { NotificationBell } from './components/NotificationBell';
+import { RoyalBackgroundAnimation } from './components/RoyalBackgroundAnimation';
 import {
   loadProducts,
   saveProducts,
@@ -82,12 +80,13 @@ export default function App() {
   };
 
   const handleExploreCatalog = () => {
-    setActiveCategory('all');
-    handleNavigateSection('catalogue');
+    const el = document.getElementById('catalogue');
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
   };
 
   const handleOpenCustomizer = () => {
-    handleNavigateSection('customizer');
+    setActiveCategory('accueil');
+    setTimeout(() => handleNavigateSection('customizer'), 100);
   };
 
   const handleAddToCart = (product: Product, engravingText?: string, metalFinish?: string, selectedColor?: string, customText?: string) => {
@@ -209,20 +208,13 @@ export default function App() {
     }));
   };
 
-  const handleSelectCollection = (collectionIds: string[]) => {
-    setActiveCategory('all');
-    handleNavigateSection('catalogue');
-  };
-
-  const handleClearCollectionFilter = () => {
-    // collection filter cleared
-  };
 
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
     <div className="min-h-screen bg-[#050505] text-white font-sans antialiased">
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <RoyalBackgroundAnimation />
         <div className="absolute top-1/4 left-10 w-[500px] h-[500px] bg-[#D4AF37]/10 rounded-full blur-[140px] pointer-events-none" />
         <div className="absolute bottom-1/3 right-10 w-[600px] h-[600px] bg-[#AA771C]/10 rounded-full blur-[160px] pointer-events-none" />
       </div>
@@ -240,57 +232,44 @@ export default function App() {
       />
 
       <main className="relative z-10">
+        {/* ── HERO (always visible) ── */}
         <HeroSection
           storeInfo={storeInfo}
           onExploreCatalog={handleExploreCatalog}
           onOpenCustomizer={handleOpenCustomizer}
         />
 
+        {/* ── CATEGORY NAV BAR (always visible, sticky) ── */}
         <UniverseGrid
           activeCategory={activeCategory}
           onSelectCategory={handleSelectCategory}
           onNavigateCatalog={handleExploreCatalog}
         />
 
-        <ProductCatalog
-          products={products}
-          selectedCategory={activeCategory}
-          onSelectCategory={handleSelectCategory}
-          whatsappNumber={storeInfo.whatsappNumber}
-          onQuickView={(product) => setSelectedProduct(product)}
-          onAddToCart={handleAddToCart}
-          allProducts={products}
-          selectedCollectionIds={[]}
-          collections={collections}
-          onClearCollectionFilter={handleClearCollectionFilter}
-        />
+        {/* ── CATALOGUE : shown when a product category is selected ── */}
+        {activeCategory !== 'accueil' && (
+          <ProductCatalog
+            products={products}
+            collections={collections}
+            selectedCategory={activeCategory}
+            onSelectCategory={handleSelectCategory}
+            whatsappNumber={storeInfo.whatsappNumber}
+            onQuickView={(product) => setSelectedProduct(product)}
+            onAddToCart={handleAddToCart}
+          />
+        )}
 
-        <CollectionsSection
-          collections={collections}
-          products={products}
-          selectedCategory={activeCategory}
-          onSelectCollection={handleSelectCollection}
-          onNavigateCatalog={handleExploreCatalog}
-        />
-
-        <CustomizerPreview storeInfo={storeInfo} />
-
-        <PerfumesSection
-          storeInfo={storeInfo}
-          onNavigateCatalog={handleExploreCatalog}
-          onOpenCustomizer={handleOpenCustomizer}
-          products={products}
-        />
-
-        <AboutFounder storeInfo={storeInfo} />
-
-        <OrderingRulesSection storeInfo={storeInfo} />
-
-        <QuoteRequestSection storeInfo={storeInfo} />
-
-        <ContactSection storeInfo={storeInfo} />
-
-        <ReviewsSection storeInfo={storeInfo} />
+        {/* ── ACCUEIL PAGE : shown only when activeCategory === 'accueil' ── */}
+        {activeCategory === 'accueil' && (
+          <>
+            <AboutFounder storeInfo={storeInfo} />
+            <OrderingRulesSection storeInfo={storeInfo} />
+            <QuoteRequestSection storeInfo={storeInfo} />
+            <ReviewsSection storeInfo={storeInfo} />
+            <CustomizerPreview storeInfo={storeInfo} />
+            <ContactSection storeInfo={storeInfo} />
+          </>
+        )}
       </main>
 
       <Footer storeInfo={storeInfo} onOpenAdmin={() => setIsAdminOpen(true)} />

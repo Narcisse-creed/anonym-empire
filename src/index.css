@@ -52,3 +52,23 @@ html {
 .animate-fadeIn {
   animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+/* §3a — Marquee ticker: slow, wide gaps */
+@keyframes marqueeScroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* §26/§30bis — Ken Burns subtle zoom on Hero carousel */
+@keyframes kenburns {
+  0%   { transform: scale(1); }
+  100% { transform: scale(1.06); }
+}
+
+/* §26/§30bis — Shimmer on "ANONYM" golden gradient text */
+@keyframes shimmer {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+

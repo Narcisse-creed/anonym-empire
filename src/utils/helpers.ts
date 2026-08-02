@@ -1,5 +1,6 @@
 import { AnalyticsData, CartItem, Collection, Notification, Order, Product, QuoteRequest, Review, StoreInfo } from '../types';
 import { INITIAL_PRODUCTS } from '../data/products';
+import { INITIAL_COLLECTIONS } from '../data/collections';
 import { STORE_INFO } from '../data/storeInfo';
 
 const PRODUCTS_STORAGE_KEY = 'anonym_catalog_products_v1';
@@ -93,9 +94,14 @@ export function saveStoreInfo(info: StoreInfo): void {
 }
 
 export function loadCollections(): Collection[] {
-  try { const data = localStorage.getItem(COLLECTIONS_STORAGE_KEY); if (data) return JSON.parse(data); }
-  catch (err) { console.warn('Failed to load collections from localStorage', err); }
-  return [];
+  try {
+    const data = localStorage.getItem(COLLECTIONS_STORAGE_KEY);
+    if (data) {
+      const parsed = JSON.parse(data);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (err) { console.warn('Failed to load collections from localStorage', err); }
+  return INITIAL_COLLECTIONS;
 }
 
 export function saveCollections(collections: Collection[]): void {

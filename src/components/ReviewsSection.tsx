@@ -14,6 +14,7 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({ storeInfo }) => 
   const [formRating, setFormRating] = useState(5);
   const [formComment, setFormComment] = useState('');
   const [formPhoto, setFormPhoto] = useState<string | null>(null);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -42,6 +43,8 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({ storeInfo }) => 
     setFormPhoto(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
     setShowForm(false);
+    setSubmitSuccess(true);
+    setTimeout(() => setSubmitSuccess(false), 5000);
   };
 
   const approvedReviews = reviews.filter((r) => r.approved);
@@ -56,6 +59,12 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({ storeInfo }) => 
           </div>
           <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white tracking-tight">Ce que nos clients disent</h2>
         </div>
+
+        {submitSuccess && (
+          <div className="max-w-xl mx-auto mb-8 p-4 rounded-2xl bg-emerald-950/70 border border-emerald-500/50 text-emerald-300 text-xs sm:text-sm text-center shadow-lg animate-fadeIn">
+            ✓ Merci pour votre avis ! Il a été envoyé avec succès et sera publié sur le site dès sa validation par l'administrateur.
+          </div>
+        )}
 
         {approvedReviews.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">

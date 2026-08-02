@@ -1,4 +1,4 @@
-﻿export type CategoryId = 'all' | 'bijoux' | 'parfums' | 'emballages' | 'accessoires';
+export type CategoryId = 'all' | 'bijoux' | 'parfums' | 'emballages' | 'accessoires';
 
 export type SubCategory =
   | 'all'
@@ -60,6 +60,10 @@ export interface Collection {
   order: number;
   createdAt: string;
   coverImage?: string;
+  category?: CategoryId;
+  icon?: string;
+  color?: string;
+  visible?: boolean;
 }
 
 export interface Review {
