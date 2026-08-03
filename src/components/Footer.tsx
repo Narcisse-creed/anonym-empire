@@ -11,7 +11,7 @@ interface FooterProps {
 export const Footer: React.FC<FooterProps> = ({ storeInfo, onOpenAdmin }) => {
   return (
     <footer className="bg-[#030303] text-white border-t border-[#D4AF37]/30 pt-12 pb-8 relative">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+      <div className="max-w-7xl lg:max-w-[1400px] xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         
         {/* Brand Baseline Banner */}
         <div className="text-center py-6 border-b border-gray-900">

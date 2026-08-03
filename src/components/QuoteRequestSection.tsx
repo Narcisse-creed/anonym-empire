@@ -80,7 +80,7 @@ export const QuoteRequestSection: React.FC<QuoteRequestSectionProps> = ({ storeI
 
   return (
     <section id="devis" className="py-16 bg-[#0B0B0B] text-white relative border-b border-[#D4AF37]/20">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl lg:max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1A160C] border border-[#D4AF37]/40 text-[#D4AF37] text-xs font-semibold uppercase tracking-widest mb-3">
             <FileText className="w-3.5 h-3.5" />

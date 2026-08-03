@@ -470,40 +470,44 @@ export default function App() {
           onBackToGrid={handleBackToGrid}
         />
 
-        {/* ── CONTENT AREA : shown when a card or section is selected ── */}
+        {/* ── CONTENT AREA : ONLY displayed when a card or page is active (!showGrid) ── */}
         {!showGrid && (
-          <div id="catalogue">
+          <div id="content-area">
             {/* Product Catalog for Bijoux, Emballages, Parfums, Accessoires */}
             {['bijoux', 'emballages', 'parfums', 'accessoires'].includes(activeCategory) && (
-              <ProductCatalog
-                products={products}
-                collections={collections}
-                selectedCategory={activeCategory as CategoryId}
-                onSelectCategory={handleSelectCategory}
-                whatsappNumber={storeInfo.whatsappNumber}
-                onQuickView={(product) => {
-                  setSelectedProduct(product);
-                  handleTrackProductView(product.id);
-                }}
-                onAddToCart={handleAddToCart}
-                subCategoriesLvl1={subCategoriesLvl1}
-                subCategoriesLvl2={subCategoriesLvl2}
-              />
+              <div id="catalogue">
+                <ProductCatalog
+                  products={products}
+                  collections={collections}
+                  selectedCategory={activeCategory as CategoryId}
+                  onSelectCategory={handleSelectCategory}
+                  whatsappNumber={storeInfo.whatsappNumber}
+                  onQuickView={(product) => {
+                    setSelectedProduct(product);
+                    handleTrackProductView(product.id);
+                  }}
+                  onAddToCart={handleAddToCart}
+                  subCategoriesLvl1={subCategoriesLvl1}
+                  subCategoriesLvl2={subCategoriesLvl2}
+                />
+              </div>
             )}
 
-            {/* Accueil content */}
+            {/* À propos card content — ONLY shown when user clicks 'À PROPOS' card */}
             {activeCategory === 'accueil' && (
-              <>
+              <div id="about-sections">
                 <AboutFounder storeInfo={storeInfo} />
                 <OrderingRulesSection storeInfo={storeInfo} />
                 <QuoteRequestSection storeInfo={storeInfo} onAddQuoteRequest={handleAddQuoteRequest} />
                 <ReviewsSection storeInfo={storeInfo} reviews={reviews} onAddReview={handleAddReview} />
-              </>
+              </div>
             )}
 
             {/* Dedicated Contact Page — ONLY shown when user clicks "CONTACT" in header */}
             {activeCategory === 'contact' && (
-              <ContactSection storeInfo={storeInfo} />
+              <div id="contact-page">
+                <ContactSection storeInfo={storeInfo} />
+              </div>
             )}
           </div>
         )}

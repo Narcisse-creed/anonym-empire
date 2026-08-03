@@ -88,10 +88,10 @@ export const UniverseGrid: React.FC<UniverseGridProps> = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
             transition={{ duration: 0.3, ease: 'easeOut' }}
-            className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-4 space-y-4 sm:space-y-5"
+            className="max-w-7xl lg:max-w-[1400px] xl:max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-4 space-y-4 sm:space-y-6"
           >
             {/* ── §4 CRITICAL MANDATORY REQUIREMENT: 5 cards ALWAYS aligned horizontally on 1 single line on ALL devices (flex flex-nowrap overflow-x-auto, NO vertical stack/wrap allowed) ── */}
-            <div className="flex flex-nowrap overflow-x-auto overflow-y-hidden gap-3 sm:gap-4 pb-3 scrollbar-thin scrollbar-thumb-[#D4AF37]/50 scrollbar-track-black/60 items-stretch snap-x snap-mandatory">
+            <div className="flex flex-nowrap overflow-x-auto overflow-y-hidden gap-3 sm:gap-4 lg:gap-6 pb-3 scrollbar-thin scrollbar-thumb-[#D4AF37]/50 scrollbar-track-black/60 items-stretch snap-x snap-mandatory">
               {ALL_ITEMS.map((item, idx) => {
                 const media = CARD_MEDIA[item.id] || { image: '', desc: '' };
                 return (
@@ -101,7 +101,7 @@ export const UniverseGrid: React.FC<UniverseGridProps> = ({
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.35, delay: idx * 0.06 }}
                     onClick={() => onSelectCategory(item.id)}
-                    className="group relative rounded-2xl overflow-hidden border border-[#D4AF37]/30 hover:border-[#D4AF37] bg-[#0F0F0F] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(212,175,55,0.3)] cursor-pointer flex flex-col justify-end min-h-[210px] sm:min-h-[230px] lg:min-h-[260px] min-w-[170px] sm:min-w-[190px] md:min-w-0 md:flex-1 shrink-0 snap-start focus:outline-none"
+                    className="group relative rounded-2xl overflow-hidden border border-[#D4AF37]/30 hover:border-[#D4AF37] bg-[#0F0F0F] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(212,175,55,0.3)] cursor-pointer flex flex-col justify-end min-h-[220px] sm:min-h-[250px] lg:min-h-[290px] xl:min-h-[330px] min-w-[170px] sm:min-w-[190px] md:min-w-0 md:flex-1 shrink-0 snap-start focus:outline-none"
                     aria-label={`Ouvrir la section ${item.title}`}
                   >
                     {/* Background image */}
@@ -121,35 +121,35 @@ export const UniverseGrid: React.FC<UniverseGridProps> = ({
 
                     {/* Item count badge */}
                     {media.itemCount !== undefined && (
-                      <span className="absolute top-3 right-3 bg-black/80 text-[#D4AF37] text-[9px] font-mono font-bold px-2.5 py-1 rounded-full border border-[#D4AF37]/40 backdrop-blur-sm">
+                      <span className="absolute top-3 right-3 bg-black/80 text-[#D4AF37] text-[9px] sm:text-[10px] font-mono font-bold px-2.5 py-1 rounded-full border border-[#D4AF37]/40 backdrop-blur-sm">
                         {media.itemCount} Modèles
                       </span>
                     )}
 
                     {/* Card body */}
-                    <div className="relative z-10 p-4 sm:p-5 flex flex-col items-center text-center space-y-2">
+                    <div className="relative z-10 p-4 sm:p-5 lg:p-6 flex flex-col items-center text-center space-y-2">
                       {/* Icon circle */}
-                      <div className="w-11 h-11 rounded-full bg-black/80 border-2 border-[#D4AF37] flex items-center justify-center shadow-[0_0_14px_rgba(212,175,55,0.45)] group-hover:scale-110 transition-transform duration-300">
+                      <div className="w-11 h-11 lg:w-13 lg:h-13 rounded-full bg-black/80 border-2 border-[#D4AF37] flex items-center justify-center shadow-[0_0_14px_rgba(212,175,55,0.45)] group-hover:scale-110 transition-transform duration-300">
                         {item.id === 'accueil'
-                          ? <Home className="w-5 h-5 text-[#D4AF37]" />
+                          ? <Home className="w-5 h-5 lg:w-6 lg:h-6 text-[#D4AF37]" />
                           : getIconLarge(item.iconName)}
                       </div>
 
                       {/* Title */}
-                      <h3 className="text-sm sm:text-base font-serif font-bold text-white tracking-widest uppercase group-hover:text-[#D4AF37] transition-colors leading-tight">
+                      <h3 className="text-sm sm:text-base lg:text-lg font-serif font-bold text-white tracking-widest uppercase group-hover:text-[#D4AF37] transition-colors leading-tight">
                         {item.title}
                       </h3>
 
                       {/* Gold separator */}
-                      <div className="w-8 h-[1.5px] bg-[#D4AF37]/50 group-hover:w-14 transition-all duration-300 rounded-full" />
+                      <div className="w-8 lg:w-10 h-[1.5px] bg-[#D4AF37]/50 group-hover:w-14 transition-all duration-300 rounded-full" />
 
                       {/* Description */}
-                      <p className="text-[10px] sm:text-xs text-gray-400 font-sans line-clamp-2 leading-relaxed max-w-[150px]">
+                      <p className="text-[10px] sm:text-xs lg:text-sm text-gray-400 font-sans line-clamp-2 leading-relaxed max-w-[150px] sm:max-w-none">
                         {media.desc}
                       </p>
 
                       {/* CTA */}
-                      <span className="text-[9px] sm:text-[10px] font-mono text-[#F3E5AB] font-bold uppercase flex items-center gap-1 group-hover:translate-x-1 transition-transform pt-0.5">
+                      <span className="text-[9px] sm:text-[10px] lg:text-xs font-mono text-[#F3E5AB] font-bold uppercase flex items-center gap-1 group-hover:translate-x-1 transition-transform pt-0.5">
                         Explorer ›
                       </span>
                     </div>
@@ -163,25 +163,25 @@ export const UniverseGrid: React.FC<UniverseGridProps> = ({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
-              className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6 sm:pt-8 border-t border-[#D4AF37]/25 mt-4 sm:mt-6"
+              className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 pt-6 sm:pt-8 border-t border-[#D4AF37]/25 mt-4 sm:mt-6"
             >
-              <div className="flex items-center gap-3.5 p-4 rounded-2xl bg-[#121212]/90 border border-[#D4AF37]/25 shadow-lg hover:border-[#D4AF37] hover:shadow-[0_0_20px_rgba(212,175,55,0.2)] transition-all">
+              <div className="flex items-center gap-3.5 p-4 sm:p-5 rounded-2xl bg-[#121212]/90 border border-[#D4AF37]/25 shadow-lg hover:border-[#D4AF37] hover:shadow-[0_0_20px_rgba(212,175,55,0.2)] transition-all">
                 <div className="p-3 rounded-xl bg-[#D4AF37]/15 text-[#D4AF37] shrink-0">
-                  <ShieldCheck className="w-6 h-6" />
+                  <ShieldCheck className="w-6 h-6 lg:w-7 lg:h-7" />
                 </div>
                 <div>
-                  <h4 className="text-xs sm:text-sm font-semibold text-white">Garantie 1 An Inaltérable</h4>
-                  <p className="text-[11px] sm:text-xs text-gray-400">Acier Inoxydable 316L résistant eau &amp; parfum</p>
+                  <h4 className="text-xs sm:text-sm lg:text-base font-semibold text-white">Garantie 1 An Inaltérable</h4>
+                  <p className="text-[11px] sm:text-xs lg:text-sm text-gray-400">Acier Inoxydable 316L résistant eau &amp; parfum</p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3.5 p-4 rounded-2xl bg-[#121212]/90 border border-[#D4AF37]/25 shadow-lg hover:border-[#D4AF37] hover:shadow-[0_0_20px_rgba(212,175,55,0.2)] transition-all">
+              <div className="flex items-center gap-3.5 p-4 sm:p-5 rounded-2xl bg-[#121212]/90 border border-[#D4AF37]/25 shadow-lg hover:border-[#D4AF37] hover:shadow-[0_0_20px_rgba(212,175,55,0.2)] transition-all">
                 <div className="p-3 rounded-xl bg-[#D4AF37]/15 text-[#D4AF37] shrink-0">
-                  <Award className="w-6 h-6" />
+                  <Award className="w-6 h-6 lg:w-7 lg:h-7" />
                 </div>
                 <div>
-                  <h4 className="text-xs sm:text-sm font-semibold text-white">Gravure Laser Millimétrée</h4>
-                  <p className="text-[11px] sm:text-xs text-gray-400">Prénoms, dates, symboles &amp; photos sur-mesure</p>
+                  <h4 className="text-xs sm:text-sm lg:text-base font-semibold text-white">Gravure Laser Millimétrée</h4>
+                  <p className="text-[11px] sm:text-xs lg:text-sm text-gray-400">Prénoms, dates, symboles &amp; photos sur-mesure</p>
                 </div>
               </div>
 

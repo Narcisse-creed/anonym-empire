@@ -3,6 +3,7 @@ import React from 'react';
 interface CrownLogoProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
   showText?: boolean;
+  showSubtitle?: boolean;
   useImage?: boolean;
   className?: string;
 }
@@ -10,6 +11,7 @@ interface CrownLogoProps {
 export const CrownLogo: React.FC<CrownLogoProps> = ({
   size = 'md',
   showText = true,
+  showSubtitle = false,
   useImage = true,
   className = '',
 }) => {
@@ -52,9 +54,11 @@ export const CrownLogo: React.FC<CrownLogoProps> = ({
               ANONYM
             </span>
           </div>
-          <span className={`font-sans uppercase tracking-[0.18em] text-[#C5A059] font-semibold ${currentSize.sub}`}>
-            QUALITÉ • CONFIANCE • ÉLÉGANCE
-          </span>
+          {showSubtitle && (
+            <span className={`font-sans uppercase tracking-[0.18em] text-[#C5A059] font-semibold ${currentSize.sub}`}>
+              QUALITÉ • CONFIANCE • ÉLÉGANCE
+            </span>
+          )}
         </div>
       )}
     </div>

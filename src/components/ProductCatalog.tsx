@@ -197,7 +197,7 @@ const PageShell: React.FC<{
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="max-w-2xl mx-auto px-4 sm:px-6"
+      className="max-w-7xl lg:max-w-[1400px] xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8"
     >
       {/* Top bar */}
       <div className="flex items-center justify-between mb-4">
@@ -398,7 +398,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
     onBack: () => void,
   ) => (
     <section id="catalogue" className="py-12 bg-[#080808] text-white min-h-screen">
-      <div className="max-w-2xl mx-auto px-4 sm:px-6">
+      <div className="max-w-7xl lg:max-w-[1400px] xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
         {/* Back + breadcrumb */}
         <div className="flex items-center justify-between mb-4">
           <BackBtn label={backLabel} onClick={onBack} />
@@ -692,7 +692,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="max-w-2xl mx-auto px-4 sm:px-6"
+          className="max-w-7xl lg:max-w-[1400px] xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8"
         >
           <motion.div
             initial={{ opacity: 0, x: -25 }}
@@ -776,7 +776,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
           initial={{ opacity: 0, y: 25 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="max-w-2xl mx-auto px-4 sm:px-6"
+          className="max-w-7xl lg:max-w-[1400px] xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8"
         >
           <div className="text-center mb-10">
             <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white tracking-tight mb-2">ACCESSOIRES</h2>
@@ -831,7 +831,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
           initial={{ opacity: 0, filter: 'blur(8px)', y: 15 }}
           animate={{ opacity: 1, filter: 'blur(0px)', y: 0 }}
           transition={{ duration: 0.5 }}
-          className="max-w-2xl mx-auto px-4 sm:px-6"
+          className="max-w-7xl lg:max-w-[1400px] xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8"
         >
           <div className="text-center mb-10">
             <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white tracking-tight mb-2">ANONYM</h2>
@@ -907,7 +907,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
           initial={{ opacity: 0, scale: 0.94, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="max-w-2xl mx-auto px-4 sm:px-6"
+          className="max-w-7xl lg:max-w-[1400px] xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8"
         >
           <div className="text-center mb-10">
             <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white tracking-tight mb-2">EMBALLAGES</h2>
@@ -941,7 +941,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
   // ─────────────────────────────────────────────────────────────────────────
   return (
     <section id="catalogue" className="py-16 bg-[#080808] text-white min-h-screen">
-      <div className="max-w-2xl mx-auto px-4 sm:px-6">
+      <div className="max-w-7xl lg:max-w-[1400px] xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-10">
           <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white tracking-tight mb-2">
             {selectedCategory.toUpperCase()}

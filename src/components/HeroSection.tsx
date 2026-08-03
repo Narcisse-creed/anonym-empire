@@ -143,7 +143,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ storeInfo }) => {
       />
 
       {/* ── Content ── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="max-w-7xl lg:max-w-[1400px] xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
 
         {/* Brand pill — cascade step 1 */}
         <motion.div
@@ -186,7 +186,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ storeInfo }) => {
             initial={{ scaleX: 0 }}
             animate={{ scaleX: 1 }}
             transition={{ duration: 1.2, delay: 0.7, ease: [0.16, 1, 0.3, 1] }}
-            className="block h-[3px] w-48 sm:w-72 mx-auto mt-2 rounded-full origin-center"
+            className="block h-[3px] w-48 sm:w-72 lg:w-96 mx-auto mt-2 rounded-full origin-center"
             style={{ background: 'linear-gradient(90deg, transparent, #D4AF37, #F3E5AB, #D4AF37, transparent)' }}
           />
         </motion.h1>
@@ -219,7 +219,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ storeInfo }) => {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.55 }}
-          className="text-sm sm:text-base lg:text-lg text-gray-300/90 font-sans leading-relaxed max-w-2xl mx-auto text-center mb-8 sm:mb-10"
+          className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-300/90 font-sans leading-relaxed max-w-2xl sm:max-w-3xl lg:max-w-4xl mx-auto text-center mb-8 sm:mb-10"
         >
           {storeInfo.pageTexts?.accueil?.heroDescription ||
             'Créations d\'exception gravées sur-mesure : bijoux personnalisés en acier inoxydable garanti 1 an, parfums de luxe et coffrets d\'emballages royaux pour femmes, hommes et événements précieux.'}
@@ -230,7 +230,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ storeInfo }) => {
           initial={{ scaleX: 0, opacity: 0 }}
           animate={{ scaleX: 1, opacity: 1 }}
           transition={{ duration: 1, delay: 0.65 }}
-          className="flex items-center gap-4 mb-6 sm:mb-8 max-w-sm mx-auto"
+          className="flex items-center gap-4 mb-6 sm:mb-8 max-w-sm lg:max-w-md mx-auto"
         >
           <div className="flex-1 h-px" style={{ background: 'linear-gradient(to right, transparent, rgba(212,175,55,0.5))' }} />
           <Gem className="w-4 h-4 text-[#D4AF37]/70" />
@@ -242,7 +242,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ storeInfo }) => {
           initial={{ opacity: 0, y: 25 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.72 }}
-          className="grid grid-cols-3 gap-4 sm:gap-6 max-w-2xl mx-auto mb-4 sm:mb-6"
+          className="grid grid-cols-3 gap-4 sm:gap-6 lg:gap-8 max-w-2xl sm:max-w-3xl lg:max-w-4xl mx-auto mb-4 sm:mb-6"
         >
           {[
             { value: '211+', label: 'Modèles de Bijoux', icon: Gem },

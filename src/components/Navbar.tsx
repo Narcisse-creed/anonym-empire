@@ -148,7 +148,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       </div>
 
       {/* ── Balanced 3-Column Header Layout (§1 Problem 1) ── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      <div className="max-w-7xl lg:max-w-[1400px] xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
         
         {/* Left Column: Brand Logo */}
         <div className="flex-1 flex justify-start items-center">
@@ -270,16 +270,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             }`}
           >
             Contact
-          </button>
-          <button
-            onClick={() => {
-              setMobileMenuOpen(false);
-              onOpenAdmin();
-            }}
-            className="w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold tracking-wider uppercase transition-all bg-[#1E180D] text-[#D4AF37] border border-[#D4AF37]/50 flex items-center gap-2"
-          >
-            <Key className="w-4 h-4 text-[#D4AF37]" />
-            <span>Accès Gérant / Administrateur</span>
           </button>
         </div>
       )}
