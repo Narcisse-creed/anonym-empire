@@ -5,10 +5,16 @@ import { Star, MessageCircle, Upload, Send, X } from 'lucide-react';
 
 interface ReviewsSectionProps {
   storeInfo: StoreInfo;
+  reviews?: Review[];
+  onAddReview?: (reviewData: Omit<Review, 'id' | 'date'>) => void;
 }
 
-export const ReviewsSection: React.FC<ReviewsSectionProps> = ({ storeInfo }) => {
-  const [reviews, setReviews] = useState<Review[]>(loadReviews);
+export const ReviewsSection: React.FC<ReviewsSectionProps> = ({
+  storeInfo,
+  reviews: propReviews,
+  onAddReview,
+}) => {
+  const [localReviews, setLocalReviews] = useState<Review[]>(loadReviews);
   const [showForm, setShowForm] = useState(false);
   const [formName, setFormName] = useState('');
   const [formRating, setFormRating] = useState(5);
@@ -17,26 +23,33 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({ storeInfo }) => 
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    const saved = loadReviews();
-    setReviews(saved);
-  }, []);
+  const activeReviews = propReviews !== undefined ? propReviews : localReviews;
 
   const handleSubmitReview = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formName.trim() || !formComment.trim()) return;
-    const newReview: Review = {
-      id: `review-${Date.now()}`,
+
+    const reviewPayload = {
       rating: formRating,
-      comment: formComment,
+      comment: formComment.trim(),
       authorName: formName.trim(),
       photoUrl: formPhoto || undefined,
-      date: new Date().toISOString(),
       approved: false,
     };
-    const updated = [newReview, ...reviews];
-    setReviews(updated);
-    saveReviews(updated);
+
+    if (onAddReview) {
+      onAddReview(reviewPayload);
+    } else {
+      const newReview: Review = {
+        id: `review-${Date.now()}`,
+        ...reviewPayload,
+        date: new Date().toISOString(),
+      };
+      const updated = [newReview, ...localReviews];
+      setLocalReviews(updated);
+      saveReviews(updated);
+    }
+
     setFormName('');
     setFormRating(5);
     setFormComment('');
@@ -47,7 +60,7 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({ storeInfo }) => 
     setTimeout(() => setSubmitSuccess(false), 5000);
   };
 
-  const approvedReviews = reviews.filter((r) => r.approved);
+  const approvedReviews = activeReviews.filter((r) => r.approved);
 
   return (
     <section id="reviews" className="py-16 bg-[#0B0B0B] text-white relative border-b border-[#D4AF37]/20">

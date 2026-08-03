@@ -1,5 +1,5 @@
 import React from 'react';
-import { CartItem, StoreInfo } from '../types';
+import { CartItem, Order, StoreInfo } from '../types';
 import { formatPriceFCFA, generateCartWhatsAppMsg, buildWhatsAppLink } from '../utils/helpers';
 import { X, Trash2, Plus, Minus, MessageCircle, ShoppingBag, Sparkles } from 'lucide-react';
 
@@ -11,6 +11,7 @@ interface SelectionBasketDrawerProps {
   onUpdateQuantity: (productId: string, quantity: number) => void;
   onRemoveItem: (productId: string) => void;
   onClearCart: () => void;
+  onCreateOrder?: (orderData: Omit<Order, 'id' | 'createdAt' | 'status'>) => void;
 }
 
 export const SelectionBasketDrawer: React.FC<SelectionBasketDrawerProps> = ({
@@ -21,6 +22,7 @@ export const SelectionBasketDrawer: React.FC<SelectionBasketDrawerProps> = ({
   onUpdateQuantity,
   onRemoveItem,
   onClearCart,
+  onCreateOrder,
 }) => {
   if (!isOpen) return null;
 
@@ -160,6 +162,23 @@ export const SelectionBasketDrawer: React.FC<SelectionBasketDrawerProps> = ({
                   href={whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => {
+                    if (onCreateOrder && cartItems.length > 0) {
+                      cartItems.forEach((item) => {
+                        onCreateOrder({
+                          productId: item.product.id,
+                          productName: item.product.name,
+                          productRefCode: item.product.refCode,
+                          customerName: 'Client Panier WhatsApp',
+                          customerPhone: '',
+                          quantity: item.quantity,
+                          customizationNotes: item.engravingText || undefined,
+                          metalFinish: item.metalFinish || undefined,
+                          totalPrice: item.product.price * item.quantity,
+                        });
+                      });
+                    }
+                  }}
                   className="w-full inline-flex items-center justify-center gap-2.5 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white font-bold text-xs uppercase tracking-wider py-3.5 px-4 rounded-xl shadow-lg transition-all text-center"
                 >
                   <MessageCircle className="w-4 h-4 fill-white text-emerald-600" />

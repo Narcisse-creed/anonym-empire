@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { Product, CategoryId, Collection } from '../types';
+import { motion } from 'motion/react';
+import { Product, CategoryId, Collection, SubCategoryLevel1, SubCategoryLevel2 } from '../types';
 import { formatPriceFCFA, buildWhatsAppLink, generateSingleProductWhatsAppMsg } from '../utils/helpers';
 import { Search, ArrowLeft, MessageCircle, ShieldCheck, Sparkles, ShoppingBag } from 'lucide-react';
 
@@ -11,6 +12,8 @@ interface ProductCatalogProps {
   whatsappNumber: string;
   onQuickView: (product: Product) => void;
   onAddToCart: (product: Product) => void;
+  subCategoriesLvl1?: SubCategoryLevel1[];
+  subCategoriesLvl2?: SubCategoryLevel2[];
 }
 
 // ─── DATA ─────────────────────────────────────────────────────────────────────
@@ -128,15 +131,36 @@ const EMB_SOUS_CATEGORIES: Record<string, { id: string; label: string }[]> = {
 
 // ─── COMPONENTS ───────────────────────────────────────────────────────────────
 
-/** Big black navigation button — text only, gold uppercase */
-const NavBtn: React.FC<{ label: string; onClick: () => void }> = ({ label, onClick }) => (
-  <button
-    onClick={onClick}
-    className="w-full bg-[#0F0F0F] hover:bg-[#1A160C] border border-[#D4AF37]/30 hover:border-[#D4AF37] rounded-2xl px-6 py-4 text-center font-serif font-bold text-base sm:text-lg text-[#D4AF37] uppercase tracking-widest transition-all duration-200 cursor-pointer hover:shadow-[0_0_20px_rgba(212,175,55,0.15)]"
-  >
-    {label}
-  </button>
-);
+/** Big black navigation button — text only, gold uppercase with distinct motion presets */
+const NavBtn: React.FC<{
+  label: string;
+  onClick: () => void;
+  index?: number;
+  variant?: 'bijoux' | 'emballages' | 'anonym' | 'accessoires';
+}> = ({ label, onClick, index = 0, variant = 'bijoux' }) => {
+  const presets = {
+    bijoux: { initial: { opacity: 0, x: 30 }, animate: { opacity: 1, x: 0 } },
+    emballages: { initial: { opacity: 0, scale: 0.92, y: 15 }, animate: { opacity: 1, scale: 1, y: 0 } },
+    anonym: { initial: { opacity: 0, filter: 'blur(8px)', y: 10 }, animate: { opacity: 1, filter: 'blur(0px)', y: 0 } },
+    accessoires: { initial: { opacity: 0, y: 28 }, animate: { opacity: 1, y: 0 } },
+  };
+
+  const anim = presets[variant] || presets.bijoux;
+
+  return (
+    <motion.button
+      initial={anim.initial}
+      animate={anim.animate}
+      transition={{ duration: 0.35, delay: index * 0.07, ease: 'easeOut' }}
+      whileHover={{ scale: 1.02, boxShadow: '0 0 25px rgba(212,175,55,0.25)' }}
+      whileTap={{ scale: 0.98 }}
+      onClick={onClick}
+      className="w-full bg-[#0F0F0F] hover:bg-[#1A160C] border border-[#D4AF37]/30 hover:border-[#D4AF37] rounded-2xl px-6 py-4 text-center font-serif font-bold text-base sm:text-lg text-[#D4AF37] uppercase tracking-widest transition-all duration-200 cursor-pointer"
+    >
+      {label}
+    </motion.button>
+  );
+};
 
 /** Back button */
 const BackBtn: React.FC<{ label: string; onClick: () => void }> = ({ label, onClick }) => (
@@ -161,7 +185,7 @@ const Breadcrumb: React.FC<{ parts: string[] }> = ({ parts }) => (
   </div>
 );
 
-/** Page wrapper with header */
+/** Page wrapper with header and motion entrance */
 const PageShell: React.FC<{
   back: { label: string; onClick: () => void };
   breadcrumb: string[];
@@ -169,7 +193,12 @@ const PageShell: React.FC<{
   children: React.ReactNode;
 }> = ({ back, breadcrumb, title, children }) => (
   <section id="catalogue" className="py-12 bg-[#080808] text-white min-h-screen">
-    <div className="max-w-2xl mx-auto px-4 sm:px-6">
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="max-w-2xl mx-auto px-4 sm:px-6"
+    >
       {/* Top bar */}
       <div className="flex items-center justify-between mb-4">
         <BackBtn label={back.label} onClick={back.onClick} />
@@ -180,7 +209,7 @@ const PageShell: React.FC<{
         ← {title}
       </h2>
       {children}
-    </div>
+    </motion.div>
   </section>
 );
 
@@ -192,6 +221,8 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
   selectedCategory,
   whatsappNumber,
   onQuickView,
+  subCategoriesLvl1 = [],
+  subCategoriesLvl2 = [],
 }) => {
   // Bijoux navigation
   const [bijouxCible, setBijouxCible] = useState<string | null>(null);
@@ -210,6 +241,52 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
 
   // Legacy collection navigation
   const [activeCollection, setActiveCollection] = useState<Collection | null>(null);
+
+  // Dynamic Level 1 and Level 2 resolvers
+  const dynamicLvl1Bijoux = useMemo(() => {
+    const list = subCategoriesLvl1.filter((c) => c.parentCategory === 'bijoux' && c.visible !== false);
+    if (list.length > 0) return list.sort((a, b) => a.order - b.order).map((c) => ({ id: c.id, label: c.name }));
+    return BIJOUX_CIBLES;
+  }, [subCategoriesLvl1]);
+
+  const dynamicLvl2Bijoux = useMemo(() => {
+    if (!bijouxCible) return [];
+    const list = subCategoriesLvl2.filter((c) => c.level1Id === bijouxCible && c.visible !== false);
+    if (list.length > 0) return list.sort((a, b) => a.order - b.order).map((c) => ({ id: c.id, label: c.name }));
+    return BIJOUX_TYPES[bijouxCible] || [];
+  }, [subCategoriesLvl2, bijouxCible]);
+
+  const dynamicLvl1Emballages = useMemo(() => {
+    const list = subCategoriesLvl1.filter((c) => c.parentCategory === 'emballages' && c.visible !== false);
+    if (list.length > 0) return list.sort((a, b) => a.order - b.order).map((c) => ({ id: c.id, label: c.name }));
+    return EMB_MODES;
+  }, [subCategoriesLvl1]);
+
+  const dynamicLvl2Emballages = useMemo(() => {
+    if (!embMode) return [];
+    const list = subCategoriesLvl2.filter((c) => c.level1Id === embMode && c.visible !== false);
+    if (list.length > 0) return list.sort((a, b) => a.order - b.order).map((c) => ({ id: c.id, label: c.name }));
+    return EMB_SOUS_CATEGORIES[embMode] || [];
+  }, [subCategoriesLvl2, embMode]);
+
+  const dynamicLvl1Accessoires = useMemo(() => {
+    const list = subCategoriesLvl1.filter((c) => c.parentCategory === 'accessoires' && c.visible !== false);
+    if (list.length > 0) return list.sort((a, b) => a.order - b.order).map((c) => ({ id: c.id, label: c.name }));
+    return [...ACC_OCCASIONS, ...ACC_TYPES];
+  }, [subCategoriesLvl1]);
+
+  const dynamicLvl2Accessoires = useMemo(() => {
+    if (!accMode) return [];
+    const list = subCategoriesLvl2.filter((c) => c.level1Id === accMode && c.visible !== false);
+    if (list.length > 0) return list.sort((a, b) => a.order - b.order).map((c) => ({ id: c.id, label: c.name }));
+    return [];
+  }, [subCategoriesLvl2, accMode]);
+
+  const dynamicLvl1Parfums = useMemo(() => {
+    const list = subCategoriesLvl1.filter((c) => c.parentCategory === 'parfums' && c.visible !== false);
+    if (list.length > 0) return list.sort((a, b) => a.order - b.order).map((c) => ({ id: c.id, label: c.name }));
+    return ANONYM_COLLECTIONS;
+  }, [subCategoriesLvl1]);
 
   // Product-level filters (only shown when products are visible)
   const [searchQuery,          setSearchQuery]          = useState('');
@@ -567,8 +644,8 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
   // BIJOUX — Level 3: Products
   // ─────────────────────────────────────────────────────────────────────────
   if (selectedCategory === 'bijoux' && bijouxCible && bijouxType) {
-    const cibleLabel = BIJOUX_CIBLES.find((c) => c.id === bijouxCible)?.label || bijouxCible.toUpperCase();
-    const typeLabel  = BIJOUX_TYPES[bijouxCible]?.find((t) => t.id === bijouxType)?.label || bijouxType.toUpperCase();
+    const cibleLabel = dynamicLvl1Bijoux.find((c) => c.id === bijouxCible)?.label || bijouxCible.toUpperCase();
+    const typeLabel  = dynamicLvl2Bijoux.find((t) => t.id === bijouxType)?.label || bijouxType.toUpperCase();
     return renderProductList(
       bijouxProducts,
       `← ${cibleLabel}`,
@@ -582,8 +659,8 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
   // BIJOUX — Level 2: Types (boutons texte uniquement)
   // ─────────────────────────────────────────────────────────────────────────
   if (selectedCategory === 'bijoux' && bijouxCible) {
-    const cibleObj = BIJOUX_CIBLES.find((c) => c.id === bijouxCible);
-    const types = BIJOUX_TYPES[bijouxCible] || [];
+    const cibleObj = dynamicLvl1Bijoux.find((c) => c.id === bijouxCible);
+    const types = dynamicLvl2Bijoux;
     return (
       <PageShell
         back={{ label: '← BIJOUX', onClick: () => setBijouxCible(null) }}
@@ -591,10 +668,12 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
         title={cibleObj?.label || ''}
       >
         <div className="space-y-3">
-          {types.map((t) => (
+          {types.map((t, idx) => (
             <NavBtn
               key={t.id}
               label={t.label}
+              index={idx}
+              variant="bijoux"
               onClick={() => { setBijouxType(t.id); setSearchQuery(''); setSelectedQuickFilter('tous'); }}
             />
           ))}
@@ -609,86 +688,112 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
   if (selectedCategory === 'bijoux') {
     return (
       <section id="catalogue" className="py-16 bg-[#080808] text-white min-h-screen">
-        <div className="max-w-2xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-10">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="max-w-2xl mx-auto px-4 sm:px-6"
+        >
+          <motion.div
+            initial={{ opacity: 0, x: -25 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.4 }}
+            className="text-center mb-10"
+          >
             <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white tracking-tight mb-2">BIJOUX</h2>
             <p className="text-xs text-gray-500">Pour qui souhaitez-vous découvrir nos bijoux ?</p>
-          </div>
+          </motion.div>
           <div className="space-y-3">
-            {BIJOUX_CIBLES.map((c) => (
-              <NavBtn key={c.id} label={c.label} onClick={() => setBijouxCible(c.id)} />
+            {dynamicLvl1Bijoux.map((c, idx) => (
+              <NavBtn key={c.id} label={c.label} index={idx} variant="bijoux" onClick={() => setBijouxCible(c.id)} />
             ))}
           </div>
-        </div>
+        </motion.div>
       </section>
     );
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // ACCESSOIRES — Level 2: Products
+  // ACCESSOIRES — Level 3: Products
   // ─────────────────────────────────────────────────────────────────────────
-  if (selectedCategory === 'accessoires' && accSubFilter) {
-    const label =
-      accMode === 'occasion'
-        ? ACC_OCCASIONS.find((o) => o.id === accSubFilter)?.label || accSubFilter.toUpperCase()
-        : ACC_TYPES.find((t) => t.id === accSubFilter)?.label    || accSubFilter.toUpperCase();
+  if (selectedCategory === 'accessoires' && accMode && accSubFilter) {
+    const parentLabel = dynamicLvl1Accessoires.find((o) => o.id === accMode)?.label || accMode.toUpperCase();
+    const subLabel = dynamicLvl2Accessoires.find((s) => s.id === accSubFilter)?.label || accSubFilter.toUpperCase();
     return renderProductList(
       accProducts,
-      accMode === 'occasion' ? '← PAR OCCASION' : '← PAR TYPE',
-      label,
-      ['ACCESSOIRES', label],
+      `← ${parentLabel}`,
+      subLabel,
+      ['ACCESSOIRES', parentLabel, subLabel],
       () => { setAccSubFilter(null); setSearchQuery(''); setSelectedQuickFilter('tous'); },
     );
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // ACCESSOIRES — Level 1: 2 groupes (boutons texte uniquement)
+  // ACCESSOIRES — Level 2: Sous-catégories (boutons texte)
+  // ─────────────────────────────────────────────────────────────────────────
+  if (selectedCategory === 'accessoires' && accMode) {
+    const modeObj = dynamicLvl1Accessoires.find((m) => m.id === accMode);
+    const sousCats = dynamicLvl2Accessoires;
+    if (sousCats.length > 0) {
+      return (
+        <PageShell
+          back={{ label: '← ACCESSOIRES', onClick: () => setAccMode(null) }}
+          breadcrumb={['ACCESSOIRES', modeObj?.label || '']}
+          title={modeObj?.label || ''}
+        >
+          <div className="space-y-3">
+            {sousCats.map((s, idx) => (
+              <NavBtn
+                key={s.id}
+                label={s.label}
+                index={idx}
+                variant="accessoires"
+                onClick={() => { setAccSubFilter(s.id); setSearchQuery(''); setSelectedQuickFilter('tous'); }}
+              />
+            ))}
+          </div>
+        </PageShell>
+      );
+    } else {
+      // If no Level 2 subcategories exist for this Level 1 item, render products directly
+      return renderProductList(
+        accProducts,
+        '← ACCESSOIRES',
+        modeObj?.label || accMode.toUpperCase(),
+        ['ACCESSOIRES', modeObj?.label || ''],
+        () => { setAccMode(null); setSearchQuery(''); setSelectedQuickFilter('tous'); },
+      );
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // ACCESSOIRES — Level 1: Subcategories (boutons texte)
   // ─────────────────────────────────────────────────────────────────────────
   if (selectedCategory === 'accessoires') {
     return (
       <section id="catalogue" className="py-16 bg-[#080808] text-white min-h-screen">
-        <div className="max-w-2xl mx-auto px-4 sm:px-6">
+        <motion.div
+          initial={{ opacity: 0, y: 25 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="max-w-2xl mx-auto px-4 sm:px-6"
+        >
           <div className="text-center mb-10">
             <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white tracking-tight mb-2">ACCESSOIRES</h2>
-            <p className="text-xs text-gray-500">Deux façons de trouver ce qu'il vous faut.</p>
+            <p className="text-xs text-gray-500">Sélectionnez une catégorie d'accessoires.</p>
           </div>
-
-          {/* Groupe 1 */}
-          <div className="mb-8">
-            <div className="flex items-center gap-2 text-[11px] font-bold text-[#D4AF37] uppercase tracking-widest mb-3 pb-2 border-b border-[#D4AF37]/20">
-              <Sparkles className="w-3.5 h-3.5" />
-              1. PAR OCCASION / DESTINATION
-            </div>
-            <div className="space-y-3">
-              {ACC_OCCASIONS.map((o) => (
-                <NavBtn
-                  key={o.id}
-                  label={o.label}
-                  onClick={() => { setAccMode('occasion'); setAccSubFilter(o.id); setSearchQuery(''); setSelectedQuickFilter('tous'); }}
-                />
-              ))}
-            </div>
+          <div className="space-y-3">
+            {dynamicLvl1Accessoires.map((item, idx) => (
+              <NavBtn
+                key={item.id}
+                label={item.label}
+                index={idx}
+                variant="accessoires"
+                onClick={() => { setAccMode(item.id); setSearchQuery(''); setSelectedQuickFilter('tous'); }}
+              />
+            ))}
           </div>
-
-          <div className="border-t border-[#D4AF37]/10 mb-8" />
-
-          {/* Groupe 2 */}
-          <div>
-            <div className="flex items-center gap-2 text-[11px] font-bold text-[#D4AF37] uppercase tracking-widest mb-3 pb-2 border-b border-[#D4AF37]/20">
-              <ShoppingBag className="w-3.5 h-3.5" />
-              2. PAR TYPE DE PRODUIT
-            </div>
-            <div className="space-y-3">
-              {ACC_TYPES.map((t) => (
-                <NavBtn
-                  key={t.id}
-                  label={t.label}
-                  onClick={() => { setAccMode('type'); setAccSubFilter(t.id); setSearchQuery(''); setSelectedQuickFilter('tous'); }}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
+        </motion.div>
       </section>
     );
   }
@@ -698,7 +803,6 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
   // ─────────────────────────────────────────────────────────────────────────
   if (selectedCategory === 'parfums' && anonymCollection) {
     const colLabel = ANONYM_COLLECTIONS.find((c) => c.id === anonymCollection)?.label || anonymCollection.toUpperCase();
-    // Find the matching collection object and its products
     const colObj = collections.find(
       (c) => c.id === anonymCollection || c.name.toLowerCase().includes('invitation'),
     );
@@ -720,28 +824,30 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
   // ANONYM — Level 1: Collections (boutons texte)
   // ─────────────────────────────────────────────────────────────────────────
   if (selectedCategory === 'parfums') {
-    // Merge built-in + admin-created parfums collections
     const adminParfumsCollections = collections.filter((c) => c.category === 'parfums' && c.visible !== false);
     return (
       <section id="catalogue" className="py-16 bg-[#080808] text-white min-h-screen">
-        <div className="max-w-2xl mx-auto px-4 sm:px-6">
+        <motion.div
+          initial={{ opacity: 0, filter: 'blur(8px)', y: 15 }}
+          animate={{ opacity: 1, filter: 'blur(0px)', y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="max-w-2xl mx-auto px-4 sm:px-6"
+        >
           <div className="text-center mb-10">
             <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white tracking-tight mb-2">ANONYM</h2>
             <p className="text-xs text-gray-500 italic">L'univers olfactif ANONYM — Sélectionnez une référence.</p>
           </div>
           <div className="space-y-3">
-            {/* Static built-in collections */}
-            {ANONYM_COLLECTIONS.map((c) => (
-              <NavBtn key={c.id} label={c.label} onClick={() => setAnonymCollection(c.id)} />
+            {dynamicLvl1Parfums.map((c, idx) => (
+              <NavBtn key={c.id} label={c.label} index={idx} variant="anonym" onClick={() => setAnonymCollection(c.id)} />
             ))}
-            {/* Admin-created parfums collections (dynamic) */}
             {adminParfumsCollections
-              .filter((c) => !ANONYM_COLLECTIONS.some((s) => s.id === c.id))
-              .map((c) => (
-                <NavBtn key={c.id} label={c.name.toUpperCase()} onClick={() => setAnonymCollection(c.id)} />
+              .filter((c) => !dynamicLvl1Parfums.some((s) => s.id === c.id))
+              .map((c, idx) => (
+                <NavBtn key={c.id} label={c.name.toUpperCase()} index={dynamicLvl1Parfums.length + idx} variant="anonym" onClick={() => setAnonymCollection(c.id)} />
               ))}
           </div>
-        </div>
+        </motion.div>
       </section>
     );
   }
@@ -777,10 +883,12 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
         title={modeObj?.label || ''}
       >
         <div className="space-y-3">
-          {sousCats.map((s) => (
+          {sousCats.map((s, idx) => (
             <NavBtn
               key={s.id}
               label={s.label}
+              index={idx}
+              variant="emballages"
               onClick={() => { setEmbSousFilter(s.id); setSearchQuery(''); setSelectedQuickFilter('tous'); }}
             />
           ))}
@@ -795,17 +903,22 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
   if (selectedCategory === 'emballages') {
     return (
       <section id="catalogue" className="py-16 bg-[#080808] text-white min-h-screen">
-        <div className="max-w-2xl mx-auto px-4 sm:px-6">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.94, y: 15 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="max-w-2xl mx-auto px-4 sm:px-6"
+        >
           <div className="text-center mb-10">
             <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white tracking-tight mb-2">EMBALLAGES</h2>
             <p className="text-xs text-gray-500">Comment souhaitez-vous rechercher votre emballage ?</p>
           </div>
           <div className="space-y-3">
-            {EMB_MODES.map((m) => (
-              <NavBtn key={m.id} label={m.label} onClick={() => setEmbMode(m.id)} />
+            {EMB_MODES.map((m, idx) => (
+              <NavBtn key={m.id} label={m.label} index={idx} variant="emballages" onClick={() => setEmbMode(m.id)} />
             ))}
           </div>
-        </div>
+        </motion.div>
       </section>
     );
   }

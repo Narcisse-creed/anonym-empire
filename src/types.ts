@@ -1,5 +1,23 @@
 export type CategoryId = 'all' | 'bijoux' | 'parfums' | 'emballages' | 'accessoires';
 
+export interface SubCategoryLevel1 {
+  id: string;
+  name: string;
+  parentCategory: CategoryId;
+  order: number;
+  visible: boolean;
+  icon?: string;
+}
+
+export interface SubCategoryLevel2 {
+  id: string;
+  name: string;
+  level1Id: string;
+  parentCategory: CategoryId;
+  order: number;
+  visible: boolean;
+}
+
 export type SubCategory =
   | 'all'
   | 'colliers-femme'
@@ -10,7 +28,8 @@ export type SubCategory =
   | 'manchettes'
   | 'parfums'
   | 'emballages'
-  | 'accessoires';
+  | 'accessoires'
+  | string;
 
 export type GenderCategory = 'femme' | 'homme' | 'couple' | 'mixte';
 

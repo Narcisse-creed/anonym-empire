@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CrownLogo } from './CrownLogo';
 import { StoreInfo, CategoryId } from '../types';
-import { ShoppingBag, MessageCircle, Menu, X, Sparkles, ShieldCheck, Key } from 'lucide-react';
+import { ShoppingBag, MessageCircle, Menu, X, ShieldCheck, Key } from 'lucide-react';
 import { NotificationBell } from './NotificationBell';
 
 interface NavbarProps {
@@ -11,8 +11,11 @@ interface NavbarProps {
   onOpenCart: () => void;
   onOpenAdmin: () => void;
   isAdminLoggedIn: boolean;
-  activeCategory: CategoryId | 'accueil';
-  onSelectCategory: (cat: CategoryId | 'accueil') => void;
+  activeCategory: CategoryId | 'accueil' | 'contact';
+  showGrid: boolean;
+  onSelectCategory: (cat: CategoryId | 'accueil' | 'contact') => void;
+  onBackToGrid: () => void;
+  onGoToHomeHero: () => void;
   onNavigateSection: (sectionId: string) => void;
 }
 
@@ -24,7 +27,10 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenAdmin,
   isAdminLoggedIn,
   activeCategory,
+  showGrid,
   onSelectCategory,
+  onBackToGrid,
+  onGoToHomeHero,
   onNavigateSection,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -33,27 +39,30 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   // Track scroll position to update active navbar section dynamically
   useEffect(() => {
+    if (activeCategory === 'contact') {
+      setActiveSection('contact');
+      return;
+    }
+
     const handleScroll = () => {
-      const sections = ['hero', 'catalogue', 'customizer', 'about', 'contact'];
       const scrollPosition = window.scrollY + 200;
 
-      for (const sectionId of sections) {
-        const el = document.getElementById(sectionId);
-        if (el) {
-          const top = el.offsetTop;
-          const height = el.offsetHeight;
-          if (scrollPosition >= top && scrollPosition < top + height) {
-            setActiveSection(sectionId);
-            break;
-          }
-        }
+      const universeEl = document.getElementById('universe-nav');
+      const catalogueEl = document.getElementById('catalogue');
+
+      if (universeEl && scrollPosition >= universeEl.offsetTop - 150) {
+        setActiveSection('catalogue');
+      } else if (catalogueEl && scrollPosition >= catalogueEl.offsetTop - 150) {
+        setActiveSection('catalogue');
+      } else {
+        setActiveSection('hero');
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [activeCategory]);
 
   const handleLogoClick = () => {
     setLogoClickCount((prev) => {
@@ -65,7 +74,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       return newCount;
     });
     setTimeout(() => setLogoClickCount(0), 2000);
-    handleNavClick('hero', 'accueil');
+    onGoToHomeHero();
   };
 
   useEffect(() => {
@@ -78,7 +87,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
     const checkUrlAdmin = () => {
       if (window.location.hash === '#admin' || window.location.search.includes('admin=true')) {
-        onOpenAdmin();
+        setTimeout(() => onOpenAdmin(), 0);
       }
     };
 
@@ -93,43 +102,38 @@ export const Navbar: React.FC<NavbarProps> = ({
   }, [onOpenAdmin]);
 
   /**
-   * §37b — Fixed nav click handler.
-   * When clicking "Contact" (or any section that lives inside the accueil view),
-   * we must first ensure activeCategory === 'accueil' so those sections are mounted,
-   * then scroll after a short delay.
+   * Nav click handler:
+   * - 'hero': Reset to main home hero view at top of page (onGoToHomeHero)
+   * - 'catalogue': Return to 5 cards view (onBackToGrid)
+   * - 'contact': Open independent Contact page view (activeCategory = 'contact')
    */
-  const handleNavClick = (sectionId: string, categoryId?: CategoryId | 'accueil') => {
-    // §42: When clicking Catalogue from accueil view, change category then scroll after React mounts the catalog component
-    if (sectionId === 'catalogue' && activeCategory === 'accueil') {
-      const targetCat = categoryId || 'bijoux';
-      onSelectCategory(targetCat);
+  const handleNavClick = (sectionId: string) => {
+    if (sectionId === 'hero') {
+      onGoToHomeHero();
+      setActiveSection('hero');
+    } else if (sectionId === 'catalogue') {
+      onBackToGrid();
+      setActiveSection('catalogue');
+    } else if (sectionId === 'contact') {
+      onSelectCategory('contact');
+      setActiveSection('contact');
       setTimeout(() => {
-        onNavigateSection('catalogue');
+        const el = document.getElementById('contact');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 80);
     }
-    // §37b: Sections that only render when activeCategory === 'accueil'
-    else if (['about', 'contact', 'customizer'].includes(sectionId) && activeCategory !== 'accueil') {
-      onSelectCategory('accueil');
-      setTimeout(() => {
-        onNavigateSection(sectionId);
-      }, 80);
-    } else {
-      if (categoryId) onSelectCategory(categoryId);
-      onNavigateSection(sectionId);
-    }
-    setActiveSection(sectionId);
     setMobileMenuOpen(false);
   };
 
   const btnBase =
-    'px-3.5 py-2 rounded-xl text-xs lg:text-sm font-semibold tracking-wider uppercase transition-all cursor-pointer';
+    'px-4 py-2 rounded-xl text-xs lg:text-sm font-semibold tracking-widest uppercase transition-all cursor-pointer';
   const btnActive =
-    'text-[#D4AF37] bg-[#D4AF37]/15 border border-[#D4AF37]/40 shadow-[0_0_15px_rgba(212,175,55,0.3)]';
+    'text-[#D4AF37] bg-[#D4AF37]/15 border border-[#D4AF37]/50 shadow-[0_0_20px_rgba(212,175,55,0.35)] font-bold';
   const btnIdle = 'text-gray-300 hover:text-[#D4AF37] hover:bg-white/5';
 
   return (
-    <header className="sticky top-0 z-40 bg-[#0A0A0A]/90 backdrop-blur-md border-b border-[#D4AF37]/20 shadow-[0_4px_30px_rgba(0,0,0,0.8)] transition-all">
-      {/* ── Marquee ticker ── §3a: wider gap + slower speed */}
+    <header className="sticky top-0 z-40 bg-[#0A0A0A]/95 backdrop-blur-md border-b border-[#D4AF37]/20 shadow-[0_4px_30px_rgba(0,0,0,0.8)] transition-all">
+      {/* ── Marquee ticker ── */}
       <div className="overflow-hidden bg-[#0D0D0D] border-b border-[#D4AF37]/10 py-1.5">
         <div className="whitespace-nowrap animate-[marqueeScroll_35s_linear_infinite] inline-block text-[10px] font-mono text-[#D4AF37]/70 tracking-widest uppercase">
           {[...Array(4)].map((_, i) => (
@@ -143,50 +147,41 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       </div>
 
+      {/* ── Balanced 3-Column Header Layout (§1 Problem 1) ── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-        {/* Brand Logo — §3a: bigger glow for better visibility */}
-        <button
-          onClick={handleLogoClick}
-          className="text-left focus:outline-none group cursor-pointer relative shrink-0"
-          title="ANONYM"
-        >
-          <CrownLogo size="md" />
-          {logoClickCount > 0 && logoClickCount < 3 && (
-            <span className="absolute -bottom-2 left-0 text-[9px] text-[#D4AF37] font-mono animate-pulse">
-              Clé d'accès : {3 - logoClickCount}...
-            </span>
-          )}
-        </button>
-
-        {/* Desktop Nav — §37a: "L'Entreprise & CEO" removed */}
-        <nav className="hidden md:flex items-center space-x-3 lg:space-x-6 mx-4">
+        
+        {/* Left Column: Brand Logo */}
+        <div className="flex-1 flex justify-start items-center">
           <button
-            onClick={() => handleNavClick('hero', 'accueil')}
+            onClick={handleLogoClick}
+            className="text-left focus:outline-none group cursor-pointer relative shrink-0"
+            title="ANONYM"
+          >
+            <CrownLogo size="md" />
+            {logoClickCount > 0 && logoClickCount < 3 && (
+              <span className="absolute -bottom-2 left-0 text-[9px] text-[#D4AF37] font-mono animate-pulse">
+                Clé d'accès : {3 - logoClickCount}...
+              </span>
+            )}
+          </button>
+        </div>
+
+        {/* Center Column: Perfectly Symmetrical Navigation Links (Accueil, Catalogue, Contact) */}
+        <nav className="hidden md:flex items-center justify-center gap-6 lg:gap-10">
+          <button
+            onClick={() => handleNavClick('hero')}
             className={`${btnBase} ${activeSection === 'hero' ? btnActive : btnIdle}`}
           >
             Accueil
           </button>
 
           <button
-            onClick={() => handleNavClick('catalogue', 'bijoux')}
+            onClick={() => handleNavClick('catalogue')}
             className={`${btnBase} ${activeSection === 'catalogue' ? btnActive : btnIdle}`}
           >
             Catalogue
           </button>
 
-          <button
-            onClick={() => handleNavClick('customizer')}
-            className={`text-xs lg:text-sm font-semibold tracking-wider uppercase transition-all cursor-pointer flex items-center gap-1.5 px-4 py-2 rounded-full border ${
-              activeSection === 'customizer'
-                ? 'text-[#D4AF37] bg-[#D4AF37]/25 border-[#D4AF37] shadow-[0_0_20px_rgba(212,175,55,0.4)]'
-                : 'text-amber-200/90 hover:text-[#D4AF37] bg-[#D4AF37]/10 border-[#D4AF37]/30 hover:bg-[#D4AF37]/20'
-            }`}
-          >
-            <Sparkles className="w-3.5 h-3.5 text-[#D4AF37] animate-pulse" />
-            <span>Aperçu Gravure</span>
-          </button>
-
-          {/* §37b: "Contact" now correctly navigates to the contact section */}
           <button
             onClick={() => handleNavClick('contact')}
             className={`${btnBase} ${activeSection === 'contact' ? btnActive : btnIdle}`}
@@ -195,8 +190,8 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
         </nav>
 
-        {/* Action Buttons Right */}
-        <div className="flex items-center space-x-2.5 sm:space-x-3.5 shrink-0">
+        {/* Right Column: Actions (WhatsApp, Notifications, Panier, Admin) */}
+        <div className="flex-1 flex justify-end items-center space-x-2.5 sm:space-x-3.5 shrink-0">
           {/* WhatsApp */}
           <a
             href={`https://wa.me/${storeInfo.whatsappNumber}?text=${encodeURIComponent(
@@ -235,7 +230,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               title="Espace Administrateur Connecté"
             >
               <ShieldCheck className="w-4 h-4" />
-              <span className="text-xs font-semibold tracking-tight">Admin Connecté</span>
+              <span className="text-xs font-semibold tracking-tight">Admin</span>
             </button>
           )}
 
@@ -249,11 +244,11 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       </div>
 
-      {/* Mobile Drawer — §37a: "L'Entreprise & CEO" removed */}
+      {/* Mobile Drawer */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-[#0A0A0A] border-b border-[#D4AF37]/30 px-4 pt-3 pb-6 space-y-3">
           <button
-            onClick={() => handleNavClick('hero', 'accueil')}
+            onClick={() => handleNavClick('hero')}
             className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium tracking-wider uppercase transition-all ${
               activeSection === 'hero' ? 'bg-[#D4AF37]/15 text-[#D4AF37] border border-[#D4AF37]/30' : 'text-gray-300'
             }`}
@@ -261,23 +256,13 @@ export const Navbar: React.FC<NavbarProps> = ({
             Accueil
           </button>
           <button
-            onClick={() => handleNavClick('catalogue', 'bijoux')}
+            onClick={() => handleNavClick('catalogue')}
             className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium tracking-wider uppercase transition-all ${
               activeSection === 'catalogue' ? 'bg-[#D4AF37]/15 text-[#D4AF37] border border-[#D4AF37]/30' : 'text-gray-300'
             }`}
           >
-            Catalogue
+            Catalogue (5 Cartes)
           </button>
-          <button
-            onClick={() => handleNavClick('customizer')}
-            className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium tracking-wider uppercase transition-all flex items-center justify-between ${
-              activeSection === 'customizer' ? 'bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]' : 'text-amber-200'
-            }`}
-          >
-            <span>Aperçu Gravure</span>
-            <Sparkles className="w-4 h-4 text-[#D4AF37]" />
-          </button>
-          {/* §37b: Contact fixed */}
           <button
             onClick={() => handleNavClick('contact')}
             className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium tracking-wider uppercase transition-all ${

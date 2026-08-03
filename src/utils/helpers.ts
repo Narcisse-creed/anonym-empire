@@ -1,4 +1,4 @@
-import { AnalyticsData, CartItem, Collection, Notification, Order, Product, QuoteRequest, Review, StoreInfo } from '../types';
+import { AnalyticsData, CartItem, Collection, Notification, Order, Product, QuoteRequest, Review, StoreInfo, SubCategoryLevel1, SubCategoryLevel2 } from '../types';
 import { INITIAL_PRODUCTS } from '../data/products';
 import { INITIAL_COLLECTIONS } from '../data/collections';
 import { STORE_INFO } from '../data/storeInfo';
@@ -11,6 +11,7 @@ const NOTIFICATIONS_STORAGE_KEY = 'anonym_notifications_v1';
 const QUOTE_REQUESTS_STORAGE_KEY = 'anonym_quote_requests_v1';
 const ORDERS_STORAGE_KEY = 'anonym_orders_v1';
 const ANALYTICS_STORAGE_KEY = 'anonym_analytics_v1';
+const ADMIN_PASSWORD_STORAGE_KEY = 'anonym_admin_password_v1';
 
 export function formatPriceFCFA(amount: number): string {
   return new Intl.NumberFormat('fr-FR', { style: 'decimal', maximumFractionDigits: 0 }).format(amount) + ' FCFA';
@@ -163,3 +164,80 @@ export function saveAnalytics(analytics: AnalyticsData): void {
   try { localStorage.setItem(ANALYTICS_STORAGE_KEY, JSON.stringify(analytics)); }
   catch (err) { console.error('Failed to save analytics to localStorage', err); }
 }
+
+export function loadAdminPassword(): string {
+  try {
+    const data = localStorage.getItem(ADMIN_PASSWORD_STORAGE_KEY);
+    if (data) return data;
+  } catch (err) { console.warn('Failed to load admin password from localStorage', err); }
+  return 'anonym2026';
+}
+
+export function saveAdminPassword(password: string): void {
+  try { localStorage.setItem(ADMIN_PASSWORD_STORAGE_KEY, password); }
+  catch (err) { console.error('Failed to save admin password to localStorage', err); }
+}
+
+const ADMIN_LOGGED_IN_KEY = 'anonym_admin_logged_in_v1';
+
+export function loadIsAdminLoggedIn(): boolean {
+  try {
+    return sessionStorage.getItem(ADMIN_LOGGED_IN_KEY) === 'true';
+  } catch (err) {
+    return false;
+  }
+}
+
+export function saveIsAdminLoggedIn(loggedIn: boolean): void {
+  try {
+    if (loggedIn) {
+      sessionStorage.setItem(ADMIN_LOGGED_IN_KEY, 'true');
+    } else {
+      sessionStorage.removeItem(ADMIN_LOGGED_IN_KEY);
+    }
+  } catch (err) {
+    console.error('Failed to save admin login state to sessionStorage', err);
+  }
+}
+
+const SUBCATS_LVL1_STORAGE_KEY = 'anonym_subcategories_lvl1_v1';
+const SUBCATS_LVL2_STORAGE_KEY = 'anonym_subcategories_lvl2_v1';
+
+import { INITIAL_SUBCATEGORIES_LVL1, INITIAL_SUBCATEGORIES_LVL2 } from '../data/categoriesData';
+
+export function loadSubCategoriesLvl1(): SubCategoryLevel1[] {
+  try {
+    const data = localStorage.getItem(SUBCATS_LVL1_STORAGE_KEY);
+    if (data) return JSON.parse(data);
+  } catch (err) {
+    console.warn('Failed to load subcategories lvl1 from localStorage', err);
+  }
+  return INITIAL_SUBCATEGORIES_LVL1;
+}
+
+export function saveSubCategoriesLvl1(list: SubCategoryLevel1[]): void {
+  try {
+    localStorage.setItem(SUBCATS_LVL1_STORAGE_KEY, JSON.stringify(list));
+  } catch (err) {
+    console.error('Failed to save subcategories lvl1 to localStorage', err);
+  }
+}
+
+export function loadSubCategoriesLvl2(): SubCategoryLevel2[] {
+  try {
+    const data = localStorage.getItem(SUBCATS_LVL2_STORAGE_KEY);
+    if (data) return JSON.parse(data);
+  } catch (err) {
+    console.warn('Failed to load subcategories lvl2 from localStorage', err);
+  }
+  return INITIAL_SUBCATEGORIES_LVL2;
+}
+
+export function saveSubCategoriesLvl2(list: SubCategoryLevel2[]): void {
+  try {
+    localStorage.setItem(SUBCATS_LVL2_STORAGE_KEY, JSON.stringify(list));
+  } catch (err) {
+    console.error('Failed to save subcategories lvl2 to localStorage', err);
+  }
+}
+

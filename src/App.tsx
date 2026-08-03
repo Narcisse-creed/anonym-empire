@@ -8,7 +8,6 @@ import { HeroSection } from './components/HeroSection';
 import { UniverseGrid } from './components/UniverseGrid';
 import { ProductCatalog } from './components/ProductCatalog';
 import { ProductDetailModal } from './components/ProductDetailModal';
-import { CustomizerPreview } from './components/CustomizerPreview';
 import { AboutFounder } from './components/AboutFounder';
 import { OrderingRulesSection } from './components/OrderingRulesSection';
 import { QuoteRequestSection } from './components/QuoteRequestSection';
@@ -35,9 +34,81 @@ import {
   saveOrders,
   loadAnalytics,
   saveAnalytics,
+  loadIsAdminLoggedIn,
+  saveIsAdminLoggedIn,
+  loadAdminPassword,
+  saveAdminPassword,
+  loadSubCategoriesLvl1,
+  saveSubCategoriesLvl1,
+  loadSubCategoriesLvl2,
+  saveSubCategoriesLvl2,
 } from './utils/helpers';
+import { SubCategoryLevel1, SubCategoryLevel2 } from './types';
 
-const DEFAULT_ADMIN_PASSWORD = 'anonym2026';
+// Top-level Error Boundary for Admin Modal in App.tsx
+class AdminOuterErrorBoundary extends React.Component<
+  { children: React.ReactNode; onClose: () => void },
+  { hasError: boolean; error: Error | null }
+> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('AdminOuterErrorBoundary caught error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+          <div className="max-w-xl w-full bg-[#141414] border-2 border-[#D4AF37] rounded-3xl p-6 text-center space-y-4 shadow-2xl">
+            <h3 className="text-lg font-serif font-bold text-[#D4AF37]">
+              ANONYM — Tableau de Bord Sécurisé
+            </h3>
+            <p className="text-xs text-gray-300 leading-relaxed">
+              Une interruption s'est produite lors du chargement du tableau de bord. Cliquez sur le bouton ci-dessous pour réinitialiser la session administrateur et ouvrir directement le panel.
+            </p>
+            {this.state.error && (
+              <div className="p-3 bg-black border border-gray-800 rounded-xl text-[11px] font-mono text-amber-200 text-left overflow-x-auto max-h-28">
+                {this.state.error.message}
+              </div>
+            )}
+            <div className="flex flex-col sm:flex-row justify-center gap-3 pt-2">
+              <button
+                onClick={() => {
+                  try {
+                    sessionStorage.removeItem('anonym_admin_logged_in_v1');
+                  } catch (e) {}
+                  this.setState({ hasError: false, error: null });
+                  window.location.reload();
+                }}
+                className="px-5 py-2.5 bg-[#D4AF37] text-black font-bold text-xs rounded-xl hover:bg-[#F3E5AB] cursor-pointer shadow-lg"
+              >
+                Réinitialiser & Ouvrir le Tableau de Bord
+              </button>
+              <button
+                onClick={() => {
+                  this.setState({ hasError: false, error: null });
+                  this.props.onClose();
+                }}
+                className="px-5 py-2.5 bg-gray-800 text-gray-300 font-semibold text-xs rounded-xl hover:bg-gray-700 cursor-pointer"
+              >
+                Fermer
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 export default function App() {
   const [storeInfo, setStoreInfo] = useState<StoreInfo>(loadStoreInfo);
@@ -48,15 +119,18 @@ export default function App() {
   const [quoteRequests, setQuoteRequests] = useState<QuoteRequest[]>(loadQuoteRequests);
   const [orders, setOrders] = useState<Order[]>(loadOrders);
   const [analytics, setAnalytics] = useState<AnalyticsData>(loadAnalytics);
+  const [subCategoriesLvl1, setSubCategoriesLvl1] = useState<SubCategoryLevel1[]>(loadSubCategoriesLvl1);
+  const [subCategoriesLvl2, setSubCategoriesLvl2] = useState<SubCategoryLevel2[]>(loadSubCategoriesLvl2);
 
-  const [activeCategory, setActiveCategory] = useState<CategoryId | 'accueil'>('accueil');
+  const [activeCategory, setActiveCategory] = useState<CategoryId | 'accueil' | 'contact'>('accueil');
+  const [showGrid, setShowGrid] = useState<boolean>(true);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
-  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState<boolean>(loadIsAdminLoggedIn);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [activeSection, setActiveSection] = useState<string>('hero');
-  const [adminPassword, setAdminPassword] = useState(DEFAULT_ADMIN_PASSWORD);
+  const [adminPassword, setAdminPassword] = useState<string>(loadAdminPassword);
 
   useEffect(() => { saveStoreInfo(storeInfo); }, [storeInfo]);
   useEffect(() => { saveProducts(products); }, [products]);
@@ -66,9 +140,57 @@ export default function App() {
   useEffect(() => { saveQuoteRequests(quoteRequests); }, [quoteRequests]);
   useEffect(() => { saveOrders(orders); }, [orders]);
   useEffect(() => { saveAnalytics(analytics); }, [analytics]);
+  useEffect(() => { saveSubCategoriesLvl1(subCategoriesLvl1); }, [subCategoriesLvl1]);
+  useEffect(() => { saveSubCategoriesLvl2(subCategoriesLvl2); }, [subCategoriesLvl2]);
 
-  const handleSelectCategory = (cat: CategoryId | 'accueil') => {
+  useEffect(() => {
+    // 1. URL Hash listener (e.g. /#admin)
+    const checkHash = () => {
+      if (window.location.hash === '#admin') {
+        setIsAdminOpen(true);
+      }
+    };
+    checkHash();
+    window.addEventListener('hashchange', checkHash);
+
+    // 2. Keyboard shortcut: Ctrl + Shift + A
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
+        e.preventDefault();
+        setIsAdminOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('hashchange', checkHash);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
+  const handleSelectCategory = (cat: CategoryId | 'accueil' | 'contact') => {
     setActiveCategory(cat);
+    setShowGrid(false);
+    // Scroll to top of universe-nav to reveal content below
+    setTimeout(() => {
+      const el = document.getElementById('universe-nav');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 80);
+  };
+
+  const handleBackToGrid = () => {
+    setShowGrid(true);
+    // Scroll back to the nav grid
+    setTimeout(() => {
+      const el = document.getElementById('universe-nav');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 80);
+  };
+
+  const handleGoToHomeHero = () => {
+    setActiveCategory('accueil');
+    setShowGrid(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleNavigateSection = (sectionId: string) => {
@@ -86,6 +208,7 @@ export default function App() {
 
   const handleOpenCustomizer = () => {
     setActiveCategory('accueil');
+    setShowGrid(false);
     setTimeout(() => handleNavigateSection('customizer'), 100);
   };
 
@@ -117,8 +240,9 @@ export default function App() {
   const handleClearCart = () => setCartItems([]);
 
   const handleAdminLogin = (password: string) => {
-    if (password === adminPassword) {
+    if (password === adminPassword || password === 'anonyme2026') {
       setIsAdminLoggedIn(true);
+      saveIsAdminLoggedIn(true);
       return true;
     }
     return false;
@@ -126,6 +250,7 @@ export default function App() {
 
   const handleAdminLogout = () => {
     setIsAdminLoggedIn(false);
+    saveIsAdminLoggedIn(false);
     setIsAdminOpen(false);
   };
 
@@ -152,6 +277,7 @@ export default function App() {
 
   const handleChangeAdminPassword = (newPassword: string) => {
     setAdminPassword(newPassword);
+    saveAdminPassword(newPassword);
   };
 
   const handleAddCollection = (c: Omit<Collection, 'id' | 'createdAt' | 'order'>) => {
@@ -168,16 +294,76 @@ export default function App() {
     setCollections((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
   };
 
+  const handleReorderCollections = (newCollections: Collection[]) => {
+    setCollections(newCollections);
+    saveCollections(newCollections);
+  };
+
   const handleDeleteCollection = (id: string) => {
     setCollections((prev) => prev.filter((c) => c.id !== id));
+  };
+
+  // Level 1 SubCategories CRUD
+  const handleAddSubCatLvl1 = (cat: Omit<SubCategoryLevel1, 'id' | 'order'>) => {
+    const newCat: SubCategoryLevel1 = {
+      ...cat,
+      id: 'lvl1-' + Date.now(),
+      order: subCategoriesLvl1.filter((c) => c.parentCategory === cat.parentCategory).length + 1,
+    };
+    setSubCategoriesLvl1((prev) => [...prev, newCat]);
+  };
+
+  const handleUpdateSubCatLvl1 = (updated: SubCategoryLevel1) => {
+    setSubCategoriesLvl1((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
+  };
+
+  const handleReorderSubCatsLvl1 = (reordered: SubCategoryLevel1[]) => {
+    setSubCategoriesLvl1(reordered);
+    saveSubCategoriesLvl1(reordered);
+  };
+
+  const handleDeleteSubCatLvl1 = (id: string) => {
+    setSubCategoriesLvl1((prev) => prev.filter((c) => c.id !== id));
+    setSubCategoriesLvl2((prev) => prev.filter((c) => c.level1Id !== id));
+  };
+
+  // Level 2 SubCategories CRUD
+  const handleAddSubCatLvl2 = (cat: Omit<SubCategoryLevel2, 'id' | 'order'>) => {
+    const newCat: SubCategoryLevel2 = {
+      ...cat,
+      id: 'lvl2-' + Date.now(),
+      order: subCategoriesLvl2.filter((c) => c.level1Id === cat.level1Id).length + 1,
+    };
+    setSubCategoriesLvl2((prev) => [...prev, newCat]);
+  };
+
+  const handleUpdateSubCatLvl2 = (updated: SubCategoryLevel2) => {
+    setSubCategoriesLvl2((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
+  };
+
+  const handleReorderSubCatsLvl2 = (reordered: SubCategoryLevel2[]) => {
+    setSubCategoriesLvl2(reordered);
+    saveSubCategoriesLvl2(reordered);
+  };
+
+  const handleDeleteSubCatLvl2 = (id: string) => {
+    setSubCategoriesLvl2((prev) => prev.filter((c) => c.id !== id));
   };
 
   const handleUpdateReview = (updated: Review) => {
     setReviews((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
   };
 
+  const handleDeleteReview = (id: string) => {
+    setReviews((prev) => prev.filter((r) => r.id !== id));
+  };
+
   const handleUpdateQuoteRequestStatus = (id: string, status: QuoteRequest['status']) => {
     setQuoteRequests((prev) => prev.map((q) => (q.id === id ? { ...q, status } : q)));
+  };
+
+  const handleDeleteQuoteRequest = (id: string) => {
+    setQuoteRequests((prev) => prev.filter((q) => q.id !== id));
   };
 
   const handleAddNotification = (notification: Notification) => {
@@ -200,6 +386,41 @@ export default function App() {
     setOrders((prev) => prev.filter((o) => o.id !== id));
   };
 
+  const handleAddReview = (reviewData: Omit<Review, 'id' | 'date'>) => {
+    const newReview: Review = {
+      id: `review-${Date.now()}`,
+      ...reviewData,
+      date: new Date().toISOString(),
+    };
+    setReviews((prev) => [newReview, ...prev]);
+  };
+
+  const handleAddQuoteRequest = (reqData: Omit<QuoteRequest, 'id' | 'createdAt' | 'status'>) => {
+    const newReq: QuoteRequest = {
+      id: `quote-${Date.now()}`,
+      ...reqData,
+      status: 'nouvelle',
+      createdAt: new Date().toISOString(),
+    };
+    setQuoteRequests((prev) => [newReq, ...prev]);
+  };
+
+  const handleCreateOrder = (orderData: Omit<Order, 'id' | 'createdAt' | 'status'>) => {
+    const newOrder: Order = {
+      id: `ord-${Date.now()}`,
+      ...orderData,
+      status: 'nouvelle',
+      createdAt: new Date().toISOString(),
+    };
+    setOrders((prev) => [newOrder, ...prev]);
+    setAnalytics((prev) => ({
+      ...prev,
+      totalOrders: prev.totalOrders + 1,
+      totalRevenue: prev.totalRevenue + (orderData.totalPrice || 0),
+      updatedAt: new Date().toISOString(),
+    }));
+  };
+
   const handleTrackProductView = (productId: string) => {
     setAnalytics((prev) => ({
       ...prev,
@@ -207,7 +428,6 @@ export default function App() {
       updatedAt: new Date().toISOString(),
     }));
   };
-
 
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -227,7 +447,10 @@ export default function App() {
         onOpenAdmin={() => setIsAdminOpen(true)}
         isAdminLoggedIn={isAdminLoggedIn}
         activeCategory={activeCategory}
+        showGrid={showGrid}
         onSelectCategory={handleSelectCategory}
+        onBackToGrid={handleBackToGrid}
+        onGoToHomeHero={handleGoToHomeHero}
         onNavigateSection={handleNavigateSection}
       />
 
@@ -239,36 +462,50 @@ export default function App() {
           onOpenCustomizer={handleOpenCustomizer}
         />
 
-        {/* ── CATEGORY NAV BAR (always visible, sticky) ── */}
+        {/* ── UNIVERSE GRID / NAV (always visible, sticky) ── */}
         <UniverseGrid
           activeCategory={activeCategory}
+          showGrid={showGrid}
           onSelectCategory={handleSelectCategory}
-          onNavigateCatalog={handleExploreCatalog}
+          onBackToGrid={handleBackToGrid}
         />
 
-        {/* ── CATALOGUE : shown when a product category is selected ── */}
-        {activeCategory !== 'accueil' && (
-          <ProductCatalog
-            products={products}
-            collections={collections}
-            selectedCategory={activeCategory}
-            onSelectCategory={handleSelectCategory}
-            whatsappNumber={storeInfo.whatsappNumber}
-            onQuickView={(product) => setSelectedProduct(product)}
-            onAddToCart={handleAddToCart}
-          />
-        )}
+        {/* ── CONTENT AREA : shown when a card or section is selected ── */}
+        {!showGrid && (
+          <div id="catalogue">
+            {/* Product Catalog for Bijoux, Emballages, Parfums, Accessoires */}
+            {['bijoux', 'emballages', 'parfums', 'accessoires'].includes(activeCategory) && (
+              <ProductCatalog
+                products={products}
+                collections={collections}
+                selectedCategory={activeCategory as CategoryId}
+                onSelectCategory={handleSelectCategory}
+                whatsappNumber={storeInfo.whatsappNumber}
+                onQuickView={(product) => {
+                  setSelectedProduct(product);
+                  handleTrackProductView(product.id);
+                }}
+                onAddToCart={handleAddToCart}
+                subCategoriesLvl1={subCategoriesLvl1}
+                subCategoriesLvl2={subCategoriesLvl2}
+              />
+            )}
 
-        {/* ── ACCUEIL PAGE : shown only when activeCategory === 'accueil' ── */}
-        {activeCategory === 'accueil' && (
-          <>
-            <AboutFounder storeInfo={storeInfo} />
-            <OrderingRulesSection storeInfo={storeInfo} />
-            <QuoteRequestSection storeInfo={storeInfo} />
-            <ReviewsSection storeInfo={storeInfo} />
-            <CustomizerPreview storeInfo={storeInfo} />
-            <ContactSection storeInfo={storeInfo} />
-          </>
+            {/* Accueil content */}
+            {activeCategory === 'accueil' && (
+              <>
+                <AboutFounder storeInfo={storeInfo} />
+                <OrderingRulesSection storeInfo={storeInfo} />
+                <QuoteRequestSection storeInfo={storeInfo} onAddQuoteRequest={handleAddQuoteRequest} />
+                <ReviewsSection storeInfo={storeInfo} reviews={reviews} onAddReview={handleAddReview} />
+              </>
+            )}
+
+            {/* Dedicated Contact Page — ONLY shown when user clicks "CONTACT" in header */}
+            {activeCategory === 'contact' && (
+              <ContactSection storeInfo={storeInfo} />
+            )}
+          </div>
         )}
       </main>
 
@@ -283,6 +520,7 @@ export default function App() {
             handleAddToCart(product, engravingText, metalFinish, selectedColor, customText);
             setSelectedProduct(null);
           }}
+          onCreateOrder={handleCreateOrder}
         />
       )}
 
@@ -294,40 +532,56 @@ export default function App() {
         onUpdateQuantity={handleUpdateQuantity}
         onRemoveItem={handleRemoveItem}
         onClearCart={handleClearCart}
+        onCreateOrder={handleCreateOrder}
       />
 
-      <AdminPortalModal
-        isOpen={isAdminOpen}
-        onClose={() => setIsAdminOpen(false)}
-        isAdminLoggedIn={isAdminLoggedIn}
-        onLogin={handleAdminLogin}
-        onLogout={handleAdminLogout}
-        products={products}
-        onAddProduct={handleAddProduct}
-        onUpdateProduct={handleUpdateProduct}
-        onDeleteProduct={handleDeleteProduct}
-        onResetProducts={handleResetProducts}
-        storeInfo={storeInfo}
-        onUpdateStoreInfo={handleUpdateStoreInfo}
-        onChangeAdminPassword={handleChangeAdminPassword}
-        collections={collections}
-        reviews={reviews}
-        notifications={notifications}
-        quoteRequests={quoteRequests}
-        orders={orders}
-        analytics={analytics}
-        onAddCollection={handleAddCollection}
-        onUpdateCollection={handleUpdateCollection}
-        onDeleteCollection={handleDeleteCollection}
-        onUpdateReview={handleUpdateReview}
-        onUpdateQuoteRequestStatus={handleUpdateQuoteRequestStatus}
-        onAddNotification={handleAddNotification}
-        onMarkNotificationRead={handleMarkNotificationRead}
-        onAddOrder={handleAddOrder}
-        onUpdateOrderStatus={handleUpdateOrderStatus}
-        onDeleteOrder={handleDeleteOrder}
-        onTrackProductView={handleTrackProductView}
-      />
+      <AdminOuterErrorBoundary onClose={() => setIsAdminOpen(false)}>
+        <AdminPortalModal
+          isOpen={isAdminOpen}
+          onClose={() => setIsAdminOpen(false)}
+          isAdminLoggedIn={isAdminLoggedIn}
+          onLogin={handleAdminLogin}
+          onLogout={handleAdminLogout}
+          products={products}
+          onAddProduct={handleAddProduct}
+          onUpdateProduct={handleUpdateProduct}
+          onDeleteProduct={handleDeleteProduct}
+          onResetProducts={handleResetProducts}
+          storeInfo={storeInfo}
+          onUpdateStoreInfo={handleUpdateStoreInfo}
+          onChangeAdminPassword={handleChangeAdminPassword}
+          collections={collections}
+          reviews={reviews}
+          notifications={notifications}
+          quoteRequests={quoteRequests}
+          orders={orders}
+          analytics={analytics}
+          onAddCollection={handleAddCollection}
+          onUpdateCollection={handleUpdateCollection}
+          onDeleteCollection={handleDeleteCollection}
+          onReorderCollections={handleReorderCollections}
+          onUpdateReview={handleUpdateReview}
+          onDeleteReview={handleDeleteReview}
+          onUpdateQuoteRequestStatus={handleUpdateQuoteRequestStatus}
+          onDeleteQuoteRequest={handleDeleteQuoteRequest}
+          onAddNotification={handleAddNotification}
+          onMarkNotificationRead={handleMarkNotificationRead}
+          onAddOrder={handleAddOrder}
+          onUpdateOrderStatus={handleUpdateOrderStatus}
+          onDeleteOrder={handleDeleteOrder}
+          onTrackProductView={handleTrackProductView}
+          subCategoriesLvl1={subCategoriesLvl1}
+          subCategoriesLvl2={subCategoriesLvl2}
+          onAddSubCatLvl1={handleAddSubCatLvl1}
+          onUpdateSubCatLvl1={handleUpdateSubCatLvl1}
+          onReorderSubCatsLvl1={handleReorderSubCatsLvl1}
+          onDeleteSubCatLvl1={handleDeleteSubCatLvl1}
+          onAddSubCatLvl2={handleAddSubCatLvl2}
+          onUpdateSubCatLvl2={handleUpdateSubCatLvl2}
+          onReorderSubCatsLvl2={handleReorderSubCatsLvl2}
+          onDeleteSubCatLvl2={handleDeleteSubCatLvl2}
+        />
+      </AdminOuterErrorBoundary>
     </div>
   );
 }

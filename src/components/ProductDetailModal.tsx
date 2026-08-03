@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Product, MetalFinish } from '../types';
+import { Product, MetalFinish, Order } from '../types';
 import {
   formatPriceFCFA,
   generateSingleProductWhatsAppMsg,
@@ -31,6 +31,7 @@ interface ProductDetailModalProps {
     selectedColor?: string,
     customText?: string
   ) => void;
+  onCreateOrder?: (orderData: Omit<Order, 'id' | 'createdAt' | 'status'>) => void;
 }
 
 export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
@@ -38,6 +39,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   onClose,
   whatsappNumber,
   onAddToCart,
+  onCreateOrder,
 }) => {
   if (!product) return null;
 
@@ -117,6 +119,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
             mainImage={product.imageUrl}
             images={product.images}
             altText={product.name}
+            category={product.category}
           />
 
           {/* Ref Code */}
@@ -421,6 +424,23 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                 href={isEpuise ? undefined : whatsappUrl}
                 target={isEpuise ? undefined : '_blank'}
                 rel="noopener noreferrer"
+                onClick={() => {
+                  if (!isEpuise && onCreateOrder && product) {
+                    onCreateOrder({
+                      productId: product.id,
+                      productName: product.name,
+                      productRefCode: product.refCode,
+                      customerName: 'Client WhatsApp',
+                      customerPhone: '',
+                      quantity,
+                      customizationNotes: engravingText || undefined,
+                      metalFinish: selectedFinish || undefined,
+                      selectedColor: selectedColor || undefined,
+                      customText: customText || undefined,
+                      totalPrice: product.price * quantity,
+                    });
+                  }
+                }}
                 className={`inline-flex items-center justify-center gap-2 font-bold text-xs uppercase tracking-wider py-3 px-4 rounded-xl shadow-lg transition-all text-center ${
                   isEpuise
                     ? 'bg-gray-800 text-gray-500 cursor-not-allowed pointer-events-none'

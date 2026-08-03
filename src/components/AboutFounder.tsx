@@ -1,14 +1,42 @@
-import React from 'react';
-import { motion } from 'motion/react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { StoreInfo } from '../types';
 import { CrownLogo } from './CrownLogo';
-import { Sparkles, CheckCircle2, Clock, Award, Shield, PhoneCall } from 'lucide-react';
+import { Sparkles, CheckCircle2, Clock, Award, Shield, PhoneCall, ChevronLeft, ChevronRight } from 'lucide-react';
+import { FOUNDER_SLIDES } from '../data/founderMedia';
 
 interface AboutFounderProps {
   storeInfo: StoreInfo;
 }
 
 export const AboutFounder: React.FC<AboutFounderProps> = ({ storeInfo }) => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [direction, setDirection] = useState(1);
+
+  const goTo = useCallback((idx: number) => {
+    setDirection(idx > currentSlide ? 1 : -1);
+    setCurrentSlide(idx);
+  }, [currentSlide]);
+
+  const goPrev = () => {
+    const prev = (currentSlide - 1 + FOUNDER_SLIDES.length) % FOUNDER_SLIDES.length;
+    setDirection(-1);
+    setCurrentSlide(prev);
+  };
+
+  const goNext = useCallback(() => {
+    const next = (currentSlide + 1) % FOUNDER_SLIDES.length;
+    setDirection(1);
+    setCurrentSlide(next);
+  }, [currentSlide]);
+
+  // Auto-play every 4 seconds
+  useEffect(() => {
+    const timer = setInterval(goNext, 4000);
+    return () => clearInterval(timer);
+  }, [goNext]);
+
+  const slide = FOUNDER_SLIDES[currentSlide];
 
   return (
     <section id="about" className="py-20 bg-[#080808] text-white relative border-b border-[#D4AF37]/20 overflow-hidden">
@@ -47,46 +75,84 @@ export const AboutFounder: React.FC<AboutFounderProps> = ({ storeInfo }) => {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           
-          {/* Left Column: Single Fixed Founder Photo — §28bis: no carousel, no arrows */}
+          {/* Left Column: Founder Photo CAROUSEL (§5 — 3 images cycling, single frame, arrows + auto-play) */}
           <div className="lg:col-span-5 relative">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
-              className="relative rounded-3xl overflow-hidden border-2 border-[#D4AF37]/50 p-2 bg-[#121212] shadow-[0_0_50px_rgba(212,175,55,0.25)] group"
+              className="relative rounded-3xl overflow-hidden border-2 border-[#D4AF37]/50 p-2 bg-[#121212] shadow-[0_0_50px_rgba(212,175,55,0.25)]"
             >
               <div className="aspect-[3/4] relative rounded-2xl overflow-hidden bg-black">
-                {/* Static founder photo — Ken Burns hover effect only */}
-                <img
-                  src="/images/lizie-black-outfit.jpg"
-                  alt="Lizie Fifamè ALLATIN — Fondatrice & CEO ANONYM"
-                  referrerPolicy="no-referrer"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src =
-                      'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?q=80&w=1200&auto=format&fit=crop';
-                  }}
-                  className="w-full h-full object-cover object-top filter saturate-[1.05] transform scale-100 group-hover:scale-105 transition-transform duration-1000 ease-out"
-                />
 
-                {/* Dark Vignette Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent pointer-events-none" />
+                {/* Cycling images — AnimatePresence for smooth cross-fade */}
+                <AnimatePresence initial={false} custom={direction} mode="wait">
+                  <motion.img
+                    key={slide.id}
+                    custom={direction}
+                    initial={{ opacity: 0, x: direction * 40 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: direction * -40 }}
+                    transition={{ duration: 0.55, ease: 'easeInOut' }}
+                    src={slide.imageUrl}
+                    alt={slide.title}
+                    referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src =
+                        'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?q=80&w=1200&auto=format&fit=crop';
+                    }}
+                    className="absolute inset-0 w-full h-full object-cover object-top filter saturate-[1.05]"
+                  />
+                </AnimatePresence>
 
-                {/* Fixed Badge */}
-                <div className="absolute top-4 left-4 px-3 py-1 rounded-full bg-black/80 backdrop-blur-md border border-[#D4AF37]/40 text-[#D4AF37] text-xs font-mono font-bold">
-                  Fondatrice &amp; Visionnaire
+                {/* Dark Vignette */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent pointer-events-none z-10" />
+
+                {/* Slide Badge */}
+                <div className="absolute top-4 left-4 z-20 px-3 py-1 rounded-full bg-black/80 backdrop-blur-md border border-[#D4AF37]/40 text-[#D4AF37] text-xs font-mono font-bold">
+                  {slide.badge}
                 </div>
 
-                {/* Bottom Overlay Info */}
-                <div className="absolute bottom-4 left-4 right-4 p-4 rounded-2xl bg-black/85 backdrop-blur-md border border-[#D4AF37]/40 text-center space-y-1 shadow-xl">
+                {/* Dot indicators */}
+                <div className="absolute top-4 right-4 z-20 flex gap-1.5">
+                  {FOUNDER_SLIDES.map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => goTo(i)}
+                      className={`w-2 h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                        i === currentSlide ? 'bg-[#D4AF37] scale-125' : 'bg-white/40 hover:bg-white/70'
+                      }`}
+                    />
+                  ))}
+                </div>
+
+                {/* Prev / Next arrows */}
+                <button
+                  onClick={goPrev}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-black/70 backdrop-blur-sm border border-[#D4AF37]/40 flex items-center justify-center text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black transition-all cursor-pointer shadow-lg"
+                  aria-label="Image précédente"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={goNext}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-black/70 backdrop-blur-sm border border-[#D4AF37]/40 flex items-center justify-center text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black transition-all cursor-pointer shadow-lg"
+                  aria-label="Image suivante"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+
+                {/* Bottom Info Overlay */}
+                <div className="absolute bottom-4 left-4 right-4 z-20 p-4 rounded-2xl bg-black/85 backdrop-blur-md border border-[#D4AF37]/40 text-center space-y-1 shadow-xl">
                   <span className="font-serif font-bold text-base sm:text-lg text-[#F3E5AB] block">
-                    Lizie Fifamè ALLATIN
+                    {slide.title}
                   </span>
                   <span className="text-xs font-sans text-amber-200/90 block">
-                    Fondatrice, Créatrice &amp; Directrice Artistique
+                    {slide.subtitle}
                   </span>
                   <p className="text-[11px] text-gray-300 font-sans italic line-clamp-2 pt-1 border-t border-gray-800/80 mt-1">
-                    "Inspirée par l'excellence et le prestige, ANONYM immortalise vos histoires."
+                    « {slide.description} »
                   </p>
                 </div>
               </div>
@@ -172,68 +238,6 @@ export const AboutFounder: React.FC<AboutFounderProps> = ({ storeInfo }) => {
 
                 <div className="shrink-0">
                   <CrownLogo size="sm" showText={false} />
-                </div>
-              </div>
-
-              {/* Galerie de Réalisations Passées (Preuve Sociale & Confiance) */}
-              <div className="pt-6 border-t border-[#D4AF37]/20">
-                <div className="flex items-center justify-between mb-4">
-                  <h4 className="text-base font-serif font-bold text-white flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-[#D4AF37]" />
-                    <span>Réalisations Passées & Exemples de Gravures</span>
-                  </h4>
-                  <span className="text-[10px] text-[#D4AF37] font-mono font-bold uppercase bg-[#1A160C] px-2.5 py-1 rounded-full border border-[#D4AF37]/30">
-                    100% Photos Réelles
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {[
-                    {
-                      title: 'Collier Prénom Double Gravure',
-                      tag: 'Bijoux Femme',
-                      img: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?q=80&w=400&auto=format&fit=crop',
-                    },
-                    {
-                      title: 'Gourmette Homme Gravée',
-                      tag: 'Bijoux Homme',
-                      img: 'https://images.unsplash.com/photo-1611591475155-4284fa2893ab?q=80&w=400&auto=format&fit=crop',
-                    },
-                    {
-                      title: 'Coffret Prestige Sur-Mesure',
-                      tag: 'Emballage Luxe',
-                      img: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?q=80&w=400&auto=format&fit=crop',
-                    },
-                    {
-                      title: 'Flacon Olfactif d\'Exception',
-                      tag: 'ANONYM',
-                      img: 'https://images.unsplash.com/photo-1541643600914-78b084683601?q=80&w=400&auto=format&fit=crop',
-                    },
-                  ].map((item, idx) => (
-                    <div
-                      key={idx}
-                      className="group relative rounded-xl overflow-hidden bg-black border border-gray-800 hover:border-[#D4AF37]/60 transition-all aspect-square cursor-pointer shadow-md"
-                    >
-                      <img
-                        src={item.img}
-                        alt={item.title}
-                        referrerPolicy="no-referrer"
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src =
-                            'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?q=80&w=400&auto=format&fit=crop';
-                        }}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent p-2.5 flex flex-col justify-end">
-                        <span className="text-[9px] font-mono text-[#F3E5AB] font-bold uppercase block">
-                          {item.tag}
-                        </span>
-                        <span className="text-[11px] font-serif font-bold text-white line-clamp-1">
-                          {item.title}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
                 </div>
               </div>
 

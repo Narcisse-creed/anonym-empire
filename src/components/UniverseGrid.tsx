@@ -1,189 +1,246 @@
 import React from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { UNIVERSE_CATEGORIES } from '../data/categories';
 import { CategoryId } from '../types';
-import { Home, Gem, Sparkles, Package, ShoppingBag } from 'lucide-react';
+import { Home, Gem, Sparkles, Package, ShoppingBag, ChevronLeft, ShieldCheck, Award, Truck } from 'lucide-react';
 
 interface UniverseGridProps {
   activeCategory: CategoryId | 'accueil';
+  showGrid: boolean;
   onSelectCategory: (cat: CategoryId | 'accueil') => void;
-  onNavigateCatalog: () => void;
+  onBackToGrid: () => void;
 }
+
+// Rich media per card
+const CARD_MEDIA: Record<string, { image: string; desc: string; itemCount?: number }> = {
+  accueil: {
+    image: '/images/lizie-white-suit.jpg',
+    desc: 'Maison de Création & Direction',
+  },
+  bijoux: {
+    image: '/images/products/model-001.jpg',
+    desc: 'Colliers, bracelets, bagues & manchettes personnalisés',
+    itemCount: 211,
+  },
+  emballages: {
+    image: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?q=80&w=800&auto=format&fit=crop',
+    desc: 'Coffrets, boîtes & packaging professionnel de prestige',
+    itemCount: 8,
+  },
+  parfums: {
+    image: 'https://images.unsplash.com/photo-1541643600914-78b084683601?q=80&w=800&auto=format&fit=crop',
+    desc: "L'univers olfactif ANONYM INVITATION",
+    itemCount: 6,
+  },
+  accessoires: {
+    image: 'https://images.unsplash.com/photo-1627123424574-724758594e93?q=80&w=800&auto=format&fit=crop',
+    desc: 'Verres, tasses, stylos & objets de marque sur-mesure',
+    itemCount: 12,
+  },
+};
+
+const getIconLarge = (iconName: string) => {
+  const cls = 'w-7 h-7 text-[#D4AF37]';
+  switch (iconName) {
+    case 'Gem':      return <Gem className={cls} />;
+    case 'Sparkles': return <Sparkles className={cls} />;
+    case 'Package':  return <Package className={cls} />;
+    case 'KeyRound': return <ShoppingBag className={cls} />;
+    default:         return <Gem className={cls} />;
+  }
+};
+
+// All 5 items definition
+const ALL_ITEMS = [
+  {
+    id: 'accueil' as const,
+    title: 'À PROPOS',
+    subtitle: 'Maison de Création & Direction',
+    iconName: 'Home',
+  },
+  ...UNIVERSE_CATEGORIES.map((cat) => ({
+    id: cat.id,
+    title: cat.title.toUpperCase(),
+    subtitle: cat.subtitle,
+    iconName: cat.iconName,
+  })),
+];
 
 export const UniverseGrid: React.FC<UniverseGridProps> = ({
   activeCategory,
+  showGrid,
   onSelectCategory,
-  onNavigateCatalog,
+  onBackToGrid,
 }) => {
-  const getIcon = (iconName: string) => {
-    switch (iconName) {
-      case 'Gem':
-        return <Gem className="w-4 h-4 sm:w-5 sm:h-5 text-[#D4AF37]" />;
-      case 'Sparkles':
-        return <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-[#D4AF37]" />;
-      case 'Package':
-        return <Package className="w-4 h-4 sm:w-5 sm:h-5 text-[#D4AF37]" />;
-      case 'KeyRound':
-        return <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5 text-[#D4AF37]" />;
-      default:
-        return <Gem className="w-4 h-4 sm:w-5 sm:h-5 text-[#D4AF37]" />;
-    }
-  };
-
-  const handleCategoryClick = (id: CategoryId | 'accueil') => {
-    onSelectCategory(id);
-    if (id === 'accueil') {
-      const el = document.getElementById('hero');
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
-    } else {
-      onNavigateCatalog();
-      const el = document.getElementById('catalogue');
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
-  // Build 5 Items: ACCUEIL + 4 CATEGORIES
-  const items = [
-    {
-      id: 'accueil' as const,
-      title: 'ACCUEIL',
-      icon: <Home className="w-4 h-4 sm:w-5 sm:h-5 text-[#D4AF37]" />,
-    },
-    ...UNIVERSE_CATEGORIES.map((cat) => ({
-      id: cat.id,
-      title: cat.title.toUpperCase(),
-      icon: getIcon(cat.iconName),
-    })),
-  ];
-
-  // Images for rich visual cards (Section 27)
-  const categoryMedia: Record<string, { image: string; desc: string }> = {
-    accueil: {
-      image: '/images/lizie-white-suit.jpg',
-      desc: 'Maison de Création & Direction',
-    },
-    bijoux: {
-      image: '/images/products/model-001.jpg',
-      desc: 'Colliers, bracelets, bagues & manchettes personnalisés',
-    },
-    emballages: {
-      image: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?q=80&w=800&auto=format&fit=crop',
-      desc: 'Coffrets, boîtes & packaging professionnel de prestige',
-    },
-    parfums: {
-      image: 'https://images.unsplash.com/photo-1541643600914-78b084683601?q=80&w=800&auto=format&fit=crop',
-      desc: 'L\'univers olfactif ANONYM INVITATION',
-    },
-    accessoires: {
-      image: 'https://images.unsplash.com/photo-1627123424574-724758594e93?q=80&w=800&auto=format&fit=crop',
-      desc: 'Verres, tasses, stylos & objets de marque sur-mesure',
-    },
-  };
+  const activeItem = ALL_ITEMS.find((i) => i.id === activeCategory);
 
   return (
-    <>
-      {/* Sticky Compact 1-Row Navigation Bar (Section 6a / Requirement 1) */}
-      <section className="py-4 bg-[#0A0A0A] border-y border-[#D4AF37]/30 sticky top-20 z-30 shadow-2xl backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-1.5 sm:px-4">
-          <div className="grid grid-cols-5 gap-1 sm:gap-2.5">
-            {items.map((item) => {
-              const isSelected = activeCategory === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => handleCategoryClick(item.id)}
-                  className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 py-2 sm:py-3 px-1 sm:px-3 rounded-xl transition-all cursor-pointer border ${
-                    isSelected
-                      ? 'bg-gradient-to-b from-[#221B0B] to-[#121212] border-[#D4AF37] text-[#D4AF37] shadow-[0_0_15px_rgba(212,175,55,0.35)] ring-1 ring-[#D4AF37]'
-                      : 'bg-[#121212] border-gray-800 text-gray-300 hover:border-[#D4AF37]/50 hover:text-[#D4AF37] hover:bg-[#181818]'
-                  }`}
-                >
-                  <span className="shrink-0 p-1 rounded-full bg-black/60 border border-[#D4AF37]/30">
-                    {item.icon}
-                  </span>
-                  <span className="text-[10px] sm:text-xs font-serif font-bold tracking-wider uppercase text-center sm:text-left truncate">
-                    {item.title}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Rich Visual Vertical Category Showcase Cards (Section 27 - Aesthetic Upgrade) */}
-      {activeCategory === 'accueil' && (
-        <section className="py-12 bg-[#060606] text-white border-b border-[#D4AF37]/20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center max-w-3xl mx-auto mb-10">
-              <span className="text-[11px] font-mono text-[#D4AF37] font-bold uppercase tracking-widest block mb-2">
-                NOS UNIVERS DE PERSONNALISATION
-              </span>
-              <h2 className="text-2xl sm:text-4xl font-serif font-bold text-white tracking-tight">
-                Découvrez nos catégories d'articles
-              </h2>
-              <div className="w-16 h-0.5 bg-[#D4AF37] mx-auto mt-3" />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {UNIVERSE_CATEGORIES.map((cat) => {
-                const media = categoryMedia[cat.id] || { image: cat.image, desc: cat.description };
+    <section
+      id="universe-nav"
+      className="bg-[#080808] border-b border-[#D4AF37]/20 sticky top-20 z-30 shadow-2xl backdrop-blur-md"
+    >
+      <AnimatePresence mode="wait">
+        {showGrid ? (
+          /* ── GRID VIEW : 5 large visual cards ── */
+          <motion.div
+            key="grid"
+            initial={{ opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.3, ease: 'easeOut' }}
+            className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-4 space-y-4 sm:space-y-5"
+          >
+            {/* ── §4 CRITICAL MANDATORY REQUIREMENT: 5 cards ALWAYS aligned horizontally on 1 single line on ALL devices (flex flex-nowrap overflow-x-auto, NO vertical stack/wrap allowed) ── */}
+            <div className="flex flex-nowrap overflow-x-auto overflow-y-hidden gap-3 sm:gap-4 pb-3 scrollbar-thin scrollbar-thumb-[#D4AF37]/50 scrollbar-track-black/60 items-stretch snap-x snap-mandatory">
+              {ALL_ITEMS.map((item, idx) => {
+                const media = CARD_MEDIA[item.id] || { image: '', desc: '' };
                 return (
-                  <div
-                    key={cat.id}
-                    onClick={() => handleCategoryClick(cat.id)}
-                    className="group relative rounded-2xl overflow-hidden border border-[#D4AF37]/40 hover:border-[#D4AF37] bg-[#0F0F0F] transition-all duration-300 transform hover:-translate-y-1.5 cursor-pointer shadow-xl flex flex-col justify-end min-h-[320px] sm:min-h-[360px]"
+                  <motion.button
+                    key={item.id}
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.35, delay: idx * 0.06 }}
+                    onClick={() => onSelectCategory(item.id)}
+                    className="group relative rounded-2xl overflow-hidden border border-[#D4AF37]/30 hover:border-[#D4AF37] bg-[#0F0F0F] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(212,175,55,0.3)] cursor-pointer flex flex-col justify-end min-h-[210px] sm:min-h-[230px] lg:min-h-[260px] min-w-[170px] sm:min-w-[190px] md:min-w-0 md:flex-1 shrink-0 snap-start focus:outline-none"
+                    aria-label={`Ouvrir la section ${item.title}`}
                   >
-                    {/* Background Image */}
+                    {/* Background image */}
                     <img
                       src={media.image}
-                      alt={cat.title}
+                      alt={item.title}
                       referrerPolicy="no-referrer"
-                      className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 opacity-70 group-hover:opacity-85"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src =
                           'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?q=80&w=800&auto=format&fit=crop';
                       }}
+                      className="absolute inset-0 w-full h-full object-cover object-center opacity-55 group-hover:opacity-75 group-hover:scale-105 transition-all duration-700"
                     />
 
-                    {/* Gradient Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
+                    {/* Gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/55 to-transparent" />
 
                     {/* Item count badge */}
-                    <span className="absolute top-4 right-4 bg-black/80 text-[#D4AF37] text-[10px] font-mono font-bold px-3 py-1 rounded-full border border-[#D4AF37]/40 backdrop-blur-sm shadow">
-                      {cat.itemCount} Modèles
-                    </span>
+                    {media.itemCount !== undefined && (
+                      <span className="absolute top-3 right-3 bg-black/80 text-[#D4AF37] text-[9px] font-mono font-bold px-2.5 py-1 rounded-full border border-[#D4AF37]/40 backdrop-blur-sm">
+                        {media.itemCount} Modèles
+                      </span>
+                    )}
 
-                    {/* Content Card Body */}
-                    <div className="relative z-10 p-6 space-y-2 text-center flex flex-col items-center">
-                      {/* Icon in gold circle */}
-                      <div className="w-12 h-12 rounded-full bg-black/80 border-2 border-[#D4AF37] flex items-center justify-center shadow-[0_0_15px_rgba(212,175,55,0.4)] mb-1 group-hover:scale-110 transition-transform">
-                        {getIcon(cat.iconName)}
+                    {/* Card body */}
+                    <div className="relative z-10 p-4 sm:p-5 flex flex-col items-center text-center space-y-2">
+                      {/* Icon circle */}
+                      <div className="w-11 h-11 rounded-full bg-black/80 border-2 border-[#D4AF37] flex items-center justify-center shadow-[0_0_14px_rgba(212,175,55,0.45)] group-hover:scale-110 transition-transform duration-300">
+                        {item.id === 'accueil'
+                          ? <Home className="w-5 h-5 text-[#D4AF37]" />
+                          : getIconLarge(item.iconName)}
                       </div>
 
                       {/* Title */}
-                      <h3 className="text-xl font-serif font-bold text-white tracking-wider uppercase group-hover:text-[#D4AF37] transition-colors">
-                        {cat.title}
+                      <h3 className="text-sm sm:text-base font-serif font-bold text-white tracking-widest uppercase group-hover:text-[#D4AF37] transition-colors leading-tight">
+                        {item.title}
                       </h3>
 
-                      {/* Gold Separator Line */}
-                      <div className="w-10 h-0.5 bg-[#D4AF37]/60 group-hover:w-16 transition-all duration-300" />
+                      {/* Gold separator */}
+                      <div className="w-8 h-[1.5px] bg-[#D4AF37]/50 group-hover:w-14 transition-all duration-300 rounded-full" />
 
-                      {/* Short Description */}
-                      <p className="text-xs text-gray-300 font-sans line-clamp-2 leading-relaxed max-w-xs">
+                      {/* Description */}
+                      <p className="text-[10px] sm:text-xs text-gray-400 font-sans line-clamp-2 leading-relaxed max-w-[150px]">
                         {media.desc}
                       </p>
 
-                      <span className="text-[10px] font-mono text-[#F3E5AB] font-bold uppercase pt-2 flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                        <span>Explorer la catégorie</span> ›
+                      {/* CTA */}
+                      <span className="text-[9px] sm:text-[10px] font-mono text-[#F3E5AB] font-bold uppercase flex items-center gap-1 group-hover:translate-x-1 transition-transform pt-0.5">
+                        Explorer ›
                       </span>
                     </div>
-                  </div>
+                  </motion.button>
                 );
               })}
             </div>
-          </div>
-        </section>
-      )}
-    </>
+
+            {/* ── §4 CRITICAL REQUIREMENT: Trust Badges Row (bandeau de garanties) MUST be placed BELOW the 5 cards ── */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6 sm:pt-8 border-t border-[#D4AF37]/25 mt-4 sm:mt-6"
+            >
+              <div className="flex items-center gap-3.5 p-4 rounded-2xl bg-[#121212]/90 border border-[#D4AF37]/25 shadow-lg hover:border-[#D4AF37] hover:shadow-[0_0_20px_rgba(212,175,55,0.2)] transition-all">
+                <div className="p-3 rounded-xl bg-[#D4AF37]/15 text-[#D4AF37] shrink-0">
+                  <ShieldCheck className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className="text-xs sm:text-sm font-semibold text-white">Garantie 1 An Inaltérable</h4>
+                  <p className="text-[11px] sm:text-xs text-gray-400">Acier Inoxydable 316L résistant eau &amp; parfum</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3.5 p-4 rounded-2xl bg-[#121212]/90 border border-[#D4AF37]/25 shadow-lg hover:border-[#D4AF37] hover:shadow-[0_0_20px_rgba(212,175,55,0.2)] transition-all">
+                <div className="p-3 rounded-xl bg-[#D4AF37]/15 text-[#D4AF37] shrink-0">
+                  <Award className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className="text-xs sm:text-sm font-semibold text-white">Gravure Laser Millimétrée</h4>
+                  <p className="text-[11px] sm:text-xs text-gray-400">Prénoms, dates, symboles &amp; photos sur-mesure</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3.5 p-4 rounded-2xl bg-[#121212]/90 border border-[#D4AF37]/25 shadow-lg hover:border-[#D4AF37] hover:shadow-[0_0_20px_rgba(212,175,55,0.2)] transition-all">
+                <div className="p-3 rounded-xl bg-[#D4AF37]/15 text-[#D4AF37] shrink-0">
+                  <Truck className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className="text-xs sm:text-sm font-semibold text-white">Expédition Tout le Bénin</h4>
+                  <p className="text-[11px] sm:text-xs text-gray-400">Livraison Cotonou, Calavi, Parakou &amp; sous-région</p>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        ) : (
+          /* ── CONTENT VIEW : slim active-tab bar + back button ── */
+          <motion.div
+            key="content-bar"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.25 }}
+            className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center gap-3"
+          >
+            {/* Back button */}
+            <button
+              onClick={onBackToGrid}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#181818] border border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#1F1A0E] hover:border-[#D4AF37] transition-all cursor-pointer text-xs font-semibold shrink-0 shadow"
+              aria-label="Retour aux catégories"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              <span className="hidden sm:inline">Retour</span>
+            </button>
+
+            {/* Active category chip */}
+            {activeItem && (
+              <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#1A160C] to-[#121212] border border-[#D4AF37] shadow-[0_0_14px_rgba(212,175,55,0.25)]">
+                <span className="w-7 h-7 rounded-full bg-black/80 border border-[#D4AF37]/60 flex items-center justify-center shrink-0">
+                  {activeItem.id === 'accueil'
+                    ? <Home className="w-3.5 h-3.5 text-[#D4AF37]" />
+                    : (() => {
+                        const cls = 'w-3.5 h-3.5 text-[#D4AF37]';
+                        switch (activeItem.iconName) {
+                          case 'Gem':      return <Gem className={cls} />;
+                          case 'Sparkles': return <Sparkles className={cls} />;
+                          case 'Package':  return <Package className={cls} />;
+                          default:         return <ShoppingBag className={cls} />;
+                        }
+                      })()
+                  }
+                </span>
+                <span className="text-xs font-serif font-bold text-[#F3E5AB] tracking-widest uppercase">
+                  {activeItem.title}
+                </span>
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </section>
   );
 };

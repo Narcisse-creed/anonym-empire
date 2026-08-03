@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { StoreInfo } from '../types';
+import { QuoteRequest, StoreInfo } from '../types';
 import { loadQuoteRequests, saveQuoteRequests, buildWhatsAppLink } from '../utils/helpers';
 import { FileText, Send, ShieldCheck, Sparkles, Download, Upload, MessageCircle } from 'lucide-react';
 
 interface QuoteRequestSectionProps {
   storeInfo: StoreInfo;
+  onAddQuoteRequest?: (req: Omit<QuoteRequest, 'id' | 'createdAt' | 'status'>) => void;
 }
 
-export const QuoteRequestSection: React.FC<QuoteRequestSectionProps> = ({ storeInfo }) => {
+export const QuoteRequestSection: React.FC<QuoteRequestSectionProps> = ({ storeInfo, onAddQuoteRequest }) => {
   const [formData, setFormData] = useState({
     productType: 'Bijoux',
     description: '',
@@ -26,9 +27,8 @@ export const QuoteRequestSection: React.FC<QuoteRequestSectionProps> = ({ storeI
     e.preventDefault();
     if (!formData.contactName.trim() || !formData.contactPhone.trim()) return;
 
-    const newRequest = {
-      id: `quote-${Date.now()}`,
-      productType: formData.productType,
+    const requestPayload = {
+      category: (formData.productType.toLowerCase() as any) || 'bijoux',
       description: formData.description,
       quantity: formData.quantity,
       budget: formData.budget || undefined,
@@ -36,13 +36,20 @@ export const QuoteRequestSection: React.FC<QuoteRequestSectionProps> = ({ storeI
       inspirationPhotoUrl: formData.inspirationPhotoUrl || undefined,
       contactName: formData.contactName.trim(),
       contactPhone: formData.contactPhone.trim(),
-      status: 'nouvelle' as const,
-      createdAt: new Date().toISOString(),
     };
 
-    const existing = loadQuoteRequests();
-    const updated = [newRequest, ...existing];
-    saveQuoteRequests(updated);
+    if (onAddQuoteRequest) {
+      onAddQuoteRequest(requestPayload);
+    } else {
+      const newRequest: QuoteRequest = {
+        id: `quote-${Date.now()}`,
+        ...requestPayload,
+        status: 'nouvelle',
+        createdAt: new Date().toISOString(),
+      };
+      const existing = loadQuoteRequests();
+      saveQuoteRequests([newRequest, ...existing]);
+    }
 
     const msg = `Bonjour *ANONYM*,\n\nNouvelle demande de devis :\n\n📂 *Type :* ${formData.productType}\n📝 *Description :* ${formData.description}\n📦 *Quantité :* ${formData.quantity}\n${formData.budget ? `💰 *Budget :* ${formData.budget}\n` : ''}${formData.deadline ? `📅 *Deadline :* ${formData.deadline}\n` : ''}👤 *Contact :* ${formData.contactName}\n📞 *Téléphone :* ${formData.contactPhone}`;
 

@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Product, StoreInfo, CategoryId, SubCategory, GenderCategory, Collection, Review, QuoteRequest, Order, AnalyticsData } from '../types';
 import { UNIVERSE_CATEGORIES } from '../data/categories';
 import { loadProducts, saveProducts, loadStoreInfo, saveStoreInfo, loadCollections, saveCollections, loadReviews, saveReviews, loadQuoteRequests, saveQuoteRequests, loadNotifications, saveNotifications, loadOrders, saveOrders, loadAnalytics, saveAnalytics } from '../utils/helpers';
-import { X, Lock, Key, Plus, Edit2, Trash2, RotateCcw, Save, ShieldCheck, Download, Upload, ChevronUp, ChevronDown, Filter, Star, FileText, BarChart3, MessageSquare, Clock, CheckCircle, XCircle, Package, Settings, Layout } from 'lucide-react';
+import { X, Lock, Key, Plus, Edit2, Trash2, RotateCcw, Save, ShieldCheck, Download, Upload, ChevronUp, ChevronDown, Filter, Star, FileText, BarChart3, MessageSquare, Clock, CheckCircle, XCircle, Package, Settings, Layout, Eye, EyeOff, Search, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 
 interface AdminPortalModalProps {
   isOpen: boolean;
@@ -25,8 +25,11 @@ interface AdminPortalModalProps {
   onAddCollection?: (c: Omit<Collection, 'id' | 'createdAt' | 'order'>) => void;
   onUpdateCollection?: (c: Collection) => void;
   onDeleteCollection?: (id: string) => void;
+  onReorderCollections?: (collections: Collection[]) => void;
   onUpdateReview?: (r: Review) => void;
+  onDeleteReview?: (id: string) => void;
   onUpdateQuoteRequestStatus?: (id: string, status: QuoteRequest['status']) => void;
+  onDeleteQuoteRequest?: (id: string) => void;
   onAddNotification?: (n: any) => void;
   onMarkNotificationRead?: (id: string) => void;
   orders: Order[];
@@ -35,6 +38,64 @@ interface AdminPortalModalProps {
   onDeleteOrder: (id: string) => void;
   analytics: AnalyticsData;
   onTrackProductView: (productId: string) => void;
+  subCategoriesLvl1?: SubCategoryLevel1[];
+  subCategoriesLvl2?: SubCategoryLevel2[];
+  onAddSubCatLvl1?: (cat: Omit<SubCategoryLevel1, 'id' | 'order'>) => void;
+  onUpdateSubCatLvl1?: (cat: SubCategoryLevel1) => void;
+  onReorderSubCatsLvl1?: (cats: SubCategoryLevel1[]) => void;
+  onDeleteSubCatLvl1?: (id: string) => void;
+  onAddSubCatLvl2?: (cat: Omit<SubCategoryLevel2, 'id' | 'order'>) => void;
+  onUpdateSubCatLvl2?: (cat: SubCategoryLevel2) => void;
+  onReorderSubCatsLvl2?: (cats: SubCategoryLevel2[]) => void;
+  onDeleteSubCatLvl2?: (id: string) => void;
+}
+
+// Defensive Error Boundary for Admin Portal (Top-level module scope to prevent unmount on re-render)
+class AdminErrorBoundary extends React.Component<
+  { children: React.ReactNode; onReset?: () => void },
+  { hasError: boolean; errorMessage: string }
+> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false, errorMessage: '' };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, errorMessage: error?.message || 'Erreur d\'affichage inconnue' };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('AdminPortalModal caught error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-8 text-center bg-[#141414] border border-rose-800 rounded-2xl space-y-4 max-w-lg mx-auto my-12">
+          <div className="w-12 h-12 rounded-full bg-rose-950 border border-rose-700 flex items-center justify-center mx-auto text-rose-400">
+            <XCircle className="w-6 h-6" />
+          </div>
+          <h3 className="text-lg font-serif font-bold text-white">Une erreur est survenue lors de l'affichage du tableau de bord</h3>
+          <p className="text-xs text-gray-400 leading-relaxed">
+            Un incident de chargement a été intercepté pour éviter un écran noir. Détail : <br />
+            <code className="text-rose-300 bg-black/60 px-2 py-1 rounded text-[11px] mt-1 inline-block">{this.state.errorMessage}</code>
+          </p>
+          <div className="flex justify-center gap-3 pt-2">
+            <button
+              onClick={() => {
+                this.setState({ hasError: false, errorMessage: '' });
+                if (this.props.onReset) this.props.onReset();
+              }}
+              className="px-5 py-2.5 bg-[#D4AF37] text-black font-bold text-xs rounded-xl hover:bg-[#F3E5AB] transition-all cursor-pointer shadow-lg"
+            >
+              Recharger le Tableau de Bord
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
 }
 
 export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
@@ -43,7 +104,7 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
   isAdminLoggedIn,
   onLogin,
   onLogout,
-  products,
+  products = [],
   onAddProduct,
   onUpdateProduct,
   onDeleteProduct,
@@ -59,17 +120,35 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
   onUpdateCollection,
   onDeleteCollection,
   onUpdateReview,
+  onDeleteReview,
   onUpdateQuoteRequestStatus,
+  onDeleteQuoteRequest,
   onAddNotification,
   onMarkNotificationRead,
   orders = [],
   onAddOrder,
   onUpdateOrderStatus,
   onDeleteOrder,
-  analytics,
+  analytics = { totalViews: 0, totalOrders: 0, revenueEstimate: 0, viewsByProduct: {} },
   onTrackProductView,
+  subCategoriesLvl1 = [],
+  subCategoriesLvl2 = [],
+  onAddSubCatLvl1,
+  onUpdateSubCatLvl1,
+  onReorderSubCatsLvl1,
+  onDeleteSubCatLvl1,
+  onAddSubCatLvl2,
+  onUpdateSubCatLvl2,
+  onReorderSubCatsLvl2,
+  onDeleteSubCatLvl2,
+  onReorderCollections,
 }) => {
   if (!isOpen) return null;
+
+  // Admin Active Tab State
+  const [adminTab, setAdminTab] = useState<
+    'list' | 'add' | 'edit' | 'settings' | 'collections' | 'subcategories' | 'textes' | 'commandes' | 'devis' | 'avis' | 'analytics'
+  >('list');
 
   // Login Form State
   const [passwordInput, setPasswordInput] = useState('');
@@ -81,9 +160,400 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
   const [confirmPasswordInput, setConfirmPasswordInput] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [passwordChangeSuccess, setPasswordChangeSuccess] = useState('');
+  
+  // Password Visibility Toggle States (§21)
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Admin View Tab
-  const [adminTab, setAdminTab] = useState<'list' | 'add' | 'edit' | 'settings' | 'collections' | 'textes' | 'commandes' | 'devis' | 'avis' | 'analytics'>('list');
+  // Deletion Confirmation Modal States (Across All Tabs)
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+  const [collectionToDelete, setCollectionToDelete] = useState<Collection | null>(null);
+  const [subCatLvl1ToDelete, setSubCatLvl1ToDelete] = useState<SubCategoryLevel1 | null>(null);
+  const [subCatLvl2ToDelete, setSubCatLvl2ToDelete] = useState<SubCategoryLevel2 | null>(null);
+  const [orderToDelete, setOrderToDelete] = useState<Order | null>(null);
+  const [quoteToDelete, setQuoteToDelete] = useState<QuoteRequest | null>(null);
+  const [reviewToDelete, setReviewToDelete] = useState<Review | null>(null);
+
+  // Admin Catalog Search & Filter State
+  const [adminSearchQuery, setAdminSearchQuery] = useState('');
+  const [adminCategoryFilter, setAdminCategoryFilter] = useState<'all' | CategoryId>('all');
+  const [adminAvailabilityFilter, setAdminAvailabilityFilter] = useState<'all' | 'disponible' | 'en-arrivage' | 'epuise'>('all');
+  const [adminSortColumn, setAdminSortColumn] = useState<'refCode' | 'name' | 'category' | 'price'>('refCode');
+  const [adminSortDirection, setAdminSortDirection] = useState<'asc' | 'desc'>('asc');
+
+  // Computed filtered & sorted products for admin list with defensive checks
+  const filteredAdminProducts = React.useMemo(() => {
+    if (!Array.isArray(products)) return [];
+    let list = [...products];
+
+    // 1. Search filter
+    if (adminSearchQuery.trim()) {
+      const q = adminSearchQuery.toLowerCase();
+      list = list.filter((p) => {
+        if (!p) return false;
+        const nameMatch = (p.name || '').toLowerCase().includes(q);
+        const refMatch = (p.refCode || '').toLowerCase().includes(q);
+        const subMatch = (p.subCategory || '').toLowerCase().includes(q);
+        return nameMatch || refMatch || subMatch;
+      });
+    }
+
+    // 2. Category filter
+    if (adminCategoryFilter !== 'all') {
+      list = list.filter((p) => p && p.category === adminCategoryFilter);
+    }
+
+    // 3. Availability filter
+    if (adminAvailabilityFilter !== 'all') {
+      list = list.filter((p) => p && p.availability === adminAvailabilityFilter);
+    }
+
+    // 4. Sort
+    list.sort((a, b) => {
+      if (!a || !b) return 0;
+      let comp = 0;
+      if (adminSortColumn === 'refCode') {
+        comp = (a.refCode || '').localeCompare(b.refCode || '', undefined, { numeric: true });
+      } else if (adminSortColumn === 'name') {
+        comp = (a.name || '').localeCompare(b.name || '');
+      } else if (adminSortColumn === 'category') {
+        comp = (a.category || '').localeCompare(b.category || '');
+      } else if (adminSortColumn === 'price') {
+        comp = (a.price || 0) - (b.price || 0);
+      }
+      return adminSortDirection === 'asc' ? comp : -comp;
+    });
+
+    return list;
+  }, [products, adminSearchQuery, adminCategoryFilter, adminAvailabilityFilter, adminSortColumn, adminSortDirection]);
+
+  const handleSortColumnToggle = (column: 'refCode' | 'name' | 'category' | 'price') => {
+    if (adminSortColumn === column) {
+      setAdminSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setAdminSortColumn(column);
+      setAdminSortDirection('asc');
+    }
+  };
+
+  // Collection Management State
+  const [editingCollection, setEditingCollection] = useState<Collection | null>(null);
+  const [isAddCollectionOpen, setIsAddCollectionOpen] = useState(false);
+  const [colProductSearch, setColProductSearch] = useState('');
+  const [colFormData, setColFormData] = useState<{
+    name: string;
+    icon: string;
+    description: string;
+    category: CategoryId;
+    coverImage: string;
+    visible: boolean;
+    productIds: string[];
+  }>({
+    name: '',
+    icon: '📿',
+    description: '',
+    category: 'bijoux',
+  coverImage: '',
+    visible: true,
+    productIds: [],
+  });
+
+  // SubCategories Tab State & Forms
+  const [subCatParentFilter, setSubCatParentFilter] = useState<CategoryId>('bijoux');
+  const [editingSubLvl1, setEditingSubLvl1] = useState<SubCategoryLevel1 | null>(null);
+  const [editingSubLvl2, setEditingSubLvl2] = useState<SubCategoryLevel2 | null>(null);
+  const [isAddLvl1Open, setIsAddLvl1Open] = useState(false);
+  const [isAddLvl2Open, setIsAddLvl2Open] = useState(false);
+
+  const [lvl1ToDelete, setLvl1ToDelete] = useState<SubCategoryLevel1 | null>(null);
+  const [lvl2ToDelete, setLvl2ToDelete] = useState<SubCategoryLevel2 | null>(null);
+
+  const [lvl1FormData, setLvl1FormData] = useState<{
+    name: string;
+    parentCategory: CategoryId;
+    icon: string;
+    visible: boolean;
+  }>({
+    name: '',
+    parentCategory: 'bijoux',
+    icon: '💎',
+    visible: true,
+  });
+
+  const [lvl2FormData, setLvl2FormData] = useState<{
+    name: string;
+    level1Id: string;
+    parentCategory: CategoryId;
+    visible: boolean;
+  }>({
+    name: '',
+    level1Id: '',
+    parentCategory: 'bijoux',
+    visible: true,
+  });
+
+  const handleStartAddLvl1 = () => {
+    setEditingSubLvl1(null);
+    setLvl1FormData({
+      name: '',
+      parentCategory: subCatParentFilter,
+      icon: '💎',
+      visible: true,
+    });
+    setIsAddLvl1Open(true);
+  };
+
+  const handleStartEditLvl1 = (item: SubCategoryLevel1) => {
+    setEditingSubLvl1(item);
+    setLvl1FormData({
+      name: item.name,
+      parentCategory: item.parentCategory,
+      icon: item.icon || '💎',
+      visible: item.visible !== false,
+    });
+    setIsAddLvl1Open(true);
+  };
+
+  const handleSaveSubLvl1Form = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!lvl1FormData.name.trim()) return;
+
+    if (editingSubLvl1) {
+      if (onUpdateSubCatLvl1) {
+        onUpdateSubCatLvl1({
+          ...editingSubLvl1,
+          name: lvl1FormData.name.trim().toUpperCase(),
+          parentCategory: lvl1FormData.parentCategory,
+          icon: lvl1FormData.icon || '💎',
+          visible: lvl1FormData.visible,
+        });
+      }
+    } else {
+      if (onAddSubCatLvl1) {
+        onAddSubCatLvl1({
+          name: lvl1FormData.name.trim().toUpperCase(),
+          parentCategory: lvl1FormData.parentCategory,
+          icon: lvl1FormData.icon || '💎',
+          visible: lvl1FormData.visible,
+        });
+      }
+    }
+    setIsAddLvl1Open(false);
+    setEditingSubLvl1(null);
+  };
+  const handleSaveLvl1Form = handleSaveSubLvl1Form;
+
+  const handleStartAddLvl2 = (lvl1Id?: string) => {
+    setEditingSubLvl2(null);
+    const targetLvl1 = lvl1Id || (subCategoriesLvl1?.find((c) => c.parentCategory === subCatParentFilter)?.id || '');
+    const parentL1 = subCategoriesLvl1?.find((c) => c.id === targetLvl1);
+    setLvl2FormData({
+      name: '',
+      level1Id: targetLvl1,
+      parentCategory: parentL1?.parentCategory || subCatParentFilter,
+      visible: true,
+    });
+    setIsAddLvl2Open(true);
+  };
+
+  const handleStartEditLvl2 = (item: SubCategoryLevel2) => {
+    setEditingSubLvl2(item);
+    setLvl2FormData({
+      name: item.name,
+      level1Id: item.level1Id,
+      parentCategory: item.parentCategory,
+      visible: item.visible !== false,
+    });
+    setIsAddLvl2Open(true);
+  };
+
+  const handleSaveSubLvl2Form = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!lvl2FormData.name.trim() || !lvl2FormData.level1Id) return;
+
+    const parentL1 = subCategoriesLvl1?.find((c) => c.id === lvl2FormData.level1Id);
+    const resolvedParentCategory = parentL1?.parentCategory || lvl2FormData.parentCategory || subCatParentFilter;
+
+    if (editingSubLvl2) {
+      if (onUpdateSubCatLvl2) {
+        onUpdateSubCatLvl2({
+          ...editingSubLvl2,
+          name: lvl2FormData.name.trim().toUpperCase(),
+          level1Id: lvl2FormData.level1Id,
+          parentCategory: resolvedParentCategory,
+          visible: lvl2FormData.visible,
+        });
+      }
+    } else {
+      if (onAddSubCatLvl2) {
+        onAddSubCatLvl2({
+          name: lvl2FormData.name.trim().toUpperCase(),
+          level1Id: lvl2FormData.level1Id,
+          parentCategory: resolvedParentCategory,
+          visible: lvl2FormData.visible,
+        });
+      }
+    }
+    setIsAddLvl2Open(false);
+    setEditingSubLvl2(null);
+  };
+  const handleSaveLvl2Form = handleSaveSubLvl2Form;
+
+  const handleMoveSubLvl1Item = (list: SubCategoryLevel1[], index: number, direction: 'up' | 'down') => {
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= list.length) return;
+
+    const newList = [...list];
+    const temp = newList[index];
+    newList[index] = newList[targetIndex];
+    newList[targetIndex] = temp;
+
+    const reorderedInGroup = newList.map((c, i) => ({ ...c, order: i + 1 }));
+    const otherCats = (subCategoriesLvl1 || []).filter((c) => c.parentCategory !== subCatParentFilter);
+    const fullUpdated = [...otherCats, ...reorderedInGroup];
+
+    if (onReorderSubCatsLvl1) {
+      onReorderSubCatsLvl1(fullUpdated);
+    }
+  };
+
+  const handleMoveSubLvl2Item = (list: SubCategoryLevel2[], index: number, direction: 'up' | 'down', level1Id: string) => {
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= list.length) return;
+
+    const newList = [...list];
+    const temp = newList[index];
+    newList[index] = newList[targetIndex];
+    newList[targetIndex] = temp;
+
+    const reorderedInGroup = newList.map((c, i) => ({ ...c, order: i + 1 }));
+    const otherCats = (subCategoriesLvl2 || []).filter((c) => c.level1Id !== level1Id);
+    const fullUpdated = [...otherCats, ...reorderedInGroup];
+
+    if (onReorderSubCatsLvl2) {
+      onReorderSubCatsLvl2(fullUpdated);
+    }
+  };
+
+  const handleStartAddCollection = () => {
+    setEditingCollection(null);
+    setColFormData({
+      name: '',
+      icon: '📿',
+      description: '',
+      category: 'bijoux',
+      coverImage: '',
+      visible: true,
+      productIds: [],
+    });
+    setColProductSearch('');
+    setIsAddCollectionOpen(true);
+    setTimeout(() => {
+      const sb = document.getElementById('admin-modal-scroll-body');
+      if (sb) sb.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 50);
+  };
+
+  const handleStartEditCollection = (col: Collection) => {
+    setEditingCollection(col);
+    setColFormData({
+      name: col.name,
+      icon: col.icon || '📿',
+      description: col.description || '',
+      category: col.category || 'bijoux',
+      coverImage: col.coverImage || '',
+      visible: col.visible !== false,
+      productIds: col.productIds || [],
+    });
+    setColProductSearch('');
+    setIsAddCollectionOpen(true);
+    setTimeout(() => {
+      const sb = document.getElementById('admin-modal-scroll-body');
+      if (sb) sb.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 50);
+  };
+
+  const sortedCollections = useMemo(() => {
+    return [...collections].sort((a, b) => (a.order || 0) - (b.order || 0));
+  }, [collections]);
+
+  const handleMoveCollection = (index: number, direction: 'up' | 'down') => {
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= sortedCollections.length) return;
+
+    const newCols = [...sortedCollections];
+    const temp = newCols[index];
+    newCols[index] = newCols[targetIndex];
+    newCols[targetIndex] = temp;
+
+    // Recalculate explicit order values
+    const reordered = newCols.map((c, i) => ({ ...c, order: i + 1 }));
+
+    if (onReorderCollections) {
+      onReorderCollections(reordered);
+    } else {
+      reordered.forEach((c) => onUpdateCollection && onUpdateCollection(c));
+    }
+  };
+
+  const handleSaveCollectionForm = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!colFormData.name.trim()) return;
+
+    if (editingCollection) {
+      if (onUpdateCollection) {
+        onUpdateCollection({
+          ...editingCollection,
+          name: colFormData.name.trim(),
+          icon: colFormData.icon || '📿',
+          description: colFormData.description,
+          category: colFormData.category,
+          coverImage: colFormData.coverImage,
+          visible: colFormData.visible,
+          productIds: colFormData.productIds,
+        });
+      }
+    } else {
+      if (onAddCollection) {
+        onAddCollection({
+          name: colFormData.name.trim(),
+          icon: colFormData.icon || '📿',
+          description: colFormData.description,
+          category: colFormData.category,
+          coverImage: colFormData.coverImage,
+          color: '#D4AF37',
+          visible: colFormData.visible,
+          productIds: colFormData.productIds,
+        });
+      }
+    }
+    setIsAddCollectionOpen(false);
+    setEditingCollection(null);
+  };
+
+  const handleToggleProductInCollection = (productId: string) => {
+    setColFormData((prev) => {
+      const exists = prev.productIds.includes(productId);
+      const newIds = exists
+        ? prev.productIds.filter((id) => id !== productId)
+        : [...prev.productIds, productId];
+      return { ...prev, productIds: newIds };
+    });
+  };
+
+  const handleCollectionImageFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        setColFormData((prev) => ({ ...prev, coverImage: event.target?.result as string }));
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   // Edit / Add Form State
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -119,43 +589,142 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
       setPasswordInput('');
       setLoginError('');
     } else {
-      setLoginError('Mot de passe incorrect. (Mot de passe par défaut : anonym2026)');
+      setLoginError('Mot de passe incorrect. (Mot de passe par défaut : anonyme2026)');
     }
   };
 
-  const handleImageFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageFileUploadAtIndex = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
         const dataUrl = reader.result as string;
-        if (adminTab === 'add') {
-          setFormData((prev) => ({ ...prev, imageUrl: dataUrl }));
-        } else if (editingProduct) {
-          setEditingProduct((prev) => (prev ? { ...prev, imageUrl: dataUrl } : null));
-        }
+        updateProductImageAtIndex(index, dataUrl);
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const updateProductImageAtIndex = (index: number, url: string) => {
+    if (adminTab === 'add') {
+      const currentImgs = [...(formData.images || [])];
+      while (currentImgs.length <= index) currentImgs.push('');
+      currentImgs[index] = url;
+      const cleanImgs = currentImgs.slice(0, 3);
+      setFormData((prev) => ({
+        ...prev,
+        imageUrl: cleanImgs[0] || url || prev.imageUrl,
+        images: cleanImgs,
+      }));
+    } else if (editingProduct) {
+      const currentImgs = [...(editingProduct.images && editingProduct.images.length > 0 ? editingProduct.images : [editingProduct.imageUrl])];
+      while (currentImgs.length <= index) currentImgs.push('');
+      currentImgs[index] = url;
+      const cleanImgs = currentImgs.slice(0, 3);
+      setEditingProduct((prev) =>
+        prev
+          ? {
+              ...prev,
+              imageUrl: cleanImgs[0] || url || prev.imageUrl,
+              images: cleanImgs,
+            }
+          : null
+      );
+    }
+  };
+
+  const moveProductImage = (index: number, direction: 'up' | 'down') => {
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex > 2) return;
+
+    if (adminTab === 'add') {
+      const imgs = [...(formData.images || [])];
+      if (!imgs[index] || !imgs[targetIndex]) return;
+      const temp = imgs[index];
+      imgs[index] = imgs[targetIndex];
+      imgs[targetIndex] = temp;
+      setFormData((prev) => ({
+        ...prev,
+        imageUrl: imgs[0] || prev.imageUrl,
+        images: imgs,
+      }));
+    } else if (editingProduct) {
+      const imgs = [...(editingProduct.images || [editingProduct.imageUrl])];
+      if (!imgs[index] || !imgs[targetIndex]) return;
+      const temp = imgs[index];
+      imgs[index] = imgs[targetIndex];
+      imgs[targetIndex] = temp;
+      setEditingProduct((prev) =>
+        prev
+          ? {
+              ...prev,
+              imageUrl: imgs[0] || prev.imageUrl,
+              images: imgs,
+            }
+          : null
+      );
+    }
+  };
+
+  const removeProductImage = (index: number) => {
+    if (adminTab === 'add') {
+      const imgs = [...(formData.images || [])];
+      imgs.splice(index, 1);
+      setFormData((prev) => ({
+        ...prev,
+        imageUrl: imgs[0] || '',
+        images: imgs,
+      }));
+    } else if (editingProduct) {
+      const imgs = [...(editingProduct.images || [editingProduct.imageUrl])];
+      imgs.splice(index, 1);
+      setEditingProduct((prev) =>
+        prev
+          ? {
+              ...prev,
+              imageUrl: imgs[0] || '',
+              images: imgs,
+            }
+          : null
+      );
     }
   };
 
   const handleSaveAdd = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.refCode) return;
-    onAddProduct(formData);
+    const finalImgs = (formData.images || []).filter((i) => i && i.trim().length > 0);
+    const finalMain = finalImgs[0] || formData.imageUrl;
+    onAddProduct({
+      ...formData,
+      imageUrl: finalMain,
+      images: finalImgs.length > 0 ? finalImgs : [finalMain],
+    });
     setFormData(defaultFormState);
     setAdminTab('list');
   };
 
   const handleStartEdit = (product: Product) => {
-    setEditingProduct(product);
+    const list = [product.imageUrl, ...(product.images || []).filter((i) => i && i !== product.imageUrl)];
+    const unique = Array.from(new Set(list)).slice(0, 3);
+    setEditingProduct({
+      ...product,
+      imageUrl: unique[0] || product.imageUrl,
+      images: unique,
+    });
     setAdminTab('edit');
   };
 
   const handleSaveEdit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingProduct) return;
-    onUpdateProduct(editingProduct);
+    const finalImgs = (editingProduct.images || []).filter((i) => i && i.trim().length > 0);
+    const finalMain = finalImgs[0] || editingProduct.imageUrl;
+    onUpdateProduct({
+      ...editingProduct,
+      imageUrl: finalMain,
+      images: finalImgs.length > 0 ? finalImgs : [finalMain],
+    });
     setEditingProduct(null);
     setAdminTab('list');
   };
@@ -177,8 +746,8 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fadeIn" onClick={onClose}>
-      <div className="relative w-full max-w-6xl max-h-[90vh] bg-[#121212] border-2 border-[#D4AF37]/50 rounded-3xl overflow-hidden shadow-[0_0_80px_rgba(212,175,55,0.25)] flex flex-col" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-md animate-fadeIn" onClick={onClose}>
+      <div className="relative w-full max-w-6xl h-[88vh] max-h-[92vh] min-h-[480px] bg-[#121212] border-2 border-[#D4AF37]/60 rounded-3xl overflow-hidden shadow-[0_0_90px_rgba(212,175,55,0.35)] flex flex-col" onClick={(e) => e.stopPropagation()}>
         
         {/* Header */}
         <div className="p-6 border-b border-gray-700 flex items-center justify-between bg-[#141414]">
@@ -215,8 +784,9 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
         </div>
 
         {/* Content Body */}
-        <div className="flex-1 overflow-y-auto p-6">
-          {!isAdminLoggedIn ? (
+        <div id="admin-modal-scroll-body" className="flex-1 overflow-y-auto p-6">
+          <AdminErrorBoundary onReset={() => setAdminTab('list')}>
+            {!isAdminLoggedIn ? (
             /* Password Protection Screen */
             <div className="max-w-md mx-auto py-12 text-center space-y-6">
               <div className="w-16 h-16 rounded-full bg-[#18150D] border-2 border-[#D4AF37] flex items-center justify-center mx-auto text-[#D4AF37] shadow-[0_0_20px_rgba(212,175,55,0.3)]">
@@ -233,14 +803,22 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
               </div>
 
               <form onSubmit={handleLoginSubmit} className="space-y-4">
-                <div>
+                <div className="relative">
                   <input
-                    type="password"
+                    type={showLoginPassword ? 'text' : 'password'}
                     value={passwordInput}
                     onChange={(e) => setPasswordInput(e.target.value)}
                     placeholder="Entrez votre mot de passe gérant"
-                    className="w-full bg-black border border-[#D4AF37]/50 rounded-xl px-4 py-3 text-sm text-center text-white focus:outline-none focus:border-[#D4AF37]"
+                    className="w-full bg-black border border-[#D4AF37]/50 rounded-xl px-4 py-3 text-sm text-center text-white focus:outline-none focus:border-[#D4AF37] pr-12"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowLoginPassword(!showLoginPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#D4AF37] p-1"
+                    title={showLoginPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                  >
+                    {showLoginPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                   {loginError && (
                     <p className="text-xs text-rose-400 mt-2">{loginError}</p>
                   )}
@@ -255,7 +833,7 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
               </form>
 
               <p className="text-[11px] text-gray-500 italic">
-                Mot de passe par défaut configuré : <strong className="text-amber-200">anonym2026</strong>
+                Mot de passe par défaut configuré : <strong className="text-amber-200">anonyme2026</strong>
               </p>
             </div>
           ) : (
@@ -298,6 +876,16 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                     }`}
                   >
                     Paramètres Contact
+                  </button>
+                  <button
+                    onClick={() => setAdminTab('subcategories')}
+                    className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
+                      adminTab === 'subcategories'
+                        ? 'bg-[#D4AF37] text-black font-bold'
+                        : 'bg-black text-amber-400 hover:text-white border border-[#D4AF37]/50'
+                    }`}
+                  >
+                    📂 Catégories & Sous-cat.
                   </button>
                   <button
                     onClick={() => setAdminTab('collections')}
@@ -396,63 +984,232 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                 </div>
               </div>
 
-              {/* TAB 1: Product List Table */}
+              {/* TAB 1: Product List Table with Search, Filters & Sorting */}
               {adminTab === 'list' && (
                 <div className="space-y-4">
+                  {/* Search & Filter Toolbar */}
+                  <div className="bg-[#141414] border border-[#D4AF37]/30 rounded-2xl p-4 space-y-3">
+                    <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+                      {/* Search Bar */}
+                      <div className="relative flex-1">
+                        <Search className="w-4 h-4 text-[#D4AF37] absolute left-3.5 top-1/2 -translate-y-1/2" />
+                        <input
+                          type="text"
+                          value={adminSearchQuery}
+                          onChange={(e) => setAdminSearchQuery(e.target.value)}
+                          placeholder="Rechercher par nom, #REF ou sous-catégorie..."
+                          className="w-full bg-black border border-gray-800 rounded-xl pl-10 pr-9 py-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#D4AF37]"
+                        />
+                        {adminSearchQuery && (
+                          <button
+                            onClick={() => setAdminSearchQuery('')}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Category Filter */}
+                      <div className="flex items-center gap-2">
+                        <select
+                          value={adminCategoryFilter}
+                          onChange={(e) => setAdminCategoryFilter(e.target.value as any)}
+                          className="bg-black border border-gray-800 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
+                        >
+                          <option value="all">Toutes les catégories</option>
+                          <option value="bijoux">💎 Bijoux</option>
+                          <option value="emballages">📦 Emballages</option>
+                          <option value="parfums">👑 Parfums (Anonym)</option>
+                          <option value="accessoires">✨ Accessoires</option>
+                        </select>
+
+                        {/* Availability Filter */}
+                        <select
+                          value={adminAvailabilityFilter}
+                          onChange={(e) => setAdminAvailabilityFilter(e.target.value as any)}
+                          className="bg-black border border-gray-800 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
+                        >
+                          <option value="all">Tous les statuts</option>
+                          <option value="disponible">🟢 En Stock / Disponible</option>
+                          <option value="en-arrivage">📦 Sur commande / Arrivage</option>
+                          <option value="epuise">🔴 Épuisé</option>
+                        </select>
+
+                        {/* Reset Filters Button */}
+                        {(adminSearchQuery || adminCategoryFilter !== 'all' || adminAvailabilityFilter !== 'all') && (
+                          <button
+                            onClick={() => {
+                              setAdminSearchQuery('');
+                              setAdminCategoryFilter('all');
+                              setAdminAvailabilityFilter('all');
+                            }}
+                            className="px-3 py-2.5 bg-rose-950/80 border border-rose-800 text-rose-300 hover:bg-rose-900 rounded-xl text-xs flex items-center gap-1.5 shrink-0 cursor-pointer"
+                            title="Réinitialiser les filtres"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                            <span className="hidden sm:inline">Effacer</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Filter Info Counter */}
+                    <div className="flex items-center justify-between text-[11px] text-gray-400 border-t border-gray-800/80 pt-2 px-1">
+                      <span>
+                        Affichage de <strong className="text-[#D4AF37] font-mono">{filteredAdminProducts.length}</strong> sur{' '}
+                        <strong className="text-white font-mono">{products.length}</strong> produit(s)
+                      </span>
+                      <span className="hidden sm:inline text-gray-500">
+                        Cliquez sur un en-tête de colonne pour trier les résultats
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Table */}
                   <div className="overflow-x-auto border border-gray-800 rounded-2xl">
                     <table className="w-full text-left text-xs text-gray-300">
-                      <thead className="bg-[#181818] text-[#D4AF37] font-serif uppercase tracking-wider">
+                      <thead className="bg-[#181818] text-[#D4AF37] font-serif uppercase tracking-wider select-none">
                         <tr>
                           <th className="p-3">Aperçu</th>
-                          <th className="p-3">Réf</th>
-                          <th className="p-3">Nom du Produit</th>
-                          <th className="p-3">Catégorie</th>
-                          <th className="p-3">Prix FCFA</th>
+
+                          {/* Clickable Header: Réf */}
+                          <th
+                            onClick={() => handleSortColumnToggle('refCode')}
+                            className="p-3 cursor-pointer hover:bg-gray-800/60 transition-colors"
+                            title="Trier par référence"
+                          >
+                            <div className="flex items-center gap-1.5">
+                              <span>Réf</span>
+                              {adminSortColumn === 'refCode' ? (
+                                adminSortDirection === 'asc' ? (
+                                  <ArrowUp className="w-3.5 h-3.5 text-amber-400" />
+                                ) : (
+                                  <ArrowDown className="w-3.5 h-3.5 text-amber-400" />
+                                )
+                              ) : (
+                                <ArrowUpDown className="w-3 h-3 text-gray-600" />
+                              )}
+                            </div>
+                          </th>
+
+                          {/* Clickable Header: Nom */}
+                          <th
+                            onClick={() => handleSortColumnToggle('name')}
+                            className="p-3 cursor-pointer hover:bg-gray-800/60 transition-colors"
+                            title="Trier par nom"
+                          >
+                            <div className="flex items-center gap-1.5">
+                              <span>Nom du Produit</span>
+                              {adminSortColumn === 'name' ? (
+                                adminSortDirection === 'asc' ? (
+                                  <ArrowUp className="w-3.5 h-3.5 text-amber-400" />
+                                ) : (
+                                  <ArrowDown className="w-3.5 h-3.5 text-amber-400" />
+                                )
+                              ) : (
+                                <ArrowUpDown className="w-3 h-3 text-gray-600" />
+                              )}
+                            </div>
+                          </th>
+
+                          {/* Clickable Header: Catégorie */}
+                          <th
+                            onClick={() => handleSortColumnToggle('category')}
+                            className="p-3 cursor-pointer hover:bg-gray-800/60 transition-colors"
+                            title="Trier par catégorie"
+                          >
+                            <div className="flex items-center gap-1.5">
+                              <span>Catégorie</span>
+                              {adminSortColumn === 'category' ? (
+                                adminSortDirection === 'asc' ? (
+                                  <ArrowUp className="w-3.5 h-3.5 text-amber-400" />
+                                ) : (
+                                  <ArrowDown className="w-3.5 h-3.5 text-amber-400" />
+                                )
+                              ) : (
+                                <ArrowUpDown className="w-3 h-3 text-gray-600" />
+                              )}
+                            </div>
+                          </th>
+
+                          {/* Clickable Header: Prix */}
+                          <th
+                            onClick={() => handleSortColumnToggle('price')}
+                            className="p-3 cursor-pointer hover:bg-gray-800/60 transition-colors"
+                            title="Trier par prix"
+                          >
+                            <div className="flex items-center gap-1.5">
+                              <span>Prix FCFA</span>
+                              {adminSortColumn === 'price' ? (
+                                adminSortDirection === 'asc' ? (
+                                  <ArrowUp className="w-3.5 h-3.5 text-amber-400" />
+                                ) : (
+                                  <ArrowDown className="w-3.5 h-3.5 text-amber-400" />
+                                )
+                              ) : (
+                                <ArrowUpDown className="w-3 h-3 text-gray-600" />
+                              )}
+                            </div>
+                          </th>
+
                           <th className="p-3 text-right">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-800 bg-[#111111]">
-                        {products.map((p) => (
-                          <tr key={p.id} className="hover:bg-black/60 transition-colors">
-                            <td className="p-3">
-                              <img
-                                src={p.imageUrl}
-                                alt={p.name}
-                                className="w-10 h-10 object-cover rounded-lg border border-gray-800"
-                              />
-                            </td>
-                            <td className="p-3 font-mono font-bold text-[#D4AF37]">
-                              #{p.refCode}
-                            </td>
-                            <td className="p-3 font-semibold text-white max-w-[200px] truncate">
-                              {p.name}
-                            </td>
-                            <td className="p-3 capitalize">{p.category}</td>
-                            <td className="p-3 font-mono text-[#F3E5AB]">
-                              {p.price} FCFA
-                            </td>
-                            <td className="p-3 text-right space-x-2">
-                              <button
-                                onClick={() => handleStartEdit(p)}
-                                className="p-1.5 rounded-lg bg-gray-800 hover:bg-[#D4AF37] hover:text-black transition-colors"
-                                title="Modifier"
-                              >
-                                <Edit2 className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                onClick={() => {
-                                  if (confirm(`Supprimer le produit ${p.name} (#${p.refCode}) ?`)) {
-                                    onDeleteProduct(p.id);
-                                  }
-                                }}
-                                className="p-1.5 rounded-lg bg-rose-950 text-rose-400 hover:bg-rose-800 hover:text-white transition-colors"
-                                title="Supprimer"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
+                        {filteredAdminProducts.length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className="p-8 text-center text-gray-500 font-sans">
+                              Aucun produit ne correspond à vos critères de recherche.
                             </td>
                           </tr>
-                        ))}
+                        ) : (
+                          filteredAdminProducts.map((p) => {
+                            const safeImg = p?.imageUrl || 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?q=80&w=800&auto=format&fit=crop';
+                            const safeName = p?.name || 'Produit Sans Nom';
+                            const safeRef = p?.refCode || '000';
+                            const safeCat = p?.category || 'bijoux';
+                            const safePrice = typeof p?.price === 'number' ? p.price : (p?.price || 0);
+
+                            return (
+                              <tr key={p?.id || safeRef} className="hover:bg-black/60 transition-colors">
+                                <td className="p-3">
+                                  <img
+                                    src={safeImg}
+                                    alt={safeName}
+                                    className="w-10 h-10 object-cover rounded-lg border border-gray-800"
+                                  />
+                                </td>
+                                <td className="p-3 font-mono font-bold text-[#D4AF37]">
+                                  #{safeRef}
+                                </td>
+                                <td className="p-3 font-semibold text-white max-w-[200px] truncate">
+                                  {safeName}
+                                </td>
+                                <td className="p-3 capitalize">{safeCat}</td>
+                                <td className="p-3 font-mono text-[#F3E5AB]">
+                                  {safePrice} FCFA
+                                </td>
+                                <td className="p-3 text-right space-x-2">
+                                  <button
+                                    onClick={() => handleStartEdit(p)}
+                                    className="p-1.5 rounded-lg bg-gray-800 hover:bg-[#D4AF37] hover:text-black transition-colors"
+                                    title="Modifier"
+                                  >
+                                    <Edit2 className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={() => setProductToDelete(p)}
+                                    className="p-1.5 rounded-lg bg-rose-950 text-rose-400 hover:bg-rose-800 hover:text-white transition-colors cursor-pointer"
+                                    title="Supprimer ce produit"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -501,20 +1258,158 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                     </div>
 
                     <div>
-                      <label className="block text-gray-400 mb-1">Catégorie Principale</label>
+                      <label className="block text-gray-400 mb-1">Catégorie Principale *</label>
                       <select
                         value={adminTab === 'add' ? formData.category : editingProduct?.category || 'bijoux'}
-                        onChange={(e) =>
-                          adminTab === 'add'
-                            ? setFormData({ ...formData, category: e.target.value as any })
-                            : setEditingProduct(editingProduct ? { ...editingProduct, category: e.target.value as any } : null)
-                        }
-                        className="w-full bg-black border border-gray-800 rounded-lg p-2.5 text-white"
+                        onChange={(e) => {
+                          const cat = e.target.value as CategoryId;
+                          if (adminTab === 'add') {
+                            setFormData({ ...formData, category: cat });
+                          } else if (editingProduct) {
+                            setEditingProduct({ ...editingProduct, category: cat });
+                          }
+                        }}
+                        className="w-full bg-black border border-gray-800 rounded-lg p-2.5 text-white focus:border-[#D4AF37] focus:outline-none"
                       >
-                        <option value="bijoux">Bijoux</option>
-                        <option value="parfums">Parfums</option>
-                        <option value="emballages">Emballages</option>
-                        <option value="accessoires">Accessoires</option>
+                        <option value="bijoux">💎 Bijoux</option>
+                        <option value="emballages">📦 Emballages</option>
+                        <option value="parfums">👑 Parfums (ANONYM)</option>
+                        <option value="accessoires">✨ Accessoires</option>
+                      </select>
+                    </div>
+
+                    {/* ── 1ST LEVEL SUBCATEGORY SELECTOR ── */}
+                    <div>
+                      <label className="block text-[#D4AF37] font-semibold mb-1">
+                        Sous-Catégorie 1er Niveau (Cible / Mode / Collection) *
+                      </label>
+                      <select
+                        value={
+                          adminTab === 'add'
+                            ? (formData.gender || 'femme')
+                            : (editingProduct?.gender || 'femme')
+                        }
+                        onChange={(e) => {
+                          const val = e.target.value as GenderCategory;
+                          if (adminTab === 'add') {
+                            setFormData({ ...formData, gender: val });
+                          } else if (editingProduct) {
+                            setEditingProduct({ ...editingProduct, gender: val });
+                          }
+                        }}
+                        className="w-full bg-black border border-[#D4AF37]/50 rounded-lg p-2.5 text-white font-semibold focus:border-[#D4AF37] focus:outline-none"
+                      >
+                        {(adminTab === 'add' ? formData.category : editingProduct?.category || 'bijoux') === 'bijoux' && (
+                          <>
+                            <option value="femme">👩 Bijoux Femme</option>
+                            <option value="homme">👨 Bijoux Homme</option>
+                            <option value="couple">👩‍❤️‍👨 Bijoux Couple</option>
+                            <option value="enfant">👶 Bijoux Enfant</option>
+                            <option value="animaux">🐾 Bijoux pour Animaux</option>
+                            <option value="mixte">✨ Bijoux Mixte</option>
+                          </>
+                        )}
+                        {(adminTab === 'add' ? formData.category : editingProduct?.category) === 'emballages' && (
+                          <>
+                            <option value="type">📦 Par type d'emballage</option>
+                            <option value="materiau">🪵 Par matériau</option>
+                            <option value="secteur">🏢 Par secteur d'activité</option>
+                            <option value="occasion">🎉 Par occasion</option>
+                          </>
+                        )}
+                        {(adminTab === 'add' ? formData.category : editingProduct?.category) === 'parfums' && (
+                          <>
+                            <option value="anonym-invitation">👑 ANONYM INVITATION</option>
+                            <option value="collections-privees">✨ Collections Privées</option>
+                          </>
+                        )}
+                        {(adminTab === 'add' ? formData.category : editingProduct?.category) === 'accessoires' && (
+                          <>
+                            <option value="occasion">🎉 Par occasion</option>
+                            <option value="type">⚙️ Par type d'accessoire</option>
+                          </>
+                        )}
+                      </select>
+                    </div>
+
+                    {/* ── 2ND LEVEL SUBCATEGORY SELECTOR ── */}
+                    <div>
+                      <label className="block text-[#D4AF37] font-semibold mb-1">
+                        Sous-Catégorie 2e Niveau (Élément Spécifique) *
+                      </label>
+                      <select
+                        value={
+                          adminTab === 'add'
+                            ? (formData.subCategory || 'colliers')
+                            : (editingProduct?.subCategory || 'colliers')
+                        }
+                        onChange={(e) => {
+                          const val = e.target.value as SubCategory;
+                          if (adminTab === 'add') {
+                            setFormData({ ...formData, subCategory: val });
+                          } else if (editingProduct) {
+                            setEditingProduct({ ...editingProduct, subCategory: val });
+                          }
+                        }}
+                        className="w-full bg-black border border-[#D4AF37]/50 rounded-lg p-2.5 text-white font-semibold focus:border-[#D4AF37] focus:outline-none"
+                      >
+                        {(adminTab === 'add' ? formData.category : editingProduct?.category || 'bijoux') === 'bijoux' && (
+                          <>
+                            <option value="colliers">📿 Colliers</option>
+                            <option value="bracelets">🔗 Bracelets</option>
+                            <option value="bagues">💍 Bagues</option>
+                            <option value="boucles">✨ Boucles d'oreilles</option>
+                            <option value="chaines-pieds">🦶 Chaînes de pieds</option>
+                            <option value="perles-hanche">💃 Perles de hanche</option>
+                            <option value="montres">⌚ Montres</option>
+                            <option value="medailles">🏅 Médailles</option>
+                            <option value="autres">✨ Autres Bijoux</option>
+                          </>
+                        )}
+                        {(adminTab === 'add' ? formData.category : editingProduct?.category) === 'emballages' && (
+                          <>
+                            <option value="boites">📦 Boîtes</option>
+                            <option value="sachets">🛍️ Sachets</option>
+                            <option value="sacs">👜 Sacs</option>
+                            <option value="pots">🫙 Pots</option>
+                            <option value="flacons">🧪 Flacons</option>
+                            <option value="papier">📄 Papier</option>
+                            <option value="plastique">🥤 Plastique</option>
+                            <option value="verre">🥛 Verre</option>
+                            <option value="aluminium">🥫 Aluminium</option>
+                            <option value="biodegradable">🌱 Biodégradable</option>
+                            <option value="restauration">🍽️ Restauration / Alimentation</option>
+                            <option value="cosmetiques">💄 Cosmétiques</option>
+                            <option value="boutiques">🏪 Boutiques</option>
+                            <option value="mariage">💒 Mariage</option>
+                            <option value="anniversaire">🎂 Anniversaire</option>
+                            <option value="cadeaux">🎁 Cadeaux</option>
+                            <option value="pro">💼 Professionnel</option>
+                            <option value="autres">📦 Autres Emballages</option>
+                          </>
+                        )}
+                        {(adminTab === 'add' ? formData.category : editingProduct?.category) === 'parfums' && (
+                          <>
+                            <option value="extrait-50ml">👑 Extrait de Parfum 50ml</option>
+                            <option value="huile-olfactive">✨ Huile Olfactive Sur-Mesure</option>
+                            <option value="brume">🌸 Brume Parfumée</option>
+                          </>
+                        )}
+                        {(adminTab === 'add' ? formData.category : editingProduct?.category) === 'accessoires' && (
+                          <>
+                            <option value="verres">🥂 Verres Personnalisés</option>
+                            <option value="tasses">☕ Tasses & Mugs</option>
+                            <option value="stylos">🖊️ Stylos Personnalisés</option>
+                            <option value="portecles">🔑 Porte-Clés Personnalisés</option>
+                            <option value="nounours">🧸 Nounours Personnalisés</option>
+                            <option value="bijoux">💍 Bijoux Personnalisés</option>
+                            <option value="cadeaux">🎁 Cadeaux</option>
+                            <option value="social">🎉 Événements Sociaux</option>
+                            <option value="pro">💼 Événements Professionnels</option>
+                            <option value="entreprises">🏢 Entreprises</option>
+                            <option value="autres">✨ Autres Accessoires</option>
+                          </>
+                        )}
                       </select>
                     </div>
 
@@ -561,65 +1456,57 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                       />
                     </div>
 
-                    <div className="sm:col-span-2 space-y-2">
-                      <label className="block text-gray-300 font-semibold mb-1">
-                        Photo du Produit (Téléverser depuis Téléphone / Galerie ou Lien)
-                      </label>
-
-                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                        <label className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#1A160C] border border-[#D4AF37]/60 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black font-semibold text-xs transition-all cursor-pointer shadow-md">
-                          <Upload className="w-4 h-4" />
-                          <span>Choisir une photo depuis votre téléphone</span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleImageFileUpload}
-                            className="hidden"
-                          />
-                        </label>
-                        <span className="text-gray-500 text-xs text-center sm:text-left">ou coller un lien photo web :</span>
+                    {/* ── 3-PHOTO CAROUSEL MANAGEMENT (CENTRAL SPEC REQUIREMENT) ── */}
+                    <div className="sm:col-span-2 bg-[#0C0C0C] border border-[#D4AF37]/40 rounded-2xl p-4 space-y-4">
+                      <div>
+                        <h4 className="text-sm font-serif font-bold text-[#D4AF37] flex items-center gap-2">
+                          <Upload className="w-4 h-4 text-[#D4AF37]" />
+                          <span>Gestion des 3 Photos du Carrousel Produit</span>
+                        </h4>
+                        <p className="text-[11px] text-gray-400 mt-0.5">
+                          Ajoutez jusqu'à 3 photos défilantes pour ce produit (principale, secondaire, troisième vue).
+                        </p>
                       </div>
 
-                      <input
-                        type="text"
-                        placeholder="https://..."
-                        value={adminTab === 'add' ? formData.imageUrl : editingProduct?.imageUrl || ''}
-                        onChange={(e) =>
-                          adminTab === 'add'
-                            ? setFormData({ ...formData, imageUrl: e.target.value })
-                            : setEditingProduct(editingProduct ? { ...editingProduct, imageUrl: e.target.value } : null)
-                        }
-                        className="w-full bg-black border border-gray-800 rounded-lg p-2.5 text-xs text-white"
-                      />
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        {[0, 1, 2].map((slotIdx) => {
+                          const currentImgs = adminTab === 'add'
+                            ? (formData.images && formData.images.length > 0 ? formData.images : [formData.imageUrl])
+                            : (editingProduct?.images && editingProduct.images.length > 0 ? editingProduct.images : [editingProduct?.imageUrl || '']);
+                          
+                          const imgVal = currentImgs[slotIdx] || '';
+                          const isMain = slotIdx === 0;
 
-                      {/* Photo Thumbnail Preview */}
-                      {(adminTab === 'add' ? formData.imageUrl : editingProduct?.imageUrl) && (
-                        <div className="flex items-center gap-3 p-2 bg-black/80 border border-[#D4AF37]/30 rounded-xl mt-2">
-                          <img
-                            src={adminTab === 'add' ? formData.imageUrl : editingProduct?.imageUrl}
-                            alt="Aperçu Produit"
-                            className="w-14 h-14 object-cover rounded-lg border border-[#D4AF37]/50"
-                          />
-                          <div>
-                            <span className="text-xs text-emerald-400 font-semibold block">✓ Photo chargée avec succès</span>
-                             <span className="text-[10px] text-gray-400 block">Prête pour le catalogue ANONYM</span>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="sm:col-span-2">
-                      <label className="block text-gray-400 mb-1">Description Fiche Produit</label>
-                      <textarea
-                        rows={3}
-                        value={adminTab === 'add' ? formData.description : editingProduct?.description || ''}
-                        onChange={(e) =>
-                          adminTab === 'add'
-                            ? setFormData({ ...formData, description: e.target.value })
-                            : setEditingProduct(editingProduct ? { ...editingProduct, description: e.target.value } : null)
-                        }
-                        className="w-full bg-black border border-gray-800 rounded-lg p-2.5 text-white"
-                      />
+                          return (
+                            <div
+                              key={slotIdx}
+                              className={`p-3 rounded-xl border flex flex-col justify-between space-y-2 bg-[#121212] ${
+                                isMain ? 'border-[#D4AF37] shadow-[0_0_12px_rgba(212,175,55,0.25)]' : 'border-gray-800'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <span className={`text-xs font-bold font-mono ${isMain ? 'text-[#D4AF37]' : 'text-gray-300'}`}>
+                                  Photo #{slotIdx + 1} {isMain && '(Principale)'}
+                                </span>
+                              </div>
+                              <div className="relative aspect-square w-full rounded-lg overflow-hidden bg-black border border-gray-800 flex items-center justify-center">
+                                {imgVal ? (
+                                  <img src={imgVal} alt={`Aperçu ${slotIdx + 1}`} className="w-full h-full object-cover" />
+                                ) : (
+                                  <span className="text-[10px] text-gray-600 italic">Vide</span>
+                                )}
+                              </div>
+                              <input
+                                type="text"
+                                placeholder="Coller un lien URL..."
+                                value={imgVal}
+                                onChange={(e) => updateProductImageAtIndex(slotIdx, e.target.value)}
+                                className="w-full bg-black border border-gray-800 rounded-lg p-1.5 text-[10px] text-white"
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
 
@@ -642,7 +1529,749 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                 </form>
               )}
 
-              {/* TAB 4: Store Settings Form & Password Management */}
+              {/* TAB: Collections */}
+              {adminTab === 'collections' && (
+                <div className="space-y-6">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-[#141414] border border-[#D4AF37]/30 rounded-2xl p-4">
+                    <div>
+                      <h3 className="text-lg font-serif font-bold text-[#D4AF37] flex items-center gap-2">
+                        <Layout className="w-5 h-5 text-[#D4AF37]" />
+                        <span>Gestion des Collections & Univers</span>
+                      </h3>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        Organisez vos créations en univers personnalisés (titre, icône, catégorie parente, image & liste des produits).
+                      </p>
+                    </div>
+
+                    {!isAddCollectionOpen && (
+                      <button
+                        onClick={handleStartAddCollection}
+                        className="px-4 py-2.5 bg-[#D4AF37] text-black font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-[#F3E5AB] transition-all cursor-pointer shadow-md flex items-center gap-1.5 shrink-0"
+                      >
+                        <Plus className="w-4 h-4" />
+                        <span>Créer une Collection</span>
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Collection Form (Add or Edit) */}
+                  {isAddCollectionOpen && (
+                    <form onSubmit={handleSaveCollectionForm} className="bg-[#141414] border border-[#D4AF37]/50 rounded-2xl p-6 space-y-4">
+                      <h4 className="text-base font-serif font-bold text-[#D4AF37] flex items-center justify-between">
+                        <span>{editingCollection ? `Éditer la Collection: ${editingCollection.name}` : 'Nouvelle Collection'}</span>
+                        <button
+                          type="button"
+                          onClick={() => setIsAddCollectionOpen(false)}
+                          className="text-gray-400 hover:text-white text-xs flex items-center gap-1"
+                        >
+                          <X className="w-4 h-4" />
+                          <span>Fermer</span>
+                        </button>
+                      </h4>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                        <div>
+                          <label className="block text-gray-300 font-semibold mb-1">Nom de la Collection *</label>
+                          <input
+                            type="text"
+                            required
+                            value={colFormData.name}
+                            onChange={(e) => setColFormData({ ...colFormData, name: e.target.value })}
+                            placeholder="ex: Colliers Prestige Femme"
+                            className="w-full bg-black border border-gray-800 rounded-xl p-2.5 text-white focus:border-[#D4AF37] focus:outline-none"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-gray-300 font-semibold mb-1">Catégorie Parente *</label>
+                          <select
+                            value={colFormData.category}
+                            onChange={(e) => setColFormData({ ...colFormData, category: e.target.value as CategoryId })}
+                            className="w-full bg-black border border-gray-800 rounded-xl p-2.5 text-white focus:border-[#D4AF37] focus:outline-none"
+                          >
+                            <option value="bijoux">💎 Bijoux</option>
+                            <option value="emballages">📦 Emballages</option>
+                            <option value="parfums">👑 Parfums (ANONYM)</option>
+                            <option value="accessoires">✨ Accessoires</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-gray-300 font-semibold mb-1">Icône / Émoji</label>
+                          <div className="flex gap-2 items-center">
+                            <input
+                              type="text"
+                              value={colFormData.icon}
+                              onChange={(e) => setColFormData({ ...colFormData, icon: e.target.value })}
+                              className="w-20 bg-black border border-gray-800 rounded-xl p-2.5 text-center text-base text-white focus:border-[#D4AF37] focus:outline-none"
+                            />
+                            <div className="flex flex-wrap gap-1">
+                              {['📿', '💍', '⌚', '📦', '🎁', '✨', '👑', '🎨', '🕯️'].map((emoji) => (
+                                <button
+                                  key={emoji}
+                                  type="button"
+                                  onClick={() => setColFormData({ ...colFormData, icon: emoji })}
+                                  className="p-1.5 rounded-lg bg-black border border-gray-800 text-sm hover:border-[#D4AF37]"
+                                >
+                                  {emoji}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-gray-300 font-semibold mb-1">Image de Couverture</label>
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={colFormData.coverImage}
+                              onChange={(e) => setColFormData({ ...colFormData, coverImage: e.target.value })}
+                              placeholder="https://..."
+                              className="flex-1 bg-black border border-gray-800 rounded-xl p-2.5 text-xs text-white focus:border-[#D4AF37] focus:outline-none"
+                            />
+                            <label className="px-3 py-2.5 bg-gray-800 text-gray-300 rounded-xl text-xs hover:bg-[#D4AF37] hover:text-black transition-colors cursor-pointer shrink-0 flex items-center gap-1">
+                              <Upload className="w-3.5 h-3.5" />
+                              <span>Upload</span>
+                              <input type="file" accept="image/*" onChange={handleCollectionImageFileUpload} className="hidden" />
+                            </label>
+                          </div>
+                        </div>
+
+                        <div className="sm:col-span-2">
+                          <label className="block text-gray-300 font-semibold mb-1">Description courte</label>
+                          <input
+                            type="text"
+                            value={colFormData.description}
+                            onChange={(e) => setColFormData({ ...colFormData, description: e.target.value })}
+                            placeholder="Courte présentation de cet univers..."
+                            className="w-full bg-black border border-gray-800 rounded-xl p-2.5 text-white focus:border-[#D4AF37] focus:outline-none"
+                          />
+                        </div>
+
+                        <div className="sm:col-span-2 flex items-center gap-2 pt-1">
+                          <input
+                            type="checkbox"
+                            id="colVisibleToggle"
+                            checked={colFormData.visible}
+                            onChange={(e) => setColFormData({ ...colFormData, visible: e.target.checked })}
+                            className="w-4 h-4 accent-[#D4AF37] rounded"
+                          />
+                          <label htmlFor="colVisibleToggle" className="text-xs text-gray-300 cursor-pointer">
+                            Afficher cette collection sur le site public
+                          </label>
+                        </div>
+
+                        {/* Product Attachment Selector */}
+                        <div className="sm:col-span-2 bg-black/60 border border-gray-800 rounded-2xl p-4 space-y-3">
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                            <div>
+                              <h5 className="text-xs font-serif font-bold text-[#D4AF37]">
+                                Produits Rattachés ({colFormData.productIds.length} sélectionné(s))
+                              </h5>
+                              <p className="text-[11px] text-gray-400">Cochez les produits faisant partie de cette collection.</p>
+                            </div>
+
+                            {/* Product search box */}
+                            <div className="relative w-full sm:w-60">
+                              <Search className="w-3.5 h-3.5 text-gray-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                              <input
+                                type="text"
+                                value={colProductSearch}
+                                onChange={(e) => setColProductSearch(e.target.value)}
+                                placeholder="Chercher un produit..."
+                                className="w-full bg-gray-900 border border-gray-800 rounded-lg pl-8 pr-3 py-1.5 text-[11px] text-white focus:outline-none focus:border-[#D4AF37]"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="max-h-48 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-2 pr-1 scrollbar-thin scrollbar-thumb-gray-800">
+                            {products
+                              .filter((p) => {
+                                if (colFormData.category && p.category !== colFormData.category) return false;
+                                if (colProductSearch.trim()) {
+                                  const q = colProductSearch.toLowerCase();
+                                  return p.name.toLowerCase().includes(q) || p.refCode.toLowerCase().includes(q);
+                                }
+                                return true;
+                              })
+                              .map((p) => {
+                                const isChecked = colFormData.productIds.includes(p.id);
+                                return (
+                                  <label
+                                    key={p.id}
+                                    className={`flex items-center gap-2.5 p-2 rounded-xl border text-xs cursor-pointer transition-colors ${
+                                      isChecked ? 'bg-[#D4AF37]/15 border-[#D4AF37]/60 text-white' : 'bg-[#121212] border-gray-800 text-gray-400 hover:border-gray-700'
+                                    }`}
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={isChecked}
+                                      onChange={() => handleToggleProductInCollection(p.id)}
+                                      className="w-3.5 h-3.5 accent-[#D4AF37]"
+                                    />
+                                    <img src={p.imageUrl} alt={p.name} className="w-7 h-7 object-cover rounded border border-gray-800" />
+                                    <div className="flex-1 min-w-0 truncate">
+                                      <span className="font-semibold text-white truncate block">{p.name}</span>
+                                      <span className="text-[10px] text-[#D4AF37] font-mono">#{p.refCode} • {p.price} FCFA</span>
+                                    </div>
+                                  </label>
+                                );
+                              })}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end gap-3 pt-3 border-t border-gray-800">
+                        <button
+                          type="button"
+                          onClick={() => setIsAddCollectionOpen(false)}
+                          className="px-4 py-2 bg-gray-800 text-gray-300 rounded-xl text-xs cursor-pointer"
+                        >
+                          Annuler
+                        </button>
+                        <button
+                          type="submit"
+                          className="px-6 py-2 bg-[#D4AF37] text-black font-bold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow-md"
+                        >
+                          <Save className="w-4 h-4" />
+                          <span>Enregistrer la Collection</span>
+                        </button>
+                      </div>
+                    </form>
+                  )}
+
+                  {/* Existing Collections Cards List */}
+                  <div className="space-y-3">
+                    {sortedCollections.length === 0 ? (
+                      <div className="text-center py-10 bg-[#141414] border border-gray-800 rounded-2xl">
+                        <p className="text-xs text-gray-400">Aucune collection créée pour le moment.</p>
+                        <button
+                          onClick={handleStartAddCollection}
+                          className="mt-3 px-4 py-2 bg-[#D4AF37] text-black font-bold text-xs rounded-xl"
+                        >
+                          + Créer la première collection
+                        </button>
+                      </div>
+                    ) : (
+                      sortedCollections.map((col, idx) => (
+                        <div key={col.id} className="bg-[#111111] border border-gray-800 hover:border-[#D4AF37]/40 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all">
+                          <div className="flex items-center gap-3.5">
+                            {col.coverImage ? (
+                              <img src={col.coverImage} alt={col.name} className="w-12 h-12 object-cover rounded-xl border border-gray-800" />
+                            ) : (
+                              <div className="w-12 h-12 rounded-xl bg-black border border-gray-800 flex items-center justify-center text-2xl">
+                                {col.icon || '📿'}
+                              </div>
+                            )}
+
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-base font-serif font-bold text-white">{col.name}</span>
+                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#D4AF37]/15 text-[#D4AF37] border border-[#D4AF37]/30 font-mono capitalize">
+                                  {col.category || 'bijoux'}
+                                </span>
+                                {col.visible === false && (
+                                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-950 text-rose-400 border border-rose-800">
+                                    Masquée
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-xs text-gray-400 mt-0.5">{col.description || 'Pas de description'}</p>
+                              <div className="text-[10px] text-gray-500 font-mono mt-1">
+                                <strong className="text-[#F3E5AB]">{col.productIds?.length || 0}</strong> produit(s) rattaché(s) • Ordre: {col.order || idx + 1}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Actions: Edit, Move Up, Move Down, Delete */}
+                          <div className="flex items-center gap-2 self-end sm:self-center">
+                            <button
+                              onClick={() => handleStartEditCollection(col)}
+                              className="px-3 py-1.5 rounded-xl bg-gray-800 text-gray-200 hover:bg-[#D4AF37] hover:text-black text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                              title="Modifier cette collection"
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
+                              <span>Éditer</span>
+                            </button>
+
+                            <button
+                              onClick={() => handleMoveCollection(idx, 'up')}
+                              disabled={idx === 0}
+                              className="p-2 rounded-xl bg-gray-800 text-[#D4AF37] hover:text-black hover:bg-[#D4AF37] disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                              title="Déplacer vers le haut"
+                            >
+                              <ChevronUp className="w-4 h-4" />
+                            </button>
+
+                            <button
+                              onClick={() => handleMoveCollection(idx, 'down')}
+                              disabled={idx === sortedCollections.length - 1}
+                              className="p-2 rounded-xl bg-gray-800 text-[#D4AF37] hover:text-black hover:bg-[#D4AF37] disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                              title="Déplacer vers le bas"
+                            >
+                              <ChevronDown className="w-4 h-4" />
+                            </button>
+
+                            <button
+                              onClick={() => setCollectionToDelete(col)}
+                              className="p-2 rounded-xl bg-rose-950 text-rose-400 hover:bg-rose-800 hover:text-white transition-colors cursor-pointer"
+                              title="Supprimer la collection"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* TAB: SubCategories (Niv 1 & Niv 2) */}
+              {adminTab === 'subcategories' && (
+                <div className="space-y-6">
+                  {/* Category Selector Filter Bar */}
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-[#141414] border border-[#D4AF37]/30 rounded-2xl p-4">
+                    <div>
+                      <h3 className="text-lg font-serif font-bold text-[#D4AF37] flex items-center gap-2">
+                        <Filter className="w-5 h-5 text-[#D4AF37]" />
+                        <span>Gestion des Sous-Catégories (Niveaux 1 & 2)</span>
+                      </h3>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        Gérez et personnalisez en direct les cibles, filtres et sous-arborescences de chacune des 5 cartes parentes.
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto">
+                      {(['bijoux', 'emballages', 'parfums', 'accessoires'] as CategoryId[]).map((catId) => (
+                        <button
+                          key={catId}
+                          type="button"
+                          onClick={() => setSubCatParentFilter(catId)}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold capitalize transition-all cursor-pointer ${
+                            subCatParentFilter === catId
+                              ? 'bg-[#D4AF37] text-black shadow-md'
+                              : 'bg-black text-gray-400 border border-gray-800 hover:text-white'
+                          }`}
+                        >
+                          {catId}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* LEVEL 1 SECTION */}
+                  <div className="bg-[#111111] border border-gray-800 rounded-2xl p-5 space-y-4">
+                    <div className="flex items-center justify-between border-b border-gray-800 pb-3">
+                      <div>
+                        <h4 className="text-sm font-serif font-bold text-white flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-[#D4AF37]"></span>
+                          <span>Sous-Catégories Niveau 1 — Carte {subCatParentFilter.toUpperCase()}</span>
+                        </h4>
+                        <p className="text-[11px] text-gray-400">Ex: Femme, Homme, Par type, Cadeaux, etc.</p>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleStartAddLvl1}
+                        className="px-3.5 py-1.5 bg-[#D4AF37] text-black font-bold text-xs rounded-xl hover:bg-[#F3E5AB] cursor-pointer shadow-md flex items-center gap-1 shrink-0"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>+ Ajouter Niv. 1</span>
+                      </button>
+                    </div>
+
+                    {/* Level 1 Form Modal / Inline Box */}
+                    {isAddLvl1Open && (
+                      <form onSubmit={handleSaveLvl1Form} className="bg-[#1A1A1A] border border-[#D4AF37]/50 rounded-xl p-4 space-y-3">
+                        <div className="flex items-center justify-between text-xs font-bold text-[#D4AF37]">
+                          <span>{editingSubLvl1 ? `Éditer Niv 1: ${editingSubLvl1.name}` : 'Nouvelle Sous-Catégorie Niveau 1'}</span>
+                          <button type="button" onClick={() => setIsAddLvl1Open(false)} className="text-gray-400 hover:text-white">
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                          <div>
+                            <label className="block text-gray-300 mb-1">Nom Commercial *</label>
+                            <input
+                              type="text"
+                              required
+                              value={lvl1FormData.name}
+                              onChange={(e) => setLvl1FormData({ ...lvl1FormData, name: e.target.value })}
+                              placeholder="ex: BIJOUX ADO"
+                              className="w-full bg-black border border-gray-800 rounded-lg p-2 text-white uppercase focus:border-[#D4AF37]"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-gray-300 mb-1">Catégorie Parente</label>
+                            <select
+                              value={lvl1FormData.parentCategory}
+                              onChange={(e) => setLvl1FormData({ ...lvl1FormData, parentCategory: e.target.value as CategoryId })}
+                              className="w-full bg-black border border-gray-800 rounded-lg p-2 text-white capitalize focus:border-[#D4AF37]"
+                            >
+                              <option value="bijoux">Bijoux</option>
+                              <option value="emballages">Emballages</option>
+                              <option value="parfums">Parfums (ANONYM)</option>
+                              <option value="accessoires">Accessoires</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="block text-gray-300 mb-1">Icône / Émoji</label>
+                            <input
+                              type="text"
+                              value={lvl1FormData.icon}
+                              onChange={(e) => setLvl1FormData({ ...lvl1FormData, icon: e.target.value })}
+                              className="w-full bg-black border border-gray-800 rounded-lg p-2 text-white text-center focus:border-[#D4AF37]"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-2">
+                          <label className="flex items-center gap-2 text-xs text-gray-300 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={lvl1FormData.visible}
+                              onChange={(e) => setLvl1FormData({ ...lvl1FormData, visible: e.target.checked })}
+                              className="w-3.5 h-3.5 accent-[#D4AF37]"
+                            />
+                            <span>Visible côté public</span>
+                          </label>
+
+                          <div className="flex gap-2">
+                            <button type="button" onClick={() => setIsAddLvl1Open(false)} className="px-3 py-1.5 bg-gray-800 text-gray-300 text-xs rounded-lg">
+                              Annuler
+                            </button>
+                            <button type="submit" className="px-4 py-1.5 bg-[#D4AF37] text-black font-bold text-xs rounded-lg">
+                              Enregistrer
+                            </button>
+                          </div>
+                        </div>
+                      </form>
+                    )}
+
+                    {/* Level 1 List */}
+                    {(() => {
+                      const lvl1Items = (subCategoriesLvl1 || []).filter((c) => c.parentCategory === subCatParentFilter);
+                      if (lvl1Items.length === 0) {
+                        return <p className="text-xs text-gray-500 italic py-2">Aucune sous-catégorie niveau 1 configurée pour {subCatParentFilter}.</p>;
+                      }
+                      return (
+                        <div className="space-y-2">
+                          {lvl1Items.map((item, idx) => (
+                            <div key={item.id} className="bg-[#141414] border border-gray-800 rounded-xl p-3 flex items-center justify-between text-xs">
+                              <div className="flex items-center gap-3">
+                                <span className="text-lg">{item.icon || '📌'}</span>
+                                <div>
+                                  <span className="font-bold text-white font-mono">{item.name}</span>
+                                  {item.visible === false && <span className="ml-2 text-[10px] text-rose-400 font-mono">(Masquée)</span>}
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => handleStartAddLvl2(item.id)}
+                                  className="px-2.5 py-1 rounded-lg bg-gray-800 hover:bg-[#D4AF37] hover:text-black text-gray-300 text-[11px] font-semibold flex items-center gap-1 cursor-pointer"
+                                  title="Ajouter un sous-élément Niv 2 sous cet élément"
+                                >
+                                  <Plus className="w-3 h-3" />
+                                  <span>+ Niv 2</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleStartEditLvl1(item)}
+                                  className="p-1.5 rounded-lg bg-gray-800 hover:bg-[#D4AF37] hover:text-black text-gray-300 cursor-pointer"
+                                  title="Éditer"
+                                >
+                                  <Edit2 className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleMoveSubLvl1Item(lvl1Items, idx, 'up')}
+                                  disabled={idx === 0}
+                                  className="p-1.5 rounded-lg bg-gray-800 text-gray-400 hover:text-white disabled:opacity-30 cursor-pointer"
+                                >
+                                  <ChevronUp className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleMoveSubLvl1Item(lvl1Items, idx, 'down')}
+                                  disabled={idx === lvl1Items.length - 1}
+                                  className="p-1.5 rounded-lg bg-gray-800 text-gray-400 hover:text-white disabled:opacity-30 cursor-pointer"
+                                >
+                                  <ChevronDown className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setLvl1ToDelete(item)}
+                                  className="p-1.5 rounded-lg bg-rose-950 text-rose-400 hover:bg-rose-800 hover:text-white cursor-pointer"
+                                  title="Supprimer"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })()}
+                  </div>
+
+                  {/* LEVEL 2 SECTION */}
+                  <div className="bg-[#111111] border border-gray-800 rounded-2xl p-5 space-y-4">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-gray-800 pb-3 gap-3">
+                      <div>
+                        <h4 className="text-sm font-serif font-bold text-white flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                          <span>Sous-Catégories Niveau 2 (Types & Articles Spécifiques)</span>
+                        </h4>
+                        <p className="text-[11px] text-gray-400">Ex: Colliers, Bagues, Boîtes, Sachets, Verres, etc.</p>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleStartAddLvl2()}
+                        className="px-3.5 py-1.5 bg-emerald-500 text-black font-bold text-xs rounded-xl hover:bg-emerald-400 cursor-pointer shadow-md flex items-center gap-1 shrink-0"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>+ Ajouter Niv. 2</span>
+                      </button>
+                    </div>
+
+                    {/* Level 2 Form Modal / Inline Box */}
+                    {isAddLvl2Open && (
+                      <form onSubmit={handleSaveSubLvl2Form} className="bg-[#1A1A1A] border border-emerald-500/50 rounded-xl p-4 space-y-3">
+                        <div className="flex items-center justify-between text-xs font-bold text-emerald-400">
+                          <span>{editingSubLvl2 ? `Éditer Niv 2: ${editingSubLvl2.name}` : 'Nouvelle Sous-Catégorie Niveau 2'}</span>
+                          <button type="button" onClick={() => setIsAddLvl2Open(false)} className="text-gray-400 hover:text-white">
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                          <div>
+                            <label className="block text-gray-300 mb-1">Nom Commercial *</label>
+                            <input
+                              type="text"
+                              required
+                              value={lvl2FormData.name}
+                              onChange={(e) => setLvl2FormData({ ...lvl2FormData, name: e.target.value })}
+                              placeholder="ex: COLLIERS SUR MESURE"
+                              className="w-full bg-black border border-gray-800 rounded-lg p-2 text-white uppercase focus:border-emerald-500"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-gray-300 mb-1">Parent Niveau 1 *</label>
+                            <select
+                              required
+                              value={lvl2FormData.level1Id}
+                              onChange={(e) => {
+                                const l1 = subCategoriesLvl1?.find((c) => c.id === e.target.value);
+                                setLvl2FormData({
+                                  ...lvl2FormData,
+                                  level1Id: e.target.value,
+                                  parentCategory: l1?.parentCategory || subCatParentFilter,
+                                });
+                              }}
+                              className="w-full bg-black border border-gray-800 rounded-lg p-2 text-white focus:border-emerald-500"
+                            >
+                              <option value="">-- Sélectionner le parent Niv. 1 --</option>
+                              {(subCategoriesLvl1 || []).map((l1) => (
+                                <option key={l1.id} value={l1.id}>
+                                  [{l1.parentCategory.toUpperCase()}] {l1.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-2">
+                          <label className="flex items-center gap-2 text-xs text-gray-300 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={lvl2FormData.visible}
+                              onChange={(e) => setLvl2FormData({ ...lvl2FormData, visible: e.target.checked })}
+                              className="w-3.5 h-3.5 accent-emerald-500"
+                            />
+                            <span>Visible côté public</span>
+                          </label>
+
+                          <div className="flex gap-2">
+                            <button type="button" onClick={() => setIsAddLvl2Open(false)} className="px-3 py-1.5 bg-gray-800 text-gray-300 text-xs rounded-lg">
+                              Annuler
+                            </button>
+                            <button type="submit" className="px-4 py-1.5 bg-emerald-500 text-black font-bold text-xs rounded-lg">
+                              Enregistrer
+                            </button>
+                          </div>
+                        </div>
+                      </form>
+                    )}
+
+                    {/* Level 2 List grouped by Level 1 */}
+                    {(() => {
+                      const parentLvl1s = (subCategoriesLvl1 || []).filter((c) => c.parentCategory === subCatParentFilter);
+                      if (parentLvl1s.length === 0) {
+                        return <p className="text-xs text-gray-500 italic">Créez d'abord une sous-catégorie niveau 1 ci-dessus.</p>;
+                      }
+
+                      return (
+                        <div className="space-y-4">
+                          {parentLvl1s.map((l1) => {
+                            const lvl2Items = (subCategoriesLvl2 || []).filter((c) => c.level1Id === l1.id);
+                            return (
+                              <div key={l1.id} className="bg-[#141414] border border-gray-800/80 rounded-xl p-3.5 space-y-2">
+                                <div className="flex items-center justify-between text-xs border-b border-gray-800/60 pb-2">
+                                  <span className="font-bold text-[#D4AF37] font-serif flex items-center gap-1.5">
+                                    <span>{l1.icon || '📌'}</span>
+                                    <span>Niv. 1: {l1.name}</span>
+                                    <span className="text-[10px] text-gray-500 font-mono">({lvl2Items.length} élément(s))</span>
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleStartAddLvl2(l1.id)}
+                                    className="text-[11px] text-emerald-400 hover:underline flex items-center gap-1"
+                                  >
+                                    <Plus className="w-3 h-3" />
+                                    <span>Ajouter sous {l1.name}</span>
+                                  </button>
+                                </div>
+
+                                {lvl2Items.length === 0 ? (
+                                  <p className="text-[11px] text-gray-500 italic pl-2">Aucun sous-élément niveau 2 rattaché.</p>
+                                ) : (
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                                    {lvl2Items.map((item, idx) => (
+                                      <div key={item.id} className="bg-black/60 border border-gray-800/80 rounded-lg p-2.5 flex items-center justify-between text-xs">
+                                        <div className="truncate">
+                                          <span className="font-mono text-gray-200">{item.name}</span>
+                                          {item.visible === false && <span className="ml-1 text-[10px] text-rose-400">(Masqué)</span>}
+                                        </div>
+
+                                        <div className="flex items-center gap-1.5 shrink-0">
+                                          <button
+                                            type="button"
+                                            onClick={() => handleStartEditLvl2(item)}
+                                            className="p-1 rounded bg-gray-800 text-gray-300 hover:text-white"
+                                            title="Éditer"
+                                          >
+                                            <Edit2 className="w-3 h-3" />
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={() => handleMoveSubLvl2Item(lvl2Items, idx, 'up', l1.id)}
+                                            disabled={idx === 0}
+                                            className="p-1 rounded bg-gray-800 text-gray-400 hover:text-white disabled:opacity-30"
+                                          >
+                                            <ChevronUp className="w-3 h-3" />
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={() => handleMoveSubLvl2Item(lvl2Items, idx, 'down', l1.id)}
+                                            disabled={idx === lvl2Items.length - 1}
+                                            className="p-1 rounded bg-gray-800 text-gray-400 hover:text-white disabled:opacity-30"
+                                          >
+                                            <ChevronDown className="w-3 h-3" />
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={() => setLvl2ToDelete(item)}
+                                            className="p-1 rounded bg-rose-950 text-rose-400 hover:bg-rose-800 hover:text-white"
+                                            title="Supprimer"
+                                          >
+                                            <Trash2 className="w-3 h-3" />
+                                          </button>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
+                  </div>
+
+                  {/* Level 1 Delete Confirmation Modal */}
+                  {lvl1ToDelete && (
+                    <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-fadeIn" onClick={() => setLvl1ToDelete(null)}>
+                      <div className="bg-[#161616] border-2 border-rose-800 rounded-3xl p-6 max-w-md w-full text-center space-y-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                        <div className="w-14 h-14 rounded-full bg-rose-950/80 border border-rose-700 flex items-center justify-center mx-auto text-rose-400">
+                          <Trash2 className="w-7 h-7" />
+                        </div>
+                        <h4 className="text-lg font-serif font-bold text-white">
+                          Supprimer la Sous-Catégorie Niveau 1 ?
+                        </h4>
+                        <p className="text-xs text-gray-300 leading-relaxed">
+                          Êtes-vous sûre de vouloir supprimer la sous-catégorie <strong className="text-rose-300">"{lvl1ToDelete.name}"</strong> ? Ses sous-éléments de niveau 2 seront également supprimés. Cette action est irréversible.
+                        </p>
+                        <div className="flex justify-center gap-3 pt-2">
+                          <button
+                            type="button"
+                            onClick={() => setLvl1ToDelete(null)}
+                            className="px-5 py-2.5 bg-gray-800 text-gray-300 font-semibold text-xs rounded-xl hover:bg-gray-700 cursor-pointer"
+                          >
+                            Annuler
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (onDeleteSubCatLvl1) onDeleteSubCatLvl1(lvl1ToDelete.id);
+                              setLvl1ToDelete(null);
+                            }}
+                            className="px-5 py-2.5 bg-rose-700 hover:bg-rose-600 text-white font-bold text-xs rounded-xl cursor-pointer shadow-lg"
+                          >
+                            Oui, Supprimer
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Level 2 Delete Confirmation Modal */}
+                  {lvl2ToDelete && (
+                    <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-fadeIn" onClick={() => setLvl2ToDelete(null)}>
+                      <div className="bg-[#161616] border-2 border-rose-800 rounded-3xl p-6 max-w-md w-full text-center space-y-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                        <div className="w-14 h-14 rounded-full bg-rose-950/80 border border-rose-700 flex items-center justify-center mx-auto text-rose-400">
+                          <Trash2 className="w-7 h-7" />
+                        </div>
+                        <h4 className="text-lg font-serif font-bold text-white">
+                          Supprimer la Sous-Catégorie Niveau 2 ?
+                        </h4>
+                        <p className="text-xs text-gray-300 leading-relaxed">
+                          Êtes-vous sûre de vouloir supprimer la sous-catégorie <strong className="text-rose-300">"{lvl2ToDelete.name}"</strong> ? Cette action est irréversible.
+                        </p>
+                        <div className="flex justify-center gap-3 pt-2">
+                          <button
+                            type="button"
+                            onClick={() => setLvl2ToDelete(null)}
+                            className="px-5 py-2.5 bg-gray-800 text-gray-300 font-semibold text-xs rounded-xl hover:bg-gray-700 cursor-pointer"
+                          >
+                            Annuler
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (onDeleteSubCatLvl2) onDeleteSubCatLvl2(lvl2ToDelete.id);
+                              setLvl2ToDelete(null);
+                            }}
+                            className="px-5 py-2.5 bg-rose-700 hover:bg-rose-600 text-white font-bold text-xs rounded-xl cursor-pointer shadow-lg"
+                          >
+                            Oui, Supprimer
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
               {adminTab === 'settings' && (
                 <div className="space-y-6">
                   <form onSubmit={handleSaveSettings} className="bg-[#141414] border border-[#D4AF37]/30 rounded-2xl p-6 space-y-4">
@@ -713,58 +2342,151 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                     </div>
                   </form>
 
-                  {/* Password Change Box */}
-                  <div className="bg-[#141414] border border-[#D4AF37]/30 rounded-2xl p-6 space-y-4">
-                    <h3 className="text-lg font-serif font-bold text-[#D4AF37] flex items-center gap-2">
-                      <Key className="w-5 h-5 text-[#D4AF37]" />
-                      <span>Changer le Mot de Passe Propriétaire</span>
-                    </h3>
-                    <p className="text-xs text-gray-400">
-                      Définissez un nouveau mot de passe secret connu uniquement par vous.
-                    </p>
+                  {/* Single Unified Password Change Box */}
+                  <div className="bg-[#141414] border border-[#D4AF37]/30 rounded-2xl p-6 space-y-5">
+                    <div className="flex items-center gap-3 border-b border-[#D4AF37]/20 pb-4">
+                      <div className="p-3 rounded-full bg-[#D4AF37]/20 text-[#D4AF37]">
+                        <Key className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-serif font-bold text-white">Changer le Mot de Passe Administrateur</h3>
+                        <p className="text-xs text-gray-400 font-sans">
+                          Sécurisez votre accès administrateur à tout moment.
+                        </p>
+                      </div>
+                    </div>
+
+                    {passwordChangeSuccess && (
+                      <div className="p-3 rounded-xl bg-emerald-950/80 border border-emerald-500/60 text-emerald-300 text-xs font-semibold flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
+                        <span>{passwordChangeSuccess}</span>
+                      </div>
+                    )}
+
+                    {passwordError && (
+                      <div className="p-3 rounded-xl bg-rose-950/80 border border-rose-500/60 text-rose-300 text-xs font-semibold flex items-center gap-2">
+                        <XCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                        <span>{passwordError}</span>
+                      </div>
+                    )}
 
                     <form
                       onSubmit={(e) => {
                         e.preventDefault();
+                        setPasswordError('');
+                        setPasswordChangeSuccess('');
+
+                        if (!currentPasswordInput) {
+                          setPasswordError('Veuillez saisir votre mot de passe actuel.');
+                          return;
+                        }
                         if (newPasswordInput.trim().length < 4) {
-                          alert('Le mot de passe doit comporter au moins 4 caractères.');
+                          setPasswordError('Le nouveau mot de passe doit comporter au moins 4 caractères.');
+                          return;
+                        }
+                        if (newPasswordInput !== confirmPasswordInput) {
+                          setPasswordError('Le nouveau mot de passe et sa confirmation ne correspondent pas.');
                           return;
                         }
                         if (onChangeAdminPassword) {
                           onChangeAdminPassword(newPasswordInput.trim());
-                          setPasswordChangeSuccess('Votre nouveau mot de passe a été enregistré avec succès !');
+                          setPasswordChangeSuccess('Votre mot de passe administrateur a été mis à jour avec succès !');
+                          setCurrentPasswordInput('');
                           setNewPasswordInput('');
+                          setConfirmPasswordInput('');
+                        } else {
+                          setPasswordError('Une erreur est survenue lors de la mise à jour.');
                         }
                       }}
-                      className="flex flex-col sm:flex-row gap-3 items-end"
+                      className="space-y-4"
                     >
-                      <div className="flex-1">
-                        <label className="block text-xs text-gray-300 mb-1">Nouveau mot de passe secret</label>
-                        <input
-                          type="password"
-                          required
-                          value={newPasswordInput}
-                          onChange={(e) => setNewPasswordInput(e.target.value)}
-                          placeholder="Entrez votre nouveau mot de passe"
-                          className="w-full bg-black border border-gray-800 rounded-xl p-2.5 text-xs text-white"
-                        />
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-300 mb-1.5">
+                            Mot de passe actuel <span className="text-rose-400">*</span>
+                          </label>
+                          <div className="relative">
+                            <input
+                              type={showCurrentPassword ? 'text' : 'password'}
+                              required
+                              value={currentPasswordInput}
+                              onChange={(e) => setCurrentPasswordInput(e.target.value)}
+                              placeholder="••••••••"
+                              className="w-full bg-black border border-gray-800 rounded-xl p-2.5 text-xs text-white pr-10 focus:border-[#D4AF37] focus:outline-none"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#D4AF37] cursor-pointer"
+                              title={showCurrentPassword ? 'Masquer' : 'Afficher'}
+                            >
+                              {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-300 mb-1.5">
+                            Nouveau mot de passe <span className="text-rose-400">*</span>
+                          </label>
+                          <div className="relative">
+                            <input
+                              type={showNewPassword ? 'text' : 'password'}
+                              required
+                              value={newPasswordInput}
+                              onChange={(e) => setNewPasswordInput(e.target.value)}
+                              placeholder="Nouveau mot de passe"
+                              className="w-full bg-black border border-gray-800 rounded-xl p-2.5 text-xs text-white pr-10 focus:border-[#D4AF37] focus:outline-none"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowNewPassword(!showNewPassword)}
+                              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#D4AF37] cursor-pointer"
+                              title={showNewPassword ? 'Masquer' : 'Afficher'}
+                            >
+                              {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-300 mb-1.5">
+                            Confirmer le mot de passe <span className="text-rose-400">*</span>
+                          </label>
+                          <div className="relative">
+                            <input
+                              type={showConfirmPassword ? 'text' : 'password'}
+                              required
+                              value={confirmPasswordInput}
+                              onChange={(e) => setConfirmPasswordInput(e.target.value)}
+                              placeholder="Confirmation"
+                              className="w-full bg-black border border-gray-800 rounded-xl p-2.5 text-xs text-white pr-10 focus:border-[#D4AF37] focus:outline-none"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#D4AF37] cursor-pointer"
+                              title={showConfirmPassword ? 'Masquer' : 'Afficher'}
+                            >
+                              {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                          </div>
+                        </div>
                       </div>
-                      <button
-                        type="submit"
-                        className="px-6 py-2.5 bg-[#D4AF37] text-black font-bold text-xs rounded-xl flex items-center gap-1.5 hover:bg-[#F3E5AB] cursor-pointer"
-                      >
-                        <Save className="w-4 h-4" />
-                        <span>Changer le mot de passe</span>
-                      </button>
+
+                      <div className="pt-2 flex justify-end">
+                        <button
+                          type="submit"
+                          className="px-6 py-3 bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#996515] hover:from-[#F3E5AB] hover:to-[#B8935F] text-black font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg transition-all cursor-pointer flex items-center gap-2"
+                        >
+                          <Save className="w-4 h-4" />
+                          <span>Mettre à jour le mot de passe</span>
+                        </button>
+                      </div>
                     </form>
-                    {passwordChangeSuccess && (
-                      <p className="text-xs text-emerald-400 font-semibold mt-2">{passwordChangeSuccess}</p>
-                    )}
-                    <div className="p-4 rounded-xl bg-black/60 border border-amber-900/40 text-xs text-amber-200/90 space-y-2">
-                      <h4 className="font-bold font-serif text-[#D4AF37]">Astuce d'Accès Discret Propriétaire :</h4>
-                      <p>
-                        Pour que personne d'autre ne voie le bouton d'accès au mot de passe, vous pouvez utiliser l'un des 3 raccourcis secrets suivants :
-                      </p>
+
+                    <div className="p-4 rounded-xl bg-black/60 border border-amber-900/40 text-xs text-amber-200/90 space-y-2 mt-4">
+                      <h4 className="font-bold font-serif text-[#D4AF37]">Astuces d'Accès Discret Administrateur :</h4>
                       <ul className="list-disc list-inside space-y-1 text-gray-300 text-[11px]">
                         <li><strong>Geste Secret :</strong> Triple-cliquez rapidement sur le Logo "Crown" ANONYM en haut à gauche.</li>
                         <li><strong>Raccourci Clavier :</strong> Appuyez sur <kbd className="bg-gray-800 px-1 rounded">Ctrl + Shift + A</kbd> n'importe où sur le site.</li>
@@ -772,221 +2494,6 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                       </ul>
                     </div>
                   </div>
-                </div>
-              )}
-
-              {/* TAB: Collections */}
-              {adminTab === 'collections' && (
-                <div className="space-y-6">
-                  <h3 className="text-lg font-serif font-bold text-[#D4AF37]">Gestion des Collections</h3>
-                  <div className="bg-[#141414] border border-[#D4AF37]/30 rounded-2xl p-4 space-y-3">
-                    <button
-                      onClick={() => {
-                        const name = prompt('Nom de la nouvelle collection (ex: Colliers Femme) :');
-                        if (!name) return;
-                        const icon = prompt('Icône / Émoji (ex: 📿, 💍, ⌚, 🎁, ✨) :') || '📿';
-                        const desc = prompt('Description courte (optionnel) :') || '';
-                        const category = (prompt('Catégorie (bijoux, parfums, emballages, accessoires) :') || 'bijoux') as any;
-                        const coverImage = prompt('URL Image de couverture (optionnel) :') || '';
-                        if (onAddCollection) {
-                          onAddCollection({
-                            name,
-                            icon,
-                            description: desc,
-                            category,
-                            coverImage,
-                            color: '#D4AF37',
-                            productIds: [],
-                            order: collections.length,
-                            visible: true,
-                          });
-                        }
-                      }}
-                      className="w-full px-4 py-3 bg-[#D4AF37] text-black font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-[#F3E5AB] transition-all cursor-pointer shadow-md"
-                    >
-                      + Nouvelle collection (Nom, Icône, Catégorie, Ordre, Visible, Image)
-                    </button>
-                  </div>
-                  <div className="space-y-3">
-                    {collections.length === 0 && (
-                      <p className="text-xs text-gray-500 text-center py-4">Aucune collection pour le moment.</p>
-                    )}
-                    {collections.map((col, idx) => (
-                      <div key={col.id} className="bg-[#0F0F0F] border border-gray-800 rounded-xl p-4 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <span className="text-2xl p-2 bg-black rounded-lg border border-gray-800">{col.icon || '📿'}</span>
-                          <div>
-                            <h4 className="font-serif font-bold text-white text-sm">{col.name}</h4>
-                            <p className="text-xs text-gray-400">{col.description || 'Pas de description'}</p>
-                            <span className="text-[10px] text-[#D4AF37] font-mono">
-                              Catégorie: {col.category || 'Toutes'} • {col.productIds.length} produit(s) • Ordre: {col.order}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => {
-                              if (onUpdateCollection && idx > 0) {
-                                const updated = [...collections];
-                                const temp = updated[idx];
-                                updated[idx] = updated[idx - 1];
-                                updated[idx - 1] = temp;
-                                updated.forEach((c, i) => c.order = i);
-                                onUpdateCollection(updated[idx]);
-                                onUpdateCollection(updated[idx - 1]);
-                              }
-                            }}
-                            className="p-2 rounded bg-gray-800 text-gray-400 hover:text-white"
-                            title="Monter"
-                          >
-                            <ChevronUp className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => {
-                              if (onUpdateCollection && idx < collections.length - 1) {
-                                const updated = [...collections];
-                                const temp = updated[idx];
-                                updated[idx] = updated[idx + 1];
-                                updated[idx + 1] = temp;
-                                updated.forEach((c, i) => c.order = i);
-                                onUpdateCollection(updated[idx]);
-                                onUpdateCollection(updated[idx + 1]);
-                              }
-                            }}
-                            className="p-2 rounded bg-gray-800 text-gray-400 hover:text-white"
-                            title="Descendre"
-                          >
-                            <ChevronDown className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => {
-                              if (confirm(`Supprimer la collection "${col.name}" ?`)) {
-                                if (onDeleteCollection) onDeleteCollection(col.id);
-                              }
-                            }}
-                            className="p-2 rounded bg-rose-950 text-rose-400 hover:bg-rose-800"
-                            title="Supprimer"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {adminTab === 'settings' && (
-                <div className="bg-[#141414] border border-[#D4AF37]/30 rounded-2xl p-6 space-y-6 max-w-xl mx-auto">
-                  <div className="flex items-center gap-3 border-b border-[#D4AF37]/20 pb-4">
-                    <div className="p-3 rounded-full bg-[#D4AF37]/20 text-[#D4AF37]">
-                      <Key className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-serif font-bold text-white">Changer le Mot de Passe Administrateur</h3>
-                      <p className="text-xs text-gray-400 font-sans">
-                        Sécurisez votre accès administrateur à tout moment sans développeur.
-                      </p>
-                    </div>
-                  </div>
-
-                  {passwordChangeSuccess && (
-                    <div className="p-3 rounded-xl bg-emerald-950/80 border border-emerald-500/60 text-emerald-300 text-xs font-semibold flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
-                      <span>{passwordChangeSuccess}</span>
-                    </div>
-                  )}
-
-                  {passwordError && (
-                    <div className="p-3 rounded-xl bg-rose-950/80 border border-rose-500/60 text-rose-300 text-xs font-semibold flex items-center gap-2">
-                      <XCircle className="w-4 h-4 text-rose-400 shrink-0" />
-                      <span>{passwordError}</span>
-                    </div>
-                  )}
-
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      setPasswordError('');
-                      setPasswordChangeSuccess('');
-
-                      if (!currentPasswordInput) {
-                        setPasswordError('Veuillez saisir votre mot de passe actuel.');
-                        return;
-                      }
-
-                      if (newPasswordInput.length < 6) {
-                        setPasswordError('Le nouveau mot de passe doit contenir au moins 6 caractères.');
-                        return;
-                      }
-
-                      if (newPasswordInput !== confirmPasswordInput) {
-                        setPasswordError('Le nouveau mot de passe et sa confirmation ne correspondent pas.');
-                        return;
-                      }
-
-                      if (onChangeAdminPassword) {
-                        onChangeAdminPassword(newPasswordInput);
-                        setPasswordChangeSuccess('Votre mot de passe administrateur a été modifié avec succès !');
-                        setCurrentPasswordInput('');
-                        setNewPasswordInput('');
-                        setConfirmPasswordInput('');
-                      } else {
-                        setPasswordError('Une erreur est survenue lors de la mise à jour.');
-                      }
-                    }}
-                    className="space-y-4"
-                  >
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-300 mb-1.5">
-                        Mot de passe actuel <span className="text-rose-400">*</span>
-                      </label>
-                      <input
-                        type="password"
-                        value={currentPasswordInput}
-                        onChange={(e) => setCurrentPasswordInput(e.target.value)}
-                        placeholder="••••••••"
-                        className="w-full bg-black border border-gray-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-300 mb-1.5">
-                        Nouveau mot de passe <span className="text-rose-400">*</span> (min 6 caractères)
-                      </label>
-                      <input
-                        type="password"
-                        value={newPasswordInput}
-                        onChange={(e) => setNewPasswordInput(e.target.value)}
-                        placeholder="Nouveau mot de passe"
-                        className="w-full bg-black border border-gray-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-300 mb-1.5">
-                        Confirmer le nouveau mot de passe <span className="text-rose-400">*</span>
-                      </label>
-                      <input
-                        type="password"
-                        value={confirmPasswordInput}
-                        onChange={(e) => setConfirmPasswordInput(e.target.value)}
-                        placeholder="Confirmer le mot de passe"
-                        className="w-full bg-black border border-gray-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
-                        required
-                      />
-                    </div>
-
-                    <div className="pt-2">
-                      <button
-                        type="submit"
-                        className="w-full bg-gradient-to-r from-[#D4AF37] via-[#C5A059] to-[#996515] hover:from-[#F3E5AB] hover:to-[#B8935F] text-black font-serif font-bold text-xs uppercase tracking-widest py-3 rounded-xl shadow-lg transition-all cursor-pointer"
-                      >
-                        Valider le Changement de Mot de Passe
-                      </button>
-                    </div>
-                  </form>
                 </div>
               )}
               {adminTab === 'textes' && (
@@ -1060,7 +2567,7 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                       {page !== 'accueil' && (
                         <>
                           <div className="grid grid-cols-1 gap-3 mb-3">
-                            <label className="text-xs text-gray-400">Title</label>
+                            <label className="text-xs text-gray-400">Titre de la section</label>
                             <input
                               type="text"
                               value={(storeFormData.pageTexts?.[page]?.title || '')}
@@ -1093,33 +2600,117 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                               className="w-full bg-black border border-gray-800 rounded-lg p-2.5 text-xs text-white"
                             />
                           </div>
-                          {page === 'parfums' && (
-                            <div className="grid grid-cols-1 gap-3 mt-3">
-                              <label className="text-xs text-gray-400">Invitation Description</label>
-                              <textarea
-                                rows={2}
-                                value={(storeFormData.pageTexts?.parfums?.invitationDescription || '')}
-                                onChange={(e) =>
-                                  setStoreFormData({
-                                    ...storeFormData,
-                                    pageTexts: {
-                                      ...storeFormData.pageTexts,
-                                      parfums: { ...storeFormData.pageTexts?.parfums, invitationDescription: e.target.value },
-                                    },
-                                  })
-                                }
-                                className="w-full bg-black border border-gray-800 rounded-lg p-2.5 text-xs text-white"
-                              />
-                            </div>
-                          )}
                         </>
                       )}
                     </div>
                   ))}
-                  <div className="flex justify-end pt-4">
-                    <button type="submit" className="px-6 py-2.5 bg-[#D4AF37] text-black font-bold text-xs rounded-xl flex items-center gap-1.5 cursor-pointer">
-                      <Save className="w-4 h-4" />
-                      <span>Sauvegarder les Textes</span>
+                  <div className="pt-4 border-t border-gray-800">
+                    <button
+                      type="submit"
+                      className="w-full py-3 bg-[#D4AF37] hover:bg-[#C5A059] text-black font-bold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer"
+                    >
+                      Enregistrer les modifications
+                    </button>
+                  </div>
+                </form>
+              )}
+              {adminTab === 'textes' && (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    onUpdateStoreInfo(storeFormData);
+                    alert('Textes des pages mis à jour avec succès !');
+                  }}
+                  className="bg-[#141414] border border-[#D4AF37]/30 rounded-2xl p-6 space-y-6"
+                >
+                  <h3 className="text-lg font-serif font-bold text-[#D4AF37]">Textes des Pages</h3>
+                  {(['accueil', 'bijoux', 'emballages', 'parfums', 'accessoires'] as const).map((page) => (
+                    <div key={page} className="border-b border-gray-800 pb-4 last:border-b-0">
+                      <h4 className="text-sm font-bold text-[#F3E5AB] uppercase tracking-wider mb-3 capitalize">{page}</h4>
+                      {page === 'accueil' && (
+                        <>
+                          <div className="grid grid-cols-1 gap-3 mb-3">
+                            <label className="text-xs text-gray-400">Hero Title</label>
+                            <input
+                              type="text"
+                              value={(storeFormData.pageTexts?.accueil?.heroTitle || '')}
+                              onChange={(e) =>
+                                setStoreFormData({
+                                  ...storeFormData,
+                                  pageTexts: {
+                                    ...storeFormData.pageTexts,
+                                    accueil: { ...storeFormData.pageTexts?.accueil, heroTitle: e.target.value },
+                                  },
+                                })
+                              }
+                              className="w-full bg-black border border-gray-800 rounded-lg p-2.5 text-xs text-white"
+                            />
+                          </div>
+                          <div className="grid grid-cols-1 gap-3 mb-3">
+                            <label className="text-xs text-gray-400">Hero Subtitle</label>
+                            <input
+                              type="text"
+                              value={(storeFormData.pageTexts?.accueil?.heroSubtitle || '')}
+                              onChange={(e) =>
+                                setStoreFormData({
+                                  ...storeFormData,
+                                  pageTexts: {
+                                    ...storeFormData.pageTexts,
+                                    accueil: { ...storeFormData.pageTexts?.accueil, heroSubtitle: e.target.value },
+                                  },
+                                })
+                              }
+                              className="w-full bg-black border border-gray-800 rounded-lg p-2.5 text-xs text-white"
+                            />
+                          </div>
+                          <div className="grid grid-cols-1 gap-3">
+                            <label className="text-xs text-gray-400">Hero Description</label>
+                            <textarea
+                              rows={2}
+                              value={(storeFormData.pageTexts?.accueil?.heroDescription || '')}
+                              onChange={(e) =>
+                                setStoreFormData({
+                                  ...storeFormData,
+                                  pageTexts: {
+                                    ...storeFormData.pageTexts,
+                                    accueil: { ...storeFormData.pageTexts?.accueil, heroDescription: e.target.value },
+                                  },
+                                })
+                              }
+                              className="w-full bg-black border border-gray-800 rounded-lg p-2.5 text-xs text-white"
+                            />
+                          </div>
+                        </>
+                      )}
+                      {page !== 'accueil' && (
+                        <>
+                          <div className="grid grid-cols-1 gap-3 mb-3">
+                            <label className="text-xs text-gray-400">Titre de la section</label>
+                            <input
+                              type="text"
+                              value={(storeFormData.pageTexts?.[page]?.title || '')}
+                              onChange={(e) =>
+                                setStoreFormData({
+                                  ...storeFormData,
+                                  pageTexts: {
+                                    ...storeFormData.pageTexts,
+                                    [page]: { ...storeFormData.pageTexts?.[page], title: e.target.value },
+                                  },
+                                })
+                              }
+                              className="w-full bg-black border border-gray-800 rounded-lg p-2.5 text-xs text-white"
+                            />
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                  <div className="pt-4 border-t border-gray-800">
+                    <button
+                      type="submit"
+                      className="w-full py-3 bg-[#D4AF37] hover:bg-[#C5A059] text-black font-bold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer"
+                    >
+                      Enregistrer les modifications
                     </button>
                   </div>
                 </form>
@@ -1127,89 +2718,184 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
 
               {/* TAB: Commandes */}
               {adminTab === 'commandes' && (
-                <div className="space-y-4">
-                  <h3 className="text-lg font-serif font-bold text-[#D4AF37] flex items-center gap-2">
-                    <Package className="w-5 h-5" />
-                    Commandes (WhatsApp Orders)
-                  </h3>
-                  <p className="text-xs text-gray-400 mb-4">Les commandes WhatsApp sont sauvegardées automatiquement dans le localStorage.</p>
-                  {quoteRequests.filter((q) => q.status === 'acceptee').length === 0 && (
-                    <p className="text-xs text-gray-500 text-center py-8">Aucune commande enregistrée pour le moment.</p>
-                  )}
-                  {quoteRequests.filter((q) => q.status === 'acceptee').map((qr) => (
-                    <div key={qr.id} className="bg-[#0F0F0F] border border-gray-800 rounded-xl p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-bold text-[#D4AF37]">#{qr.id}</span>
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800">{qr.status}</span>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2 text-xs">
-                        <span className="text-gray-400">Type :</span><span className="text-white">{qr.productType}</span>
-                        <span className="text-gray-400">Quantité :</span><span className="text-white">{qr.quantity}</span>
-                        {qr.contactName && <><span className="text-gray-400">Contact :</span><span className="text-white">{qr.contactName}</span></>}
-                        {qr.deadline && <><span className="text-gray-400">Deadline :</span><span className="text-white">{qr.deadline}</span></>}
-                      </div>
+                <div className="space-y-6">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-[#141414] border border-[#D4AF37]/30 rounded-2xl p-4 gap-3">
+                    <div>
+                      <h3 className="text-lg font-serif font-bold text-[#D4AF37] flex items-center gap-2">
+                        <ShoppingBag className="w-5 h-5" />
+                        <span>Suivi des Commandes ({orders.length})</span>
+                      </h3>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        Historique et gestion des commandes soumises par vos clients.
+                      </p>
                     </div>
-                  ))}
+                    <div className="text-right">
+                      <span className="text-xs text-gray-400">Total Ventes : </span>
+                      <span className="text-sm font-serif font-bold text-[#F3E5AB]">
+                        {formatPriceFCFA(orders.reduce((sum, o) => sum + (o.totalPrice || 0), 0))}
+                      </span>
+                    </div>
+                  </div>
+
+                  {orders.length === 0 ? (
+                    <div className="text-center py-12 bg-[#111111] border border-gray-800 rounded-2xl">
+                      <ShoppingBag className="w-10 h-10 text-gray-600 mx-auto mb-2" />
+                      <p className="text-xs text-gray-400">Aucune commande enregistrée pour le moment.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {orders.map((ord) => (
+                        <div key={ord.id} className="bg-[#141414] border border-gray-800 rounded-2xl p-4 space-y-3">
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-gray-800 pb-2">
+                            <div>
+                              <span className="font-mono text-xs font-bold text-[#D4AF37]">#{ord.id}</span>
+                              <span className="ml-2 text-xs font-serif font-semibold text-white">{ord.productName}</span>
+                              {ord.productRefCode && (
+                                <span className="ml-2 text-[10px] font-mono text-gray-400">(Réf #{ord.productRefCode})</span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-bold text-[#F3E5AB] font-serif">
+                                {formatPriceFCFA(ord.totalPrice || 0)}
+                              </span>
+                              <select
+                                value={ord.status}
+                                onChange={(e) => onUpdateOrderStatus && onUpdateOrderStatus(ord.id, e.target.value as any)}
+                                className="bg-black border border-gray-800 text-xs text-white rounded-lg p-1 focus:border-[#D4AF37]"
+                              >
+                                <option value="nouvelle">🟡 Nouvelle</option>
+                                <option value="en-preparation">🔵 En préparation</option>
+                                <option value="livree">🟢 Livrée</option>
+                              </select>
+                              <button
+                                type="button"
+                                onClick={() => onDeleteOrder && onDeleteOrder(ord.id)}
+                                className="p-1 rounded bg-rose-950 text-rose-400 hover:bg-rose-800 hover:text-white"
+                                title="Supprimer"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-gray-300">
+                            <div>
+                              <span className="text-gray-500 block text-[10px]">Client / Contact :</span>
+                              <span>{ord.customerName || 'Client anonyme'} {ord.customerPhone ? `(${ord.customerPhone})` : ''}</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-500 block text-[10px]">Quantité :</span>
+                              <span>{ord.quantity} unité(s)</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-500 block text-[10px]">Date :</span>
+                              <span>
+                                {new Date(ord.createdAt).toLocaleDateString('fr-FR', {
+                                  day: '2-digit',
+                                  month: 'short',
+                                  year: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })}
+                              </span>
+                            </div>
+                          </div>
+
+                          {(ord.customizationNotes || ord.metalFinish || ord.selectedColor || ord.customText) && (
+                            <div className="p-2.5 rounded-xl bg-black/60 border border-gray-800 text-[11px] space-y-1">
+                              <span className="text-[#D4AF37] font-semibold block">Spécifications & Personnalisation :</span>
+                              {ord.metalFinish && <p className="text-gray-300">• Finition Métal : {ord.metalFinish}</p>}
+                              {ord.selectedColor && <p className="text-gray-300">• Couleur : {ord.selectedColor}</p>}
+                              {ord.customText && <p className="text-gray-300">• Texte personnalisé : « {ord.customText} »</p>}
+                              {ord.customizationNotes && <p className="text-gray-300">• Note : {ord.customizationNotes}</p>}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
               {/* TAB: Devis */}
               {adminTab === 'devis' && (
-                <div className="space-y-4">
-                  <h3 className="text-lg font-serif font-bold text-[#D4AF37] flex items-center gap-2">
-                    <FileText className="w-5 h-5" />
-                    Suivi des Devis
-                  </h3>
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between bg-[#141414] border border-[#D4AF37]/30 rounded-2xl p-4">
+                    <div>
+                      <h3 className="text-lg font-serif font-bold text-[#D4AF37] flex items-center gap-2">
+                        <FileText className="w-5 h-5" />
+                        <span>Demandes de Devis Sur Mesure ({quoteRequests.length})</span>
+                      </h3>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        Consultez et modifiez le statut des demandes personnalisées soumises par vos clients.
+                      </p>
+                    </div>
+                  </div>
+
                   {quoteRequests.length === 0 ? (
-                    <p className="text-xs text-gray-500 text-center py-8">Aucune demande de devis pour le moment.</p>
+                    <div className="text-center py-12 bg-[#111111] border border-gray-800 rounded-2xl">
+                      <FileText className="w-10 h-10 text-gray-600 mx-auto mb-2" />
+                      <p className="text-xs text-gray-400">Aucune demande de devis reçue pour le moment.</p>
+                    </div>
                   ) : (
                     <div className="space-y-3">
-                      {quoteRequests.map((qr) => (
-                        <div key={qr.id} className="bg-[#0F0F0F] border border-gray-800 rounded-xl p-4 space-y-3">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-[#D4AF37]">#{qr.id}</span>
-                            <span className={`text-xs px-2 py-0.5 rounded-full border ${
-                              qr.status === 'nouvelle' ? 'bg-amber-950 text-amber-400 border-amber-800' :
-                              qr.status === 'en-cours' ? 'bg-blue-950 text-blue-400 border-blue-800' :
-                              qr.status === 'acceptee' ? 'bg-emerald-950 text-emerald-400 border-emerald-800' :
-                              'bg-rose-950 text-rose-400 border-rose-800'
-                            }`}>{qr.status}</span>
+                      {quoteRequests.map((req) => (
+                        <div key={req.id} className="bg-[#141414] border border-gray-800 rounded-2xl p-4 space-y-3">
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-gray-800 pb-2">
+                            <div>
+                              <span className="font-mono text-xs font-bold text-[#D4AF37]">#{req.id}</span>
+                              <span className="ml-2 text-xs font-bold text-white uppercase bg-gray-800 px-2 py-0.5 rounded">
+                                {req.category}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <select
+                                value={req.status}
+                                onChange={(e) => onUpdateQuoteRequestStatus && onUpdateQuoteRequestStatus(req.id, e.target.value as any)}
+                                className="bg-black border border-gray-800 text-xs text-white rounded-lg p-1 focus:border-[#D4AF37]"
+                              >
+                                <option value="nouvelle">🟡 Nouvelle</option>
+                                <option value="en-cours">🔵 En cours</option>
+                                <option value="acceptee">🟢 Acceptée</option>
+                                <option value="refusee">🔴 Refusée</option>
+                              </select>
+                              <button
+                                type="button"
+                                onClick={() => setQuoteToDelete(req)}
+                                className="p-1 rounded bg-rose-950 text-rose-400 hover:bg-rose-800 hover:text-white"
+                                title="Supprimer"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
                           </div>
-                          <div className="grid grid-cols-2 gap-2 text-xs">
-                            <span className="text-gray-400">Type :</span><span className="text-white">{qr.productType}</span>
-                            <span className="text-gray-400">Quantité :</span><span className="text-white">{qr.quantity}</span>
-                            {qr.contactName && <><span className="text-gray-400">Contact :</span><span className="text-white">{qr.contactName}</span></>}
-                            {qr.contactPhone && <><span className="text-gray-400">Téléphone :</span><span className="text-white">{qr.contactPhone}</span></>}
-                            <span className="text-gray-400">Créé le :</span><span className="text-white">{new Date(qr.createdAt).toLocaleDateString('fr-FR')}</span>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                            <div className="space-y-1">
+                              <p className="text-gray-300"><strong>Contact :</strong> {req.contactName} ({req.contactPhone})</p>
+                              <p className="text-gray-300"><strong>Quantité :</strong> {req.quantity || 1}</p>
+                              {req.budget && <p className="text-gray-300"><strong>Budget :</strong> {req.budget}</p>}
+                              {req.deadline && <p className="text-gray-300"><strong>Date souhaitée :</strong> {req.deadline}</p>}
+                            </div>
+
+                            {req.inspirationPhotoUrl && (
+                              <div>
+                                <span className="text-[10px] text-gray-500 block mb-1">Photo d'inspiration :</span>
+                                <img
+                                  src={req.inspirationPhotoUrl}
+                                  alt="Inspiration"
+                                  className="w-20 h-20 object-cover rounded-xl border border-gray-700"
+                                />
+                              </div>
+                            )}
                           </div>
-                          {qr.description && (
-                            <p className="text-xs text-gray-400 italic">"{qr.description}"</p>
-                          )}
-                          <div className="flex items-center gap-2">
-                            {qr.status !== 'nouvelle' && (
-                              <button
-                                onClick={() => onUpdateQuoteRequestStatus?.(qr.id, 'nouvelle')}
-                                className="px-2 py-1 bg-gray-800 text-gray-300 rounded-lg text-[10px] hover:text-white"
-                              >Nouvelle</button>
-                            )}
-                            {qr.status !== 'en-cours' && (
-                              <button
-                                onClick={() => onUpdateQuoteRequestStatus?.(qr.id, 'en-cours')}
-                                className="px-2 py-1 bg-blue-950 text-blue-400 rounded-lg text-[10px] hover:text-white"
-                              >En cours</button>
-                            )}
-                            {qr.status !== 'acceptee' && (
-                              <button
-                                onClick={() => onUpdateQuoteRequestStatus?.(qr.id, 'acceptee')}
-                                className="px-2 py-1 bg-emerald-950 text-emerald-400 rounded-lg text-[10px] hover:text-white"
-                              >Acceptée</button>
-                            )}
-                            {qr.status !== 'refusee' && (
-                              <button
-                                onClick={() => onUpdateQuoteRequestStatus?.(qr.id, 'refusee')}
-                                className="px-2 py-1 bg-rose-950 text-rose-400 rounded-lg text-[10px] hover:text-white"
-                              >Refusée</button>
-                            )}
+
+                          <div className="p-2.5 rounded-xl bg-black/60 border border-gray-800 text-xs text-gray-300 italic">
+                            « {req.description} »
+                          </div>
+
+                          <div className="text-[10px] text-gray-500 text-right">
+                            Reçu le {new Date(req.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                           </div>
                         </div>
                       ))}
@@ -1220,37 +2906,113 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
 
               {/* TAB: Avis */}
               {adminTab === 'avis' && (
-                <div className="space-y-4">
-                  <h3 className="text-lg font-serif font-bold text-[#D4AF37] flex items-center gap-2">
-                    <Star className="w-5 h-5" />
-                    Gestion des Avis
-                  </h3>
+                <div className="space-y-6">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-[#141414] border border-[#D4AF37]/30 rounded-2xl p-4 gap-3">
+                    <div>
+                      <h3 className="text-lg font-serif font-bold text-[#D4AF37] flex items-center gap-2">
+                        <Star className="w-5 h-5" />
+                        <span>Modération des Avis Clients ({reviews.length})</span>
+                      </h3>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        Validez les avis déposés par vos clients pour les publier publiquement sur le site, ou rejetez-les.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="px-3 py-1 bg-amber-950/80 border border-amber-500/40 text-amber-300 text-xs font-bold rounded-xl">
+                        🟡 {reviews.filter((r) => !r.approved).length} en attente
+                      </span>
+                      <span className="px-3 py-1 bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-xs font-bold rounded-xl">
+                        🟢 {reviews.filter((r) => r.approved).length} approuvés
+                      </span>
+                    </div>
+                  </div>
+
                   {reviews.length === 0 ? (
-                    <p className="text-xs text-gray-500 text-center py-8">Aucun avis pour le moment.</p>
+                    <div className="text-center py-12 bg-[#111111] border border-gray-800 rounded-2xl">
+                      <Star className="w-10 h-10 text-gray-600 mx-auto mb-2" />
+                      <p className="text-xs text-gray-400">Aucun avis client reçu pour le moment.</p>
+                    </div>
                   ) : (
                     <div className="space-y-3">
-                      {reviews.map((r) => (
-                        <div key={r.id} className="bg-[#0F0F0F] border border-gray-800 rounded-xl p-4 space-y-2">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-white">{r.authorName}</span>
-                            <div className="flex items-center gap-1">
-                              {Array.from({ length: 5 }).map((_, i) => (
-                                <Star key={i} className={`w-3 h-3 ${i < r.rating ? 'fill-[#D4AF37] text-[#D4AF37]' : 'text-gray-700'}`} />
-                              ))}
+                      {reviews.map((rev) => (
+                        <div
+                          key={rev.id}
+                          className={`bg-[#141414] border rounded-2xl p-4 space-y-3 transition-all ${
+                            rev.approved ? 'border-emerald-500/30' : 'border-amber-500/40 bg-amber-950/10'
+                          }`}
+                        >
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-gray-800 pb-2">
+                            <div className="flex items-center gap-3">
+                              <span className="font-bold text-white text-sm font-serif">{rev.authorName}</span>
+                              <div className="flex items-center gap-0.5 text-[#D4AF37]">
+                                {Array.from({ length: 5 }).map((_, i) => (
+                                  <Star
+                                    key={i}
+                                    className={`w-3.5 h-3.5 ${i < rev.rating ? 'fill-[#D4AF37] text-[#D4AF37]' : 'text-gray-700'}`}
+                                  />
+                                ))}
+                              </div>
+                              <span className="text-[10px] text-gray-500 font-mono">
+                                {new Date(rev.date).toLocaleDateString('fr-FR', {
+                                  day: '2-digit',
+                                  month: 'short',
+                                  year: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              {rev.approved ? (
+                                <span className="px-2.5 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-600/40 text-[10px] font-bold">
+                                  🟢 Approuvé (Publié sur le site)
+                                </span>
+                              ) : (
+                                <span className="px-2.5 py-0.5 rounded-full bg-amber-950 text-amber-300 border border-amber-500/50 text-[10px] font-bold animate-pulse">
+                                  🟡 En Attente de Modération
+                                </span>
+                              )}
                             </div>
                           </div>
-                          <p className="text-xs text-gray-400 italic">"{r.comment}"</p>
-                          <div className="flex items-center justify-between">
-                            <span className="text-[10px] text-gray-600 font-mono">{new Date(r.date).toLocaleDateString('fr-FR')}</span>
+
+                          <p className="text-xs text-gray-300 italic leading-relaxed">&ldquo;{rev.comment}&rdquo;</p>
+
+                          {rev.photoUrl && (
+                            <img
+                              src={rev.photoUrl}
+                              alt="Photo avis"
+                              className="w-16 h-16 object-cover rounded-xl border border-gray-700"
+                            />
+                          )}
+
+                          <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-800/60">
+                            {!rev.approved ? (
+                              <button
+                                type="button"
+                                onClick={() => onUpdateReview && onUpdateReview({ ...rev, approved: true })}
+                                className="px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs rounded-xl flex items-center gap-1 cursor-pointer shadow-md"
+                              >
+                                <CheckCircle className="w-3.5 h-3.5" />
+                                <span>Approuver & Publier</span>
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => onUpdateReview && onUpdateReview({ ...rev, approved: false })}
+                                className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-amber-300 font-semibold text-xs rounded-xl cursor-pointer"
+                              >
+                                Masquer du site
+                              </button>
+                            )}
+
                             <button
-                              onClick={() => onUpdateReview?.({ ...r, approved: !r.approved })}
-                              className={`px-3 py-1 rounded-lg text-[10px] font-bold ${
-                                r.approved
-                                  ? 'bg-emerald-950 text-emerald-400 border border-emerald-800'
-                                  : 'bg-amber-950 text-amber-400 border border-amber-800'
-                              }`}
+                              type="button"
+                              onClick={() => setReviewToDelete(rev)}
+                              className="px-3 py-1.5 bg-rose-950 hover:bg-rose-800 text-rose-300 font-semibold text-xs rounded-xl flex items-center gap-1 cursor-pointer"
                             >
-                              {r.approved ? '✓ Approuvé' : '⏳ En attente'}
+                              <Trash2 className="w-3.5 h-3.5" />
+                              <span>Rejeter / Supprimer</span>
                             </button>
                           </div>
                         </div>
@@ -1262,34 +3024,298 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
 
               {/* TAB: Analytics */}
               {adminTab === 'analytics' && (
-                <div className="space-y-4">
+                <div className="space-y-6">
                   <h3 className="text-lg font-serif font-bold text-[#D4AF37] flex items-center gap-2">
                     <BarChart3 className="w-5 h-5" />
-                    Analytics
+                    <span>Tableau de Bord & Analytics Réels</span>
                   </h3>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                    {[
-                      { label: 'Produits', value: products.length, icon: Package },
-                      { label: 'Collections', value: collections.length, icon: Layout },
-                      { label: 'Avis', value: reviews.length, icon: Star },
-                      { label: 'Devis reçus', value: quoteRequests.length, icon: FileText },
-                      { label: 'Notifications', value: notifications.length, icon: MessageSquare },
-                      { label: 'Non lus', value: notifications.filter((n: any) => !n.read).length, icon: Clock },
-                    ].map((stat, idx) => (
-                      <div key={idx} className="bg-[#0F0F0F] border border-gray-800 rounded-xl p-4 text-center">
-                        <stat.icon className="w-6 h-6 text-[#D4AF37] mx-auto mb-2" />
-                        <span className="text-xl font-serif font-bold text-white">{stat.value}</span>
-                        <p className="text-[10px] text-gray-500 uppercase tracking-wider mt-1">{stat.label}</p>
-                      </div>
-                    ))}
+
+                  {/* KPI Grid */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div className="bg-[#141414] border border-[#D4AF37]/30 rounded-2xl p-4 text-center">
+                      <span className="text-2xl font-serif font-bold text-[#F3E5AB] block">
+                        {formatPriceFCFA(orders.reduce((sum, o) => sum + (o.totalPrice || 0), 0))}
+                      </span>
+                      <span className="text-[10px] text-gray-400 uppercase tracking-wider">Chiffre d'Affaires</span>
+                    </div>
+
+                    <div className="bg-[#141414] border border-gray-800 rounded-2xl p-4 text-center">
+                      <span className="text-2xl font-serif font-bold text-white block">{orders.length}</span>
+                      <span className="text-[10px] text-gray-400 uppercase tracking-wider">Commandes Totales</span>
+                    </div>
+
+                    <div className="bg-[#141414] border border-gray-800 rounded-2xl p-4 text-center">
+                      <span className="text-2xl font-serif font-bold text-white block">
+                        {Object.values(analytics.productViews || {}).reduce((a, b) => a + b, 0)}
+                      </span>
+                      <span className="text-[10px] text-gray-400 uppercase tracking-wider">Vues Fiches Produits</span>
+                    </div>
+
+                    <div className="bg-[#141414] border border-gray-800 rounded-2xl p-4 text-center">
+                      <span className="text-2xl font-serif font-bold text-white block">{quoteRequests.length}</span>
+                      <span className="text-[10px] text-gray-400 uppercase tracking-wider">Demandes de Devis</span>
+                    </div>
+                  </div>
+
+                  {/* Top Viewed Products */}
+                  <div className="bg-[#141414] border border-gray-800 rounded-2xl p-5 space-y-3">
+                    <h4 className="text-sm font-serif font-bold text-white flex items-center gap-2">
+                      <Eye className="w-4 h-4 text-[#D4AF37]" />
+                      <span>Top 5 — Produits les Plus Consultés</span>
+                    </h4>
+
+                    {(() => {
+                      const topViewed = Object.entries(analytics.productViews || {})
+                        .sort(([, a], [, b]) => b - a)
+                        .slice(0, 5)
+                        .map(([id, views]) => ({
+                          product: products.find((p) => p.id === id),
+                          views,
+                        }))
+                        .filter((item) => item.product);
+
+                      if (topViewed.length === 0) {
+                        return <p className="text-xs text-gray-500 italic">Aucune vue enregistrée pour le moment. Consulter un produit sur le site incrementera automatiquement ce compteur.</p>;
+                      }
+
+                      return (
+                        <div className="space-y-2">
+                          {topViewed.map(({ product, views }, idx) => (
+                            <div key={product!.id} className="bg-black/60 border border-gray-800 rounded-xl p-3 flex items-center justify-between text-xs">
+                              <div className="flex items-center gap-3">
+                                <span className="font-bold text-[#D4AF37] font-mono">#{idx + 1}</span>
+                                <img src={product!.imageUrl} alt={product!.name} className="w-9 h-9 object-cover rounded-lg border border-gray-800" />
+                                <div>
+                                  <span className="font-bold text-white block">{product!.name}</span>
+                                  <span className="text-[10px] text-gray-500 font-mono">Réf #{product!.refCode}</span>
+                                </div>
+                              </div>
+                              <span className="font-mono font-bold text-emerald-400 bg-emerald-950/80 px-2.5 py-1 rounded-lg border border-emerald-800/40">
+                                👁️ {views} vue(s)
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </div>
+              )}
+
+              {/* GLOBAL DELETION CONFIRMATION MODALS */}
+              {productToDelete && (
+                <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-fadeIn" onClick={() => setProductToDelete(null)}>
+                  <div className="bg-[#161616] border-2 border-rose-800 rounded-3xl p-6 max-w-md w-full text-center space-y-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                    <div className="w-14 h-14 rounded-full bg-rose-950/80 border border-rose-700 flex items-center justify-center mx-auto text-rose-400">
+                      <Trash2 className="w-7 h-7" />
+                    </div>
+                    <h4 className="text-lg font-serif font-bold text-white">Supprimer le Produit ?</h4>
+                    <p className="text-xs text-gray-300 leading-relaxed">
+                      Êtes-vous sûre de vouloir supprimer le produit <strong className="text-rose-300">"{productToDelete.name}"</strong> (#{productToDelete.refCode}) ? Cette action est irréversible.
+                    </p>
+                    <div className="flex justify-center gap-3 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setProductToDelete(null)}
+                        className="px-5 py-2.5 bg-gray-800 text-gray-300 font-semibold text-xs rounded-xl hover:bg-gray-700 cursor-pointer"
+                      >
+                        Annuler
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onDeleteProduct(productToDelete.id);
+                          setProductToDelete(null);
+                        }}
+                        className="px-5 py-2.5 bg-rose-700 hover:bg-rose-600 text-white font-bold text-xs rounded-xl cursor-pointer shadow-lg"
+                      >
+                        Oui, Supprimer
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {quoteToDelete && (
+                <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-fadeIn" onClick={() => setQuoteToDelete(null)}>
+                  <div className="bg-[#161616] border-2 border-rose-800 rounded-3xl p-6 max-w-md w-full text-center space-y-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                    <div className="w-14 h-14 rounded-full bg-rose-950/80 border border-rose-700 flex items-center justify-center mx-auto text-rose-400">
+                      <Trash2 className="w-7 h-7" />
+                    </div>
+                    <h4 className="text-lg font-serif font-bold text-white">Supprimer cet Éléments / Devis ?</h4>
+                    <p className="text-xs text-gray-300 leading-relaxed">
+                      Êtes-vous sûre de vouloir supprimer cet élément <strong className="text-rose-300">#{quoteToDelete.id}</strong> ? Cette action est irréversible.
+                    </p>
+                    <div className="flex justify-center gap-3 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setQuoteToDelete(null)}
+                        className="px-5 py-2.5 bg-gray-800 text-gray-300 font-semibold text-xs rounded-xl hover:bg-gray-700 cursor-pointer"
+                      >
+                        Annuler
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (onDeleteQuoteRequest) onDeleteQuoteRequest(quoteToDelete.id);
+                          setQuoteToDelete(null);
+                        }}
+                        className="px-5 py-2.5 bg-rose-700 hover:bg-rose-600 text-white font-bold text-xs rounded-xl cursor-pointer shadow-lg"
+                      >
+                        Oui, Supprimer
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {reviewToDelete && (
+                <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-fadeIn" onClick={() => setReviewToDelete(null)}>
+                  <div className="bg-[#161616] border-2 border-rose-800 rounded-3xl p-6 max-w-md w-full text-center space-y-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                    <div className="w-14 h-14 rounded-full bg-rose-950/80 border border-rose-700 flex items-center justify-center mx-auto text-rose-400">
+                      <Trash2 className="w-7 h-7" />
+                    </div>
+                    <h4 className="text-lg font-serif font-bold text-white">Supprimer cet Avis Client ?</h4>
+                    <p className="text-xs text-gray-300 leading-relaxed">
+                      Êtes-vous sûre de vouloir supprimer l'avis de <strong className="text-rose-300">"{reviewToDelete.authorName}"</strong> ? Cette action est irréversible.
+                    </p>
+                    <div className="flex justify-center gap-3 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setReviewToDelete(null)}
+                        className="px-5 py-2.5 bg-gray-800 text-gray-300 font-semibold text-xs rounded-xl hover:bg-gray-700 cursor-pointer"
+                      >
+                        Annuler
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (onDeleteReview) onDeleteReview(reviewToDelete.id);
+                          setReviewToDelete(null);
+                        }}
+                        className="px-5 py-2.5 bg-rose-700 hover:bg-rose-600 text-white font-bold text-xs rounded-xl cursor-pointer shadow-lg"
+                      >
+                        Oui, Supprimer
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {collectionToDelete && (
+                <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-fadeIn" onClick={() => setCollectionToDelete(null)}>
+                  <div className="bg-[#161616] border-2 border-rose-800 rounded-3xl p-6 max-w-md w-full text-center space-y-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                    <div className="w-14 h-14 rounded-full bg-rose-950/80 border border-rose-700 flex items-center justify-center mx-auto text-rose-400">
+                      <Trash2 className="w-7 h-7" />
+                    </div>
+                    <h4 className="text-lg font-serif font-bold text-white">Supprimer la Collection ?</h4>
+                    <p className="text-xs text-gray-300 leading-relaxed">
+                      Êtes-vous sûre de vouloir supprimer la collection <strong className="text-rose-300">"{collectionToDelete.name}"</strong> ? Cette action est irréversible.
+                    </p>
+                    <div className="flex justify-center gap-3 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setCollectionToDelete(null)}
+                        className="px-5 py-2.5 bg-gray-800 text-gray-300 font-semibold text-xs rounded-xl hover:bg-gray-700 cursor-pointer"
+                      >
+                        Annuler
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (onDeleteCollection) onDeleteCollection(collectionToDelete.id);
+                          setCollectionToDelete(null);
+                        }}
+                        className="px-5 py-2.5 bg-rose-700 hover:bg-rose-600 text-white font-bold text-xs rounded-xl cursor-pointer shadow-lg"
+                      >
+                        Oui, Supprimer
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {lvl1ToDelete && (
+                <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-fadeIn" onClick={() => setLvl1ToDelete(null)}>
+                  <div className="bg-[#161616] border-2 border-rose-800 rounded-3xl p-6 max-w-md w-full text-center space-y-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                    <div className="w-14 h-14 rounded-full bg-rose-950/80 border border-rose-700 flex items-center justify-center mx-auto text-rose-400">
+                      <Trash2 className="w-7 h-7" />
+                    </div>
+                    <h4 className="text-lg font-serif font-bold text-white">Supprimer la Sous-Catégorie Niveau 1 ?</h4>
+                    {(() => {
+                      const childCount = (subCategoriesLvl2 || []).filter((c) => c.level1Id === lvl1ToDelete.id).length;
+                      return (
+                        <p className="text-xs text-gray-300 leading-relaxed">
+                          Êtes-vous sûre de vouloir supprimer la sous-catégorie <strong className="text-rose-300">"{lvl1ToDelete.name}"</strong> ?
+                          {childCount > 0 && (
+                            <span className="block mt-1 text-rose-400 font-semibold">
+                              ⚠️ Warning: {childCount} sous-élément(s) Niveau 2 rattaché(s) seront également supprimés.
+                            </span>
+                          )}
+                          <span className="block mt-1 font-semibold">Cette action est irréversible.</span>
+                        </p>
+                      );
+                    })()}
+                    <div className="flex justify-center gap-3 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setLvl1ToDelete(null)}
+                        className="px-5 py-2.5 bg-gray-800 text-gray-300 font-semibold text-xs rounded-xl hover:bg-gray-700 cursor-pointer"
+                      >
+                        Annuler
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (onDeleteSubCatLvl1) onDeleteSubCatLvl1(lvl1ToDelete.id);
+                          setLvl1ToDelete(null);
+                        }}
+                        className="px-5 py-2.5 bg-rose-700 hover:bg-rose-600 text-white font-bold text-xs rounded-xl cursor-pointer shadow-lg"
+                      >
+                        Oui, Supprimer
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {lvl2ToDelete && (
+                <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-fadeIn" onClick={() => setLvl2ToDelete(null)}>
+                  <div className="bg-[#161616] border-2 border-rose-800 rounded-3xl p-6 max-w-md w-full text-center space-y-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                    <div className="w-14 h-14 rounded-full bg-rose-950/80 border border-rose-700 flex items-center justify-center mx-auto text-rose-400">
+                      <Trash2 className="w-7 h-7" />
+                    </div>
+                    <h4 className="text-lg font-serif font-bold text-white">Supprimer la Sous-Catégorie Niveau 2 ?</h4>
+                    <p className="text-xs text-gray-300 leading-relaxed">
+                      Êtes-vous sûre de vouloir supprimer la sous-catégorie Niveau 2 <strong className="text-rose-300">"{lvl2ToDelete.name}"</strong> ? Cette action est irréversible.
+                    </p>
+                    <div className="flex justify-center gap-3 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setLvl2ToDelete(null)}
+                        className="px-5 py-2.5 bg-gray-800 text-gray-300 font-semibold text-xs rounded-xl hover:bg-gray-700 cursor-pointer"
+                      >
+                        Annuler
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (onDeleteSubCatLvl2) onDeleteSubCatLvl2(lvl2ToDelete.id);
+                          setLvl2ToDelete(null);
+                        }}
+                        className="px-5 py-2.5 bg-rose-700 hover:bg-rose-600 text-white font-bold text-xs rounded-xl cursor-pointer shadow-lg"
+                      >
+                        Oui, Supprimer
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
 
             </div>
-          )}
+            )}
+          </AdminErrorBoundary>
         </div>
-
       </div>
     </div>
   );

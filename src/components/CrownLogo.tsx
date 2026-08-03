@@ -21,7 +21,7 @@ export const CrownLogo: React.FC<CrownLogoProps> = ({
   };
 
   const currentSize = sizeMap[size];
-  const logoPath = '/images/logo-anonym-empire-official.jpg';
+  const logoPath = '/images/logo-anonym-empire-transparent.png';
 
   return (
     <div className={`inline-flex items-center gap-3 select-none ${className}`}>
@@ -35,9 +35,9 @@ export const CrownLogo: React.FC<CrownLogoProps> = ({
           <img
             src={logoPath}
             alt="Logo ANONYM EMPIRE — L'art de se démarquer"
-            className="w-full h-full object-cover object-center filter brightness-110 contrast-115 saturate-[1.1]"
+            className="w-full h-full object-contain object-center filter brightness-[1.4] contrast-[1.1] drop-shadow-[0_0_8px_rgba(212,175,55,0.6)]"
+            style={{ mixBlendMode: 'screen' }}
             onError={(e) => {
-              // Fallback if official image path fails
               (e.target as HTMLImageElement).src = '/images/logo-anonym-empire-transparent.png';
             }}
           />
