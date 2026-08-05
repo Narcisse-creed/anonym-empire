@@ -113,10 +113,14 @@ export const QuoteRequestSection: React.FC<QuoteRequestSectionProps> = ({ storeI
             <div>
               <label className="block text-xs font-semibold text-[#D4AF37] uppercase mb-1">Quantité</label>
               <input
-                type="number"
-                min={1}
+                type="text"
+                required
                 value={formData.quantity}
-                onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) || 1 })}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, '');
+                  setFormData({ ...formData, quantity: val ? Math.max(1, parseInt(val)) : 1 });
+                }}
+                placeholder="1"
                 className="w-full bg-black/80 border border-gray-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-[#D4AF37]"
               />
             </div>
@@ -127,6 +131,7 @@ export const QuoteRequestSection: React.FC<QuoteRequestSectionProps> = ({ storeI
             <textarea
               rows={3}
               required
+              maxLength={1000}
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder="Décrivez ce que vous souhaitez commander en détail..."
@@ -140,18 +145,18 @@ export const QuoteRequestSection: React.FC<QuoteRequestSectionProps> = ({ storeI
               <input
                 type="text"
                 value={formData.budget}
-                onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
-                placeholder="Ex: 50000"
+                onChange={(e) => setFormData({ ...formData, budget: e.target.value.replace(/\D/g, '') })}
+                placeholder="Ex: 50000 (Chiffres uniquement)"
                 className="w-full bg-black/80 border border-gray-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-[#D4AF37]"
               />
             </div>
             <div>
               <label className="block text-xs font-semibold text-[#D4AF37] uppercase mb-1">Date Limite Souhaitée</label>
               <input
-                type="text"
+                type="date"
+                min={new Date().toISOString().split('T')[0]}
                 value={formData.deadline}
                 onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
-                placeholder="Ex: Fin juin 2026"
                 className="w-full bg-black/80 border border-gray-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-[#D4AF37]"
               />
             </div>
@@ -175,6 +180,7 @@ export const QuoteRequestSection: React.FC<QuoteRequestSectionProps> = ({ storeI
                 <input
                   type="text"
                   required
+                  maxLength={100}
                   value={formData.contactName}
                   onChange={(e) => setFormData({ ...formData, contactName: e.target.value })}
                   placeholder="Ex: Marie Dossou"
@@ -182,12 +188,12 @@ export const QuoteRequestSection: React.FC<QuoteRequestSectionProps> = ({ storeI
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-[#D4AF37] uppercase mb-1">Téléphone / WhatsApp</label>
+                <label className="block text-xs font-semibold text-[#D4AF37] uppercase mb-1">Téléphone / WhatsApp *</label>
                 <input
                   type="tel"
                   required
                   value={formData.contactPhone}
-                  onChange={(e) => setFormData({ ...formData, contactPhone: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, contactPhone: e.target.value.replace(/[^\d\s+\-()]/g, '') })}
                   placeholder="Ex: +229 97 00 00 00"
                   className="w-full bg-black/80 border border-gray-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-[#D4AF37]"
                 />

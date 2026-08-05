@@ -298,3 +298,28 @@ export function saveRealisations(realisations: RealisationCollection[]): void {
     console.error('Failed to save realisations to localStorage', err);
   }
 }
+
+// ── Utilitaires de validation et d'assainissement des saisies ──────────────
+
+export function sanitizeNumeric(value: string): string {
+  return value.replace(/\D/g, '');
+}
+
+export function sanitizePhone(value: string): string {
+  return value.replace(/[^\d\s+\-()]/g, '');
+}
+
+export function isValidEmailFormat(email: string): boolean {
+  if (!email) return false;
+  return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email.trim());
+}
+
+export function isValidPhoneFormat(phone: string): boolean {
+  if (!phone) return false;
+  const digits = phone.replace(/\D/g, '');
+  return digits.length >= 6 && digits.length <= 15;
+}
+
+export function getTodayDateString(): string {
+  return new Date().toISOString().split('T')[0];
+}

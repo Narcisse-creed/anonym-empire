@@ -123,7 +123,7 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-[#D4AF37] uppercase mb-1">Votre Nom</label>
-                <input type="text" required value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="Ex: Marie D." className="w-full bg-black/80 border border-gray-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-[#D4AF37]" />
+                <input type="text" required maxLength={80} value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="Ex: Marie D." className="w-full bg-black/80 border border-gray-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-[#D4AF37]" />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-[#D4AF37] uppercase mb-1">Note</label>
@@ -140,7 +140,7 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({
 
             <div>
               <label className="block text-xs font-semibold text-[#D4AF37] uppercase mb-1">Commentaire</label>
-              <textarea rows={3} required value={formComment} onChange={(e) => setFormComment(e.target.value)} placeholder="Partagez votre expérience..." className="w-full bg-black/80 border border-gray-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-[#D4AF37]" />
+              <textarea rows={3} required maxLength={500} value={formComment} onChange={(e) => setFormComment(e.target.value)} placeholder="Partagez votre expérience..." className="w-full bg-black/80 border border-gray-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-[#D4AF37]" />
             </div>
 
             <div>

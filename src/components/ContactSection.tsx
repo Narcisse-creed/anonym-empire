@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { StoreInfo } from '../types';
 import { CrownLogo } from './CrownLogo';
-import { MapPin, Phone, Mail, Facebook, MessageCircle, Send, Sparkles, Clock, ShieldCheck } from 'lucide-react';
+import { MapPin, Phone, Mail, Facebook, MessageCircle, Send, Sparkles } from 'lucide-react';
 import { buildWhatsAppLink } from '../utils/helpers';
 
 interface ContactSectionProps {
@@ -146,6 +146,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ storeInfo }) => 
                     <input
                       type="text"
                       required
+                      maxLength={100}
                       value={senderName}
                       onChange={(e) => setSenderName(e.target.value)}
                       placeholder="Ex: Armelle Dossou"
@@ -161,7 +162,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ storeInfo }) => 
                       type="tel"
                       required
                       value={senderPhone}
-                      onChange={(e) => setSenderPhone(e.target.value)}
+                      onChange={(e) => setSenderPhone(e.target.value.replace(/[^\d\s+\-()]/g, ''))}
                       placeholder="Ex: +229 97 00 00 00"
                       className="w-full bg-black/80 border border-gray-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
                     />
@@ -192,6 +193,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ storeInfo }) => 
                   <textarea
                     rows={4}
                     required
+                    maxLength={1000}
                     value={senderMessage}
                     onChange={(e) => setSenderMessage(e.target.value)}
                     placeholder="Décrivez les modèles souhaités, prénoms à graver, quantité..."

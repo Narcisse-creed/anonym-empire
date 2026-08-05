@@ -1478,16 +1478,21 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                     </div>
 
                     <div>
-                      <label className="block text-gray-400 mb-1">Prix Indicatif (FCFA)</label>
+                      <label className="block text-gray-400 mb-1">Prix Indicatif (FCFA) *</label>
                       <input
-                        type="number"
+                        type="text"
                         required
-                        value={adminTab === 'add' ? formData.price : editingProduct?.price || 0}
-                        onChange={(e) =>
-                          adminTab === 'add'
-                            ? setFormData({ ...formData, price: Number(e.target.value) })
-                            : setEditingProduct(editingProduct ? { ...editingProduct, price: Number(e.target.value) } : null)
-                        }
+                        value={adminTab === 'add' ? formData.price : editingProduct?.price || ''}
+                        onChange={(e) => {
+                          const clean = e.target.value.replace(/\D/g, '');
+                          const parsed = clean ? parseInt(clean) : 0;
+                          if (adminTab === 'add') {
+                            setFormData({ ...formData, price: parsed });
+                          } else if (editingProduct) {
+                            setEditingProduct({ ...editingProduct, price: parsed });
+                          }
+                        }}
+                        placeholder="Ex: 9500 (Chiffres uniquement)"
                         className="w-full bg-black border border-gray-800 rounded-lg p-2.5 text-white"
                       />
                     </div>
@@ -2357,7 +2362,7 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                         <input
                           type="text"
                           value={storeFormData.whatsappNumber}
-                          onChange={(e) => setStoreFormData({ ...storeFormData, whatsappNumber: e.target.value })}
+                          onChange={(e) => setStoreFormData({ ...storeFormData, whatsappNumber: e.target.value.replace(/[^\d\s+\-()]/g, '') })}
                           className="w-full bg-black border border-gray-800 rounded-lg p-2.5 text-white"
                         />
                       </div>
@@ -2367,7 +2372,7 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                         <input
                           type="text"
                           value={storeFormData.phone1}
-                          onChange={(e) => setStoreFormData({ ...storeFormData, phone1: e.target.value })}
+                          onChange={(e) => setStoreFormData({ ...storeFormData, phone1: e.target.value.replace(/[^\d\s+\-()]/g, '') })}
                           className="w-full bg-black border border-gray-800 rounded-lg p-2.5 text-white"
                         />
                       </div>
@@ -2377,7 +2382,7 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                         <input
                           type="text"
                           value={storeFormData.phone2}
-                          onChange={(e) => setStoreFormData({ ...storeFormData, phone2: e.target.value })}
+                          onChange={(e) => setStoreFormData({ ...storeFormData, phone2: e.target.value.replace(/[^\d\s+\-()]/g, '') })}
                           className="w-full bg-black border border-gray-800 rounded-lg p-2.5 text-white"
                         />
                       </div>

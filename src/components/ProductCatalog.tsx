@@ -667,23 +667,21 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
                 <span className="text-[#D4AF37] shrink-0 font-semibold">💰 Prix :</span>
                 <div className="relative flex-1">
                   <input
-                    type="number"
-                    min="0"
+                    type="text"
                     value={minPrice}
-                    onChange={(e) => setMinPrice(e.target.value)}
+                    onChange={(e) => setMinPrice(e.target.value.replace(/\D/g, ''))}
                     placeholder="Min (FCFA)"
-                    className="w-full bg-black/80 border border-gray-800 rounded-xl px-3 py-1.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-[#D4AF37] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    className="w-full bg-black/80 border border-gray-800 rounded-xl px-3 py-1.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-[#D4AF37]"
                   />
                 </div>
                 <span className="text-gray-600 shrink-0">—</span>
                 <div className="relative flex-1">
                   <input
-                    type="number"
-                    min="0"
+                    type="text"
                     value={maxPrice}
-                    onChange={(e) => setMaxPrice(e.target.value)}
+                    onChange={(e) => setMaxPrice(e.target.value.replace(/\D/g, ''))}
                     placeholder="Max (FCFA)"
-                    className="w-full bg-black/80 border border-gray-800 rounded-xl px-3 py-1.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-[#D4AF37] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    className="w-full bg-black/80 border border-gray-800 rounded-xl px-3 py-1.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-[#D4AF37]"
                   />
                 </div>
                 {(minPrice || maxPrice) && (
