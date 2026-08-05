@@ -333,24 +333,32 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
 
       // 2. Filter by jewellery type if specified
       if (bijouxType && bijouxType !== 'all' && bijouxType !== 'autres') {
-        const name = (p.name || '').toLowerCase();
-        const sub  = (p.subCategory || '').toLowerCase();
-        const mat  = (p.material || '').toLowerCase();
-        const text = `${name} ${sub} ${mat}`;
+        const sub = (p.subCategory || '').toLowerCase();
+        // Direct subCategory match first
+        const isDirectMatch =
+          sub === bijouxType.toLowerCase() ||
+          (bijouxType === 'boucles' && (sub === 'boucles' || sub === 'boucles-oreilles')) ||
+          (bijouxType === 'colliers' && sub.includes('collier'));
 
-        const kws: Record<string, string[]> = {
-          colliers:       ['collier', 'chaîne', 'chaine', 'pendentif', 'sautoir', 'médaillon', 'medaillon'],
-          bracelets:      ['bracelet', 'jonc', 'gourmette', 'manchette'],
-          bagues:         ['bague', 'anneau', 'chevalière', 'chevaliere', 'alliance'],
-          boucles:        ['boucle', 'créole', 'creole', 'puce', 'pendantes'],
-          'chaines-pieds':['pied', 'anklet', 'cheville'],
-          'perles-hanche':['perle', 'baya', 'hanche', 'taille'],
-          montres:        ['montre', 'chrono', 'cadran'],
-          medailles:      ['médaille', 'medaille', 'plaque', 'écusson', 'ecusson'],
-          manchettes:     ['manchette', 'bouton', 'boutons'],
-        };
-        const keywords = kws[bijouxType] || [bijouxType.toLowerCase()];
-        if (!keywords.some((k) => text.includes(k))) return false;
+        if (!isDirectMatch) {
+          const name = (p.name || '').toLowerCase();
+          const mat  = (p.material || '').toLowerCase();
+          const text = `${name} ${sub} ${mat}`;
+
+          const kws: Record<string, string[]> = {
+            colliers:       ['collier', 'chaîne', 'chaine', 'pendentif', 'sautoir', 'médaillon', 'medaillon'],
+            bracelets:      ['bracelet', 'jonc', 'gourmette', 'manchette'],
+            bagues:         ['bague', 'anneau', 'chevalière', 'chevaliere', 'alliance'],
+            boucles:        ['boucle', 'créole', 'creole', 'puce', 'pendantes', 'boucles-oreilles'],
+            'chaines-pieds':['pied', 'anklet', 'cheville'],
+            'perles-hanche':['perle', 'baya', 'hanche', 'taille'],
+            montres:        ['montre', 'chrono', 'cadran'],
+            medailles:      ['médaille', 'medaille', 'plaque', 'écusson', 'ecusson'],
+            manchettes:     ['manchette', 'bouton', 'boutons'],
+          };
+          const keywords = kws[bijouxType] || [bijouxType.toLowerCase()];
+          if (!keywords.some((k) => text.includes(k))) return false;
+        }
       }
 
       return true;
@@ -395,7 +403,9 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
     const keywords = keywordMap[filterClean] || [filterClean];
 
     const filtered = allEmb.filter((p) => {
-      const text = `${p.name} ${p.subCategory || ''} ${p.description || ''} ${p.material || ''}`.toLowerCase();
+      const sub = (p.subCategory || '').toLowerCase();
+      if (sub === filterClean || sub.includes(filterClean)) return true;
+      const text = `${p.name} ${sub} ${p.description || ''} ${p.material || ''}`.toLowerCase();
       return keywords.some((kw) => text.includes(kw));
     });
 
@@ -409,8 +419,10 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
 
     const filtered = allParfums.filter((p) => {
       if (p.collectionIds?.includes(anonymCollection)) return true;
-      const text = `${p.name} ${p.subCategory || ''} ${p.description || ''}`.toLowerCase();
+      const sub = (p.subCategory || '').toLowerCase();
       const colClean = anonymCollection.toLowerCase().replace('anonym-', '');
+      if (sub === anonymCollection.toLowerCase() || sub === colClean) return true;
+      const text = `${p.name} ${sub} ${p.description || ''}`.toLowerCase();
       return text.includes(colClean);
     });
 
@@ -448,7 +460,9 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
     const keywords = keywordMap[filterClean] || [filterClean];
 
     const filtered = allAcc.filter((p) => {
-      const text = `${p.name} ${p.subCategory || ''} ${p.description || ''} ${p.material || ''}`.toLowerCase();
+      const sub = (p.subCategory || '').toLowerCase();
+      if (sub === filterClean || sub.includes(filterClean)) return true;
+      const text = `${p.name} ${sub} ${p.description || ''} ${p.material || ''}`.toLowerCase();
       return keywords.some((kw) => text.includes(kw));
     });
 

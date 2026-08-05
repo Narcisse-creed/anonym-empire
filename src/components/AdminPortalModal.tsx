@@ -1312,55 +1312,57 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                     {/* ── 1ST LEVEL SUBCATEGORY SELECTOR ── */}
                     <div>
                       <label className="block text-[#D4AF37] font-semibold mb-1">
-                        Sous-Catégorie 1er Niveau (Cible / Mode / Collection) *
+                        Sous-Catégorie 1er Niveau (Cible / Mode / Collection)
                       </label>
-                      <select
-                        value={
-                          adminTab === 'add'
-                            ? (formData.gender || 'femme')
-                            : (editingProduct?.gender || 'femme')
-                        }
-                        onChange={(e) => {
-                          const val = e.target.value as GenderCategory;
-                          if (adminTab === 'add') {
-                            setFormData({ ...formData, gender: val });
-                          } else if (editingProduct) {
-                            setEditingProduct({ ...editingProduct, gender: val });
-                          }
-                        }}
-                        className="w-full bg-black border border-[#D4AF37]/50 rounded-lg p-2.5 text-white font-semibold focus:border-[#D4AF37] focus:outline-none"
-                      >
-                        {(adminTab === 'add' ? formData.category : editingProduct?.category || 'bijoux') === 'bijoux' && (
-                          <>
-                            <option value="femme">👩 Bijoux Femme</option>
-                            <option value="homme">👨 Bijoux Homme</option>
-                            <option value="couple">👩‍❤️‍👨 Bijoux Couple</option>
-                            <option value="enfant">👶 Bijoux Enfant</option>
-                            <option value="animaux">🐾 Bijoux pour Animaux</option>
-                            <option value="mixte">✨ Bijoux Mixte</option>
-                          </>
-                        )}
-                        {(adminTab === 'add' ? formData.category : editingProduct?.category) === 'emballages' && (
-                          <>
-                            <option value="type">📦 Par type d'emballage</option>
-                            <option value="materiau">🪵 Par matériau</option>
-                            <option value="secteur">🏢 Par secteur d'activité</option>
-                            <option value="occasion">🎉 Par occasion</option>
-                          </>
-                        )}
-                        {(adminTab === 'add' ? formData.category : editingProduct?.category) === 'parfums' && (
-                          <>
-                            <option value="anonym-invitation">👑 ANONYM INVITATION</option>
-                            <option value="collections-privees">✨ Collections Privées</option>
-                          </>
-                        )}
-                        {(adminTab === 'add' ? formData.category : editingProduct?.category) === 'accessoires' && (
-                          <>
-                            <option value="occasion">🎉 Par occasion</option>
-                            <option value="type">⚙️ Par type d'accessoire</option>
-                          </>
-                        )}
-                      </select>
+                      {/* Bijoux: gender field (femme/homme/couple/enfant/mixte) — used directly by the catalogue filter */}
+                      {(adminTab === 'add' ? formData.category : editingProduct?.category || 'bijoux') === 'bijoux' && (
+                        <select
+                          value={adminTab === 'add' ? (formData.gender || 'femme') : (editingProduct?.gender || 'femme')}
+                          onChange={(e) => {
+                            const val = e.target.value as GenderCategory;
+                            if (adminTab === 'add') setFormData({ ...formData, gender: val });
+                            else if (editingProduct) setEditingProduct({ ...editingProduct, gender: val });
+                          }}
+                          className="w-full bg-black border border-[#D4AF37]/50 rounded-lg p-2.5 text-white font-semibold focus:border-[#D4AF37] focus:outline-none"
+                        >
+                          <option value="femme">👩 Bijoux Femme</option>
+                          <option value="homme">👨 Bijoux Homme</option>
+                          <option value="couple">👩‍❤️‍👨 Bijoux Couple</option>
+                          <option value="enfant">👶 Bijoux Enfant</option>
+                          <option value="animaux">🐾 Bijoux pour Animaux</option>
+                          <option value="mixte">✨ Bijoux Mixte</option>
+                        </select>
+                      )}
+                      {/* Emballages: informative only — le filtre catalogue utilise la Sous-Cat 2 (subCategory) directement */}
+                      {(adminTab === 'add' ? formData.category : editingProduct?.category) === 'emballages' && (
+                        <select
+                          className="w-full bg-black border border-gray-700 rounded-lg p-2.5 text-gray-400 italic"
+                          disabled
+                          value=""
+                        >
+                          <option value="">📌 Utilisez la Sous-Cat 2 pour classer l'emballage</option>
+                        </select>
+                      )}
+                      {/* Parfums: non applicable — le subCategory du Niv 2 suffit */}
+                      {(adminTab === 'add' ? formData.category : editingProduct?.category) === 'parfums' && (
+                        <select
+                          className="w-full bg-black border border-gray-700 rounded-lg p-2.5 text-gray-400 italic"
+                          disabled
+                          value=""
+                        >
+                          <option value="">📌 Collection définie par la Sous-Cat 2</option>
+                        </select>
+                      )}
+                      {/* Accessoires: informative only — le filtre catalogue utilise la Sous-Cat 2 (subCategory) directement */}
+                      {(adminTab === 'add' ? formData.category : editingProduct?.category) === 'accessoires' && (
+                        <select
+                          className="w-full bg-black border border-gray-700 rounded-lg p-2.5 text-gray-400 italic"
+                          disabled
+                          value=""
+                        >
+                          <option value="">📌 Utilisez la Sous-Cat 2 pour classer l'accessoire</option>
+                        </select>
+                      )}
                     </div>
 
                     {/* ── 2ND LEVEL SUBCATEGORY SELECTOR ── */}
@@ -1389,11 +1391,12 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                             <option value="colliers">📿 Colliers</option>
                             <option value="bracelets">🔗 Bracelets</option>
                             <option value="bagues">💍 Bagues</option>
-                            <option value="boucles">✨ Boucles d'oreilles</option>
+                            <option value="boucles-oreilles">✨ Boucles d'oreilles</option>
                             <option value="chaines-pieds">🦶 Chaînes de pieds</option>
                             <option value="perles-hanche">💃 Perles de hanche</option>
                             <option value="montres">⌚ Montres</option>
                             <option value="medailles">🏅 Médailles</option>
+                            <option value="manchettes">💪 Manchettes</option>
                             <option value="autres">✨ Autres Bijoux</option>
                           </>
                         )}
@@ -1421,9 +1424,11 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                         )}
                         {(adminTab === 'add' ? formData.category : editingProduct?.category) === 'parfums' && (
                           <>
+                            <option value="anonym-invitation">👑 ANONYM INVITATION</option>
                             <option value="extrait-50ml">👑 Extrait de Parfum 50ml</option>
                             <option value="huile-olfactive">✨ Huile Olfactive Sur-Mesure</option>
                             <option value="brume">🌸 Brume Parfumée</option>
+                            <option value="collections-privees">✨ Collections Privées</option>
                           </>
                         )}
                         {(adminTab === 'add' ? formData.category : editingProduct?.category) === 'accessoires' && (
