@@ -224,7 +224,13 @@ export default function App() {
   const handleGoToHomeHero = () => {
     setActiveCategory('accueil');
     setShowGrid(true);
+    // Always scroll to absolute top so the Hero section is visible
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Extra fallback: force scroll to hero element directly
+    setTimeout(() => {
+      const heroEl = document.getElementById('hero');
+      if (heroEl) heroEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
   };
 
   const handleNavigateSection = (sectionId: string) => {

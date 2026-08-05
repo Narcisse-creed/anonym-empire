@@ -157,13 +157,17 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Left Column: Brand Logo */}
         <div className="flex-1 flex justify-start items-center">
           <button
-            onClick={handleLogoClick}
+            onClick={() => {
+              // Simple click → home. Long-press timer is already cancelled by onMouseUp/onTouchEnd.
+              handleLogoClick();
+            }}
             onTouchStart={handleLongPressStart}
             onTouchEnd={handleLongPressEnd}
             onMouseDown={handleLongPressStart}
             onMouseUp={handleLongPressEnd}
             className="text-left focus:outline-none group cursor-pointer relative shrink-0"
-            title="ANONYM — Maintenir 2,5s pour accès mobile administrateur"
+            title="ANONYM — Retour à l'accueil"
+            aria-label="Retour à la page d'accueil"
           >
             <CrownLogo size="md" />
           </button>
