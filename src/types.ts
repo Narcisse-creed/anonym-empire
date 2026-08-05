@@ -35,7 +35,13 @@ export type GenderCategory = 'femme' | 'homme' | 'couple' | 'mixte';
 
 export type MetalFinish = 'or-jaune' | 'argent-massif' | 'or-rose' | 'noir-mat';
 
-export type AvailabilityStatus = 'disponible' | 'en-arrivage' | 'epuise';
+export type AvailabilityStatus = 'disponible' | 'sur-commande' | 'en-arrivage' | 'epuise' | 'nouveau';
+
+export interface FounderCommitment {
+  icon: 'check' | 'award' | 'clock' | 'sparkles' | 'phone';
+  label: string;
+  text: string;
+}
 
 export interface Product {
   id: string;
@@ -138,28 +144,53 @@ export interface Order {
   createdAt: string;
 }
 
+export interface ProcessRuleText {
+  title?: string;
+  description?: string;
+}
+
 export interface PageTexts {
-  accueil: {
+  accueil?: {
     heroTitle?: string;
     heroSubtitle?: string;
     heroDescription?: string;
+    badgeTop?: string;
+    badgeQuality?: string;
+    stat1Value?: string;
+    stat1Label?: string;
+    stat2Value?: string;
+    stat2Label?: string;
+    stat3Value?: string;
+    stat3Label?: string;
   };
-  bijoux: {
+  bijoux?: {
     title?: string;
     description?: string;
   };
-  emballages: {
+  emballages?: {
     title?: string;
     description?: string;
   };
-  parfums: {
+  parfums?: {
     title?: string;
     description?: string;
     invitationDescription?: string;
   };
-  accessoires: {
+  accessoires?: {
     title?: string;
     description?: string;
+  };
+  processus?: {
+    title?: string;
+    subtitle?: string;
+    rules?: ProcessRuleText[];
+  };
+  devis?: {
+    title?: string;
+    subtitle?: string;
+  };
+  footer?: {
+    baseline?: string;
   };
 }
 
@@ -191,6 +222,7 @@ export interface FilterOptions {
   gender: GenderCategory | 'all';
   searchQuery: string;
   sortBy: 'featured' | 'price-asc' | 'price-desc' | 'name';
+  minPrice: number;
   maxPrice: number;
   availability: AvailabilityStatus | 'all';
 }
@@ -213,6 +245,16 @@ export interface StoreInfo {
   ifu: string;
   bankAccountInfo: string;
   pageTexts?: PageTexts;
+  founderSection?: {
+    photoUrl?: string;
+    name?: string;
+    title?: string;
+    badge?: string;
+    quote?: string;
+    sectionTitle?: string;
+    paragraph?: string;
+    commitments?: FounderCommitment[];
+  };
 }
 
 export interface AnalyticsData {
@@ -221,4 +263,25 @@ export interface AnalyticsData {
   totalOrders: number;
   totalRevenue: number;
   updatedAt: string;
+  visitorLogs?: string[];
+  totalVisits?: number;
+}
+
+// ── Galerie de Réalisations ────────────────────────────────────────────────
+
+export interface RealisationPhoto {
+  id: string;
+  imageUrl: string;     // base64 data URL ou URL externe
+  caption?: string;     // légende optionnelle
+  order: number;
+}
+
+export interface RealisationCollection {
+  id: string;
+  name: string;         // ex : "Réalisation Femme"
+  description?: string;
+  photos: RealisationPhoto[];
+  order: number;
+  visible: boolean;
+  createdAt: string;
 }

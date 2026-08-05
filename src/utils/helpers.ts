@@ -1,4 +1,4 @@
-import { AnalyticsData, CartItem, Collection, Notification, Order, Product, QuoteRequest, Review, StoreInfo, SubCategoryLevel1, SubCategoryLevel2 } from '../types';
+import { AnalyticsData, CartItem, Collection, Notification, Order, Product, QuoteRequest, RealisationCollection, Review, StoreInfo, SubCategoryLevel1, SubCategoryLevel2 } from '../types';
 import { INITIAL_PRODUCTS } from '../data/products';
 import { INITIAL_COLLECTIONS } from '../data/collections';
 import { STORE_INFO } from '../data/storeInfo';
@@ -12,6 +12,7 @@ const QUOTE_REQUESTS_STORAGE_KEY = 'anonym_quote_requests_v1';
 const ORDERS_STORAGE_KEY = 'anonym_orders_v1';
 const ANALYTICS_STORAGE_KEY = 'anonym_analytics_v1';
 const ADMIN_PASSWORD_STORAGE_KEY = 'anonym_admin_password_v1';
+const REALISATIONS_STORAGE_KEY = 'anonym_realisations_v1';
 
 export function formatPriceFCFA(amount: number): string {
   return new Intl.NumberFormat('fr-FR', { style: 'decimal', maximumFractionDigits: 0 }).format(amount) + ' FCFA';
@@ -83,7 +84,12 @@ export function loadStoreInfo(): StoreInfo {
     const data = localStorage.getItem(STORE_INFO_STORAGE_KEY);
     if (data) {
       const parsed = JSON.parse(data);
-      return { ...STORE_INFO, ...parsed, pageTexts: { ...STORE_INFO.pageTexts, ...(parsed.pageTexts || {}) } };
+      return {
+        ...STORE_INFO,
+        ...parsed,
+        pageTexts: { ...STORE_INFO.pageTexts, ...(parsed.pageTexts || {}) },
+        founderSection: { ...STORE_INFO.founderSection, ...(parsed.founderSection || {}) },
+      };
     }
   } catch (err) { console.warn('Failed to load store info from localStorage', err); }
   return STORE_INFO;
@@ -155,9 +161,32 @@ export function saveOrders(orders: Order[]): void {
 }
 
 export function loadAnalytics(): AnalyticsData {
-  try { const data = localStorage.getItem(ANALYTICS_STORAGE_KEY); if (data) return JSON.parse(data); }
-  catch (err) { console.warn('Failed to load analytics from localStorage', err); }
-  return { productViews: {}, favorites: {}, totalOrders: 0, totalRevenue: 0, updatedAt: new Date().toISOString() };
+  try {
+    const data = localStorage.getItem(ANALYTICS_STORAGE_KEY);
+    if (data) {
+      const parsed = JSON.parse(data);
+      return {
+        productViews: parsed.productViews || {},
+        favorites: parsed.favorites || {},
+        totalOrders: parsed.totalOrders || 0,
+        totalRevenue: parsed.totalRevenue || 0,
+        updatedAt: parsed.updatedAt || new Date().toISOString(),
+        visitorLogs: parsed.visitorLogs || [],
+        totalVisits: parsed.totalVisits || (parsed.visitorLogs ? parsed.visitorLogs.length : 0),
+      };
+    }
+  } catch (err) {
+    console.warn('Failed to load analytics from localStorage', err);
+  }
+  return {
+    productViews: {},
+    favorites: {},
+    totalOrders: 0,
+    totalRevenue: 0,
+    updatedAt: new Date().toISOString(),
+    visitorLogs: [],
+    totalVisits: 0,
+  };
 }
 
 export function saveAnalytics(analytics: AnalyticsData): void {
@@ -241,3 +270,31 @@ export function saveSubCategoriesLvl2(list: SubCategoryLevel2[]): void {
   }
 }
 
+// ── Galerie de Réalisations ────────────────────────────────────────────────
+
+const DEFAULT_REALISATIONS: RealisationCollection[] = [
+  { id: 'real-femme',  name: 'Réalisation Femme',   description: 'Bijoux et accessoires pour femmes', photos: [], order: 0, visible: true, createdAt: new Date().toISOString() },
+  { id: 'real-homme',  name: 'Réalisation Homme',   description: 'Bijoux et accessoires pour hommes', photos: [], order: 1, visible: true, createdAt: new Date().toISOString() },
+  { id: 'real-autres', name: 'Autres réalisations', description: 'Emballages, accessoires personnalisés et autres créations', photos: [], order: 2, visible: true, createdAt: new Date().toISOString() },
+];
+
+export function loadRealisations(): RealisationCollection[] {
+  try {
+    const data = localStorage.getItem(REALISATIONS_STORAGE_KEY);
+    if (data) {
+      const parsed = JSON.parse(data);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch (err) {
+    console.warn('Failed to load realisations from localStorage', err);
+  }
+  return DEFAULT_REALISATIONS;
+}
+
+export function saveRealisations(realisations: RealisationCollection[]): void {
+  try {
+    localStorage.setItem(REALISATIONS_STORAGE_KEY, JSON.stringify(realisations));
+  } catch (err) {
+    console.error('Failed to save realisations to localStorage', err);
+  }
+}

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { QuoteRequest, StoreInfo } from '../types';
 import { loadQuoteRequests, saveQuoteRequests, buildWhatsAppLink } from '../utils/helpers';
 import { FileText, Send, ShieldCheck, Sparkles, Download, Upload, MessageCircle } from 'lucide-react';
+import { ImageUploader } from './ImageUploader';
 
 interface QuoteRequestSectionProps {
   storeInfo: StoreInfo;
@@ -87,10 +88,10 @@ export const QuoteRequestSection: React.FC<QuoteRequestSectionProps> = ({ storeI
             <span>Sur Mesure / Demande de Devis</span>
           </div>
           <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white tracking-tight">
-            Demande de Devis Personnalisé
+            {storeInfo.pageTexts?.devis?.title || 'Demande de Devis Personnalisé'}
           </h2>
           <p className="text-sm text-gray-400 mt-2 font-sans">
-            Décrivez votre projet et un conseiller ANONYM vous contactera sous peu.
+            {storeInfo.pageTexts?.devis?.subtitle || 'Décrivez votre projet et un conseiller ANONYM vous contactera sous peu.'}
           </p>
         </div>
 
@@ -156,13 +157,12 @@ export const QuoteRequestSection: React.FC<QuoteRequestSectionProps> = ({ storeI
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-[#D4AF37] uppercase mb-1">Photo d'Inspiration (URL)</label>
-            <input
-              type="text"
+            <ImageUploader
+              label="Photo d'Inspiration (Optionnelle)"
               value={formData.inspirationPhotoUrl}
-              onChange={(e) => setFormData({ ...formData, inspirationPhotoUrl: e.target.value })}
-              placeholder="https://..."
-              className="w-full bg-black/80 border border-gray-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-[#D4AF37]"
+              onChange={(val) => setFormData({ ...formData, inspirationPhotoUrl: val })}
+              placeholder="Sélectionner une photo depuis votre galerie..."
+              helperText="Format image (JPG, PNG, WEBP) — Max 5 Mo"
             />
           </div>
 

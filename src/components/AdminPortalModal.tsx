@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { Product, StoreInfo, CategoryId, SubCategory, GenderCategory, Collection, Review, QuoteRequest, Order, AnalyticsData } from '../types';
+import { Product, StoreInfo, CategoryId, SubCategory, GenderCategory, Collection, Review, QuoteRequest, Order, AnalyticsData, SubCategoryLevel1, SubCategoryLevel2, RealisationCollection, RealisationPhoto } from '../types';
 import { UNIVERSE_CATEGORIES } from '../data/categories';
-import { loadProducts, saveProducts, loadStoreInfo, saveStoreInfo, loadCollections, saveCollections, loadReviews, saveReviews, loadQuoteRequests, saveQuoteRequests, loadNotifications, saveNotifications, loadOrders, saveOrders, loadAnalytics, saveAnalytics } from '../utils/helpers';
-import { X, Lock, Key, Plus, Edit2, Trash2, RotateCcw, Save, ShieldCheck, Download, Upload, ChevronUp, ChevronDown, Filter, Star, FileText, BarChart3, MessageSquare, Clock, CheckCircle, XCircle, Package, Settings, Layout, Eye, EyeOff, Search, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { loadProducts, saveProducts, loadStoreInfo, saveStoreInfo, loadCollections, saveCollections, loadReviews, saveReviews, loadQuoteRequests, saveQuoteRequests, loadNotifications, saveNotifications, loadOrders, saveOrders, loadAnalytics, saveAnalytics, formatPriceFCFA } from '../utils/helpers';
+import { X, Lock, Key, Plus, Edit2, Trash2, RotateCcw, Save, ShieldCheck, Download, Upload, ChevronUp, ChevronDown, Filter, Star, FileText, BarChart3, MessageSquare, Clock, CheckCircle, XCircle, Package, Settings, Layout, Eye, EyeOff, Search, ArrowUpDown, ArrowUp, ArrowDown, Image as ImageIcon, Users, TrendingUp, Sparkles, ShoppingBag } from 'lucide-react';
+import { ImageUploader } from './ImageUploader';
 
 interface AdminPortalModalProps {
   isOpen: boolean;
@@ -48,6 +49,12 @@ interface AdminPortalModalProps {
   onUpdateSubCatLvl2?: (cat: SubCategoryLevel2) => void;
   onReorderSubCatsLvl2?: (cats: SubCategoryLevel2[]) => void;
   onDeleteSubCatLvl2?: (id: string) => void;
+  // Galerie Réalisations
+  realisations?: RealisationCollection[];
+  onAddRealisationCollection?: (col: Omit<RealisationCollection, 'id' | 'createdAt' | 'order'>) => void;
+  onUpdateRealisationCollection?: (col: RealisationCollection) => void;
+  onDeleteRealisationCollection?: (id: string) => void;
+  onReorderRealisationCollections?: (cols: RealisationCollection[]) => void;
 }
 
 // Defensive Error Boundary for Admin Portal (Top-level module scope to prevent unmount on re-render)
@@ -142,12 +149,18 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
   onReorderSubCatsLvl2,
   onDeleteSubCatLvl2,
   onReorderCollections,
+  // Galerie Réalisations
+  realisations = [],
+  onAddRealisationCollection,
+  onUpdateRealisationCollection,
+  onDeleteRealisationCollection,
+  onReorderRealisationCollections,
 }) => {
   if (!isOpen) return null;
 
   // Admin Active Tab State
   const [adminTab, setAdminTab] = useState<
-    'list' | 'add' | 'edit' | 'settings' | 'collections' | 'subcategories' | 'textes' | 'commandes' | 'devis' | 'avis' | 'analytics'
+    'list' | 'add' | 'edit' | 'settings' | 'collections' | 'subcategories' | 'textes' | 'commandes' | 'devis' | 'avis' | 'analytics' | 'realisations'
   >('list');
 
   // Login Form State
@@ -948,6 +961,16 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                     Analytics
                   </button>
                   <button
+                    onClick={() => setAdminTab('realisations')}
+                    className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                      adminTab === 'realisations'
+                        ? 'bg-[#D4AF37] text-black font-bold'
+                        : 'bg-black text-emerald-400 hover:text-white border border-emerald-800/60'
+                    }`}
+                  >
+                    📸 Réalisations
+                  </button>
+                  <button
                     onClick={() => setAdminTab('settings')}
                     className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
                       adminTab === 'settings'
@@ -1456,6 +1479,44 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                       />
                     </div>
 
+                    <div>
+                      <label className="block text-[#D4AF37] font-semibold mb-1">
+                        Statut du Produit (Disponibilité / Badge) *
+                      </label>
+                      <select
+                        value={
+                          adminTab === 'add'
+                            ? (formData.availability || 'disponible')
+                            : (editingProduct?.availability || 'disponible')
+                        }
+                        onChange={(e) => {
+                          const val = e.target.value as AvailabilityStatus;
+                          const isNouv = val === 'nouveau';
+                          if (adminTab === 'add') {
+                            setFormData({
+                              ...formData,
+                              availability: val,
+                              badge: isNouv ? 'Nouveauté' : val === 'epuise' ? 'Épuisé' : val === 'sur-commande' ? 'Sur commande' : 'Disponible',
+                              isFeatured: isNouv ? true : formData.isFeatured,
+                            });
+                          } else if (editingProduct) {
+                            setEditingProduct({
+                              ...editingProduct,
+                              availability: val,
+                              badge: isNouv ? 'Nouveauté' : val === 'epuise' ? 'Épuisé' : val === 'sur-commande' ? 'Sur commande' : 'Disponible',
+                              isFeatured: isNouv ? true : editingProduct.isFeatured,
+                            });
+                          }
+                        }}
+                        className="w-full bg-black border border-[#D4AF37]/50 rounded-lg p-2.5 text-white font-semibold focus:border-[#D4AF37] focus:outline-none"
+                      >
+                        <option value="disponible">🟢 Disponible (En stock)</option>
+                        <option value="sur-commande">🟡 Sur commande (Confection sur-mesure)</option>
+                        <option value="epuise">🔴 Épuisé (Rupture de stock)</option>
+                        <option value="nouveau">✨ Nouveau (Nouveauté / En Vedette)</option>
+                      </select>
+                    </div>
+
                     {/* ── 3-PHOTO CAROUSEL MANAGEMENT (CENTRAL SPEC REQUIREMENT) ── */}
                     <div className="sm:col-span-2 bg-[#0C0C0C] border border-[#D4AF37]/40 rounded-2xl p-4 space-y-4">
                       <div>
@@ -1489,19 +1550,14 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                                   Photo #{slotIdx + 1} {isMain && '(Principale)'}
                                 </span>
                               </div>
-                              <div className="relative aspect-square w-full rounded-lg overflow-hidden bg-black border border-gray-800 flex items-center justify-center">
-                                {imgVal ? (
-                                  <img src={imgVal} alt={`Aperçu ${slotIdx + 1}`} className="w-full h-full object-cover" />
-                                ) : (
-                                  <span className="text-[10px] text-gray-600 italic">Vide</span>
-                                )}
-                              </div>
-                              <input
-                                type="text"
-                                placeholder="Coller un lien URL..."
+                              <ImageUploader
                                 value={imgVal}
-                                onChange={(e) => updateProductImageAtIndex(slotIdx, e.target.value)}
-                                className="w-full bg-black border border-gray-800 rounded-lg p-1.5 text-[10px] text-white"
+                                onChange={(val) => updateProductImageAtIndex(slotIdx, val)}
+                                compact={true}
+                                allowUrlInput={false}
+                                aspectRatio="square"
+                                maxSizeMB={5}
+                                placeholder={`Sélectionner Photo #${slotIdx + 1}...`}
                               />
                             </div>
                           );
@@ -1621,21 +1677,14 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                         </div>
 
                         <div>
-                          <label className="block text-gray-300 font-semibold mb-1">Image de Couverture</label>
-                          <div className="flex gap-2">
-                            <input
-                              type="text"
-                              value={colFormData.coverImage}
-                              onChange={(e) => setColFormData({ ...colFormData, coverImage: e.target.value })}
-                              placeholder="https://..."
-                              className="flex-1 bg-black border border-gray-800 rounded-xl p-2.5 text-xs text-white focus:border-[#D4AF37] focus:outline-none"
-                            />
-                            <label className="px-3 py-2.5 bg-gray-800 text-gray-300 rounded-xl text-xs hover:bg-[#D4AF37] hover:text-black transition-colors cursor-pointer shrink-0 flex items-center gap-1">
-                              <Upload className="w-3.5 h-3.5" />
-                              <span>Upload</span>
-                              <input type="file" accept="image/*" onChange={handleCollectionImageFileUpload} className="hidden" />
-                            </label>
-                          </div>
+                          <ImageUploader
+                            value={colFormData.coverImage}
+                            onChange={(val) => setColFormData({ ...colFormData, coverImage: val })}
+                            label="Image de Couverture (Optionnelle)"
+                            allowUrlInput={false}
+                            maxSizeMB={5}
+                            placeholder="Sélectionner l'image de couverture depuis votre appareil..."
+                          />
                         </div>
 
                         <div className="sm:col-span-2">
@@ -2331,6 +2380,28 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                       </div>
                     </div>
 
+                    <div className="pt-4 border-t border-gray-800 space-y-3">
+                      <h4 className="text-sm font-serif font-bold text-[#D4AF37]">
+                        Photo de la Fondatrice (Section À Propos)
+                      </h4>
+                      <ImageUploader
+                        value={storeFormData.founderSection?.photoUrl || ''}
+                        onChange={(val) =>
+                          setStoreFormData({
+                            ...storeFormData,
+                            founderSection: {
+                              ...(storeFormData.founderSection || {}),
+                              photoUrl: val,
+                            },
+                          })
+                        }
+                        label="Changer la photo de la Fondatrice (Lizie Fifamè ALLATIN)"
+                        allowUrlInput={false}
+                        maxSizeMB={5}
+                        placeholder="Sélectionner une nouvelle photo de la fondatrice..."
+                      />
+                    </div>
+
                     <div className="flex justify-end pt-4">
                       <button
                         type="submit"
@@ -2488,7 +2559,7 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                     <div className="p-4 rounded-xl bg-black/60 border border-amber-900/40 text-xs text-amber-200/90 space-y-2 mt-4">
                       <h4 className="font-bold font-serif text-[#D4AF37]">Astuces d'Accès Discret Administrateur :</h4>
                       <ul className="list-disc list-inside space-y-1 text-gray-300 text-[11px]">
-                        <li><strong>Geste Secret :</strong> Triple-cliquez rapidement sur le Logo "Crown" ANONYM en haut à gauche.</li>
+                        <li><strong>Geste Mobile Secret :</strong> Maintenez appuyé le Logo ANONYM pendant 2,5 secondes en haut à gauche.</li>
                         <li><strong>Raccourci Clavier :</strong> Appuyez sur <kbd className="bg-gray-800 px-1 rounded">Ctrl + Shift + A</kbd> n'importe où sur le site.</li>
                         <li><strong>Lien URL Direct :</strong> Ajoutez <code className="text-[#D4AF37]">/#admin</code> à la fin de l'adresse de votre site web.</li>
                       </ul>
@@ -2501,216 +2572,596 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                   onSubmit={(e) => {
                     e.preventDefault();
                     onUpdateStoreInfo(storeFormData);
-                    alert('Textes des pages mis à jour avec succès !');
+                    alert('Tous les textes du site ont été mis à jour avec succès !');
                   }}
                   className="bg-[#141414] border border-[#D4AF37]/30 rounded-2xl p-6 space-y-6"
                 >
-                  <h3 className="text-lg font-serif font-bold text-[#D4AF37]">Textes des Pages</h3>
-                  {(['accueil', 'bijoux', 'emballages', 'parfums', 'accessoires'] as const).map((page) => (
-                    <div key={page} className="border-b border-gray-800 pb-4 last:border-b-0">
-                      <h4 className="text-sm font-bold text-[#F3E5AB] uppercase tracking-wider mb-3 capitalize">{page}</h4>
-                      {page === 'accueil' && (
-                        <>
-                          <div className="grid grid-cols-1 gap-3 mb-3">
-                            <label className="text-xs text-gray-400">Hero Title</label>
-                            <input
-                              type="text"
-                              value={(storeFormData.pageTexts?.accueil?.heroTitle || '')}
-                              onChange={(e) =>
-                                setStoreFormData({
-                                  ...storeFormData,
-                                  pageTexts: {
-                                    ...storeFormData.pageTexts,
-                                    accueil: { ...storeFormData.pageTexts?.accueil, heroTitle: e.target.value },
-                                  },
-                                })
-                              }
-                              className="w-full bg-black border border-gray-800 rounded-lg p-2.5 text-xs text-white"
-                            />
-                          </div>
-                          <div className="grid grid-cols-1 gap-3 mb-3">
-                            <label className="text-xs text-gray-400">Hero Subtitle</label>
-                            <input
-                              type="text"
-                              value={(storeFormData.pageTexts?.accueil?.heroSubtitle || '')}
-                              onChange={(e) =>
-                                setStoreFormData({
-                                  ...storeFormData,
-                                  pageTexts: {
-                                    ...storeFormData.pageTexts,
-                                    accueil: { ...storeFormData.pageTexts?.accueil, heroSubtitle: e.target.value },
-                                  },
-                                })
-                              }
-                              className="w-full bg-black border border-gray-800 rounded-lg p-2.5 text-xs text-white"
-                            />
-                          </div>
-                          <div className="grid grid-cols-1 gap-3">
-                            <label className="text-xs text-gray-400">Hero Description</label>
-                            <textarea
-                              rows={2}
-                              value={(storeFormData.pageTexts?.accueil?.heroDescription || '')}
-                              onChange={(e) =>
-                                setStoreFormData({
-                                  ...storeFormData,
-                                  pageTexts: {
-                                    ...storeFormData.pageTexts,
-                                    accueil: { ...storeFormData.pageTexts?.accueil, heroDescription: e.target.value },
-                                  },
-                                })
-                              }
-                              className="w-full bg-black border border-gray-800 rounded-lg p-2.5 text-xs text-white"
-                            />
-                          </div>
-                        </>
-                      )}
-                      {page !== 'accueil' && (
-                        <>
-                          <div className="grid grid-cols-1 gap-3 mb-3">
-                            <label className="text-xs text-gray-400">Titre de la section</label>
-                            <input
-                              type="text"
-                              value={(storeFormData.pageTexts?.[page]?.title || '')}
-                              onChange={(e) =>
-                                setStoreFormData({
-                                  ...storeFormData,
-                                  pageTexts: {
-                                    ...storeFormData.pageTexts,
-                                    [page]: { ...storeFormData.pageTexts?.[page], title: e.target.value },
-                                  },
-                                })
-                              }
-                              className="w-full bg-black border border-gray-800 rounded-lg p-2.5 text-xs text-white"
-                            />
-                          </div>
-                          <div className="grid grid-cols-1 gap-3">
-                            <label className="text-xs text-gray-400">Description</label>
-                            <textarea
-                              rows={2}
-                              value={(storeFormData.pageTexts?.[page]?.description || '')}
-                              onChange={(e) =>
-                                setStoreFormData({
-                                  ...storeFormData,
-                                  pageTexts: {
-                                    ...storeFormData.pageTexts,
-                                    [page]: { ...storeFormData.pageTexts?.[page], description: e.target.value },
-                                  },
-                                })
-                              }
-                              className="w-full bg-black border border-gray-800 rounded-lg p-2.5 text-xs text-white"
-                            />
-                          </div>
-                        </>
-                      )}
+                  <h3 className="text-lg font-serif font-bold text-[#D4AF37]">Éditeur Complet des Textes du Site</h3>
+
+                  {/* 1. HERO & ACCUEIL */}
+                  <div className="border border-gray-800 rounded-xl p-4 bg-black/40 space-y-3">
+                    <h4 className="text-xs font-bold text-[#F3E5AB] uppercase tracking-wider">1. En-tête Principal (Hero & Accueil)</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[11px] text-gray-400 block mb-1">Badge Haut ("Maison de...")</label>
+                        <input
+                          type="text"
+                          value={storeFormData.pageTexts?.accueil?.badgeTop || ''}
+                          placeholder="Maison de Création & Personnalisation"
+                          onChange={(e) =>
+                            setStoreFormData({
+                              ...storeFormData,
+                              pageTexts: {
+                                ...storeFormData.pageTexts,
+                                accueil: { ...storeFormData.pageTexts?.accueil, badgeTop: e.target.value },
+                              },
+                            })
+                          }
+                          className="w-full bg-black border border-gray-800 rounded-lg p-2 text-xs text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[11px] text-gray-400 block mb-1">Titre Principal ("ANONYM")</label>
+                        <input
+                          type="text"
+                          value={storeFormData.pageTexts?.accueil?.heroTitle || ''}
+                          placeholder="ANONYM"
+                          onChange={(e) =>
+                            setStoreFormData({
+                              ...storeFormData,
+                              pageTexts: {
+                                ...storeFormData.pageTexts,
+                                accueil: { ...storeFormData.pageTexts?.accueil, heroTitle: e.target.value },
+                              },
+                            })
+                          }
+                          className="w-full bg-black border border-gray-800 rounded-lg p-2 text-xs text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[11px] text-gray-400 block mb-1">Sous-titre / Slogan</label>
+                        <input
+                          type="text"
+                          value={storeFormData.pageTexts?.accueil?.heroSubtitle || ''}
+                          placeholder="« L'art de se démarquer »"
+                          onChange={(e) =>
+                            setStoreFormData({
+                              ...storeFormData,
+                              pageTexts: {
+                                ...storeFormData.pageTexts,
+                                accueil: { ...storeFormData.pageTexts?.accueil, heroSubtitle: e.target.value },
+                              },
+                            })
+                          }
+                          className="w-full bg-black border border-gray-800 rounded-lg p-2 text-xs text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[11px] text-gray-400 block mb-1">Badge Qualité</label>
+                        <input
+                          type="text"
+                          value={storeFormData.pageTexts?.accueil?.badgeQuality || ''}
+                          placeholder="Qualité · Confiance · Élégance"
+                          onChange={(e) =>
+                            setStoreFormData({
+                              ...storeFormData,
+                              pageTexts: {
+                                ...storeFormData.pageTexts,
+                                accueil: { ...storeFormData.pageTexts?.accueil, badgeQuality: e.target.value },
+                              },
+                            })
+                          }
+                          className="w-full bg-black border border-gray-800 rounded-lg p-2 text-xs text-white"
+                        />
+                      </div>
                     </div>
-                  ))}
-                  <div className="pt-4 border-t border-gray-800">
-                    <button
-                      type="submit"
-                      className="w-full py-3 bg-[#D4AF37] hover:bg-[#C5A059] text-black font-bold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer"
-                    >
-                      Enregistrer les modifications
-                    </button>
+                    <div>
+                      <label className="text-[11px] text-gray-400 block mb-1">Paragraphe d'Accroche</label>
+                      <textarea
+                        rows={2}
+                        value={storeFormData.pageTexts?.accueil?.heroDescription || ''}
+                        placeholder="Créations d'exception gravées sur-mesure..."
+                        onChange={(e) =>
+                          setStoreFormData({
+                            ...storeFormData,
+                            pageTexts: {
+                              ...storeFormData.pageTexts,
+                              accueil: { ...storeFormData.pageTexts?.accueil, heroDescription: e.target.value },
+                            },
+                          })
+                        }
+                        className="w-full bg-black border border-gray-800 rounded-lg p-2 text-xs text-white"
+                      />
+                    </div>
+                    {/* Chiffres Clés */}
+                    <div className="grid grid-cols-3 gap-2 pt-2 border-t border-gray-900">
+                      <div>
+                        <label className="text-[10px] text-gray-500 block mb-0.5">Stat 1 (Valeur)</label>
+                        <input
+                          type="text"
+                          value={storeFormData.pageTexts?.accueil?.stat1Value || ''}
+                          placeholder="211+"
+                          onChange={(e) =>
+                            setStoreFormData({
+                              ...storeFormData,
+                              pageTexts: {
+                                ...storeFormData.pageTexts,
+                                accueil: { ...storeFormData.pageTexts?.accueil, stat1Value: e.target.value },
+                              },
+                            })
+                          }
+                          className="w-full bg-black border border-gray-800 rounded-lg p-1.5 text-xs text-white"
+                        />
+                        <label className="text-[10px] text-gray-500 block mt-1 mb-0.5">Stat 1 (Libellé)</label>
+                        <input
+                          type="text"
+                          value={storeFormData.pageTexts?.accueil?.stat1Label || ''}
+                          placeholder="Modèles de Bijoux"
+                          onChange={(e) =>
+                            setStoreFormData({
+                              ...storeFormData,
+                              pageTexts: {
+                                ...storeFormData.pageTexts,
+                                accueil: { ...storeFormData.pageTexts?.accueil, stat1Label: e.target.value },
+                              },
+                            })
+                          }
+                          className="w-full bg-black border border-gray-800 rounded-lg p-1.5 text-xs text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-gray-500 block mb-0.5">Stat 2 (Valeur)</label>
+                        <input
+                          type="text"
+                          value={storeFormData.pageTexts?.accueil?.stat2Value || ''}
+                          placeholder="1 An"
+                          onChange={(e) =>
+                            setStoreFormData({
+                              ...storeFormData,
+                              pageTexts: {
+                                ...storeFormData.pageTexts,
+                                accueil: { ...storeFormData.pageTexts?.accueil, stat2Value: e.target.value },
+                              },
+                            })
+                          }
+                          className="w-full bg-black border border-gray-800 rounded-lg p-1.5 text-xs text-white"
+                        />
+                        <label className="text-[10px] text-gray-500 block mt-1 mb-0.5">Stat 2 (Libellé)</label>
+                        <input
+                          type="text"
+                          value={storeFormData.pageTexts?.accueil?.stat2Label || ''}
+                          placeholder="Garantie Inox 316L"
+                          onChange={(e) =>
+                            setStoreFormData({
+                              ...storeFormData,
+                              pageTexts: {
+                                ...storeFormData.pageTexts,
+                                accueil: { ...storeFormData.pageTexts?.accueil, stat2Label: e.target.value },
+                              },
+                            })
+                          }
+                          className="w-full bg-black border border-gray-800 rounded-lg p-1.5 text-xs text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-gray-500 block mb-0.5">Stat 3 (Valeur)</label>
+                        <input
+                          type="text"
+                          value={storeFormData.pageTexts?.accueil?.stat3Value || ''}
+                          placeholder="100%"
+                          onChange={(e) =>
+                            setStoreFormData({
+                              ...storeFormData,
+                              pageTexts: {
+                                ...storeFormData.pageTexts,
+                                accueil: { ...storeFormData.pageTexts?.accueil, stat3Value: e.target.value },
+                              },
+                            })
+                          }
+                          className="w-full bg-black border border-gray-800 rounded-lg p-1.5 text-xs text-white"
+                        />
+                        <label className="text-[10px] text-gray-500 block mt-1 mb-0.5">Stat 3 (Libellé)</label>
+                        <input
+                          type="text"
+                          value={storeFormData.pageTexts?.accueil?.stat3Label || ''}
+                          placeholder="Sur-Mesure"
+                          onChange={(e) =>
+                            setStoreFormData({
+                              ...storeFormData,
+                              pageTexts: {
+                                ...storeFormData.pageTexts,
+                                accueil: { ...storeFormData.pageTexts?.accueil, stat3Label: e.target.value },
+                              },
+                            })
+                          }
+                          className="w-full bg-black border border-gray-800 rounded-lg p-1.5 text-xs text-white"
+                        />
+                      </div>
+                    </div>
                   </div>
-                </form>
-              )}
-              {adminTab === 'textes' && (
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    onUpdateStoreInfo(storeFormData);
-                    alert('Textes des pages mis à jour avec succès !');
-                  }}
-                  className="bg-[#141414] border border-[#D4AF37]/30 rounded-2xl p-6 space-y-6"
-                >
-                  <h3 className="text-lg font-serif font-bold text-[#D4AF37]">Textes des Pages</h3>
-                  {(['accueil', 'bijoux', 'emballages', 'parfums', 'accessoires'] as const).map((page) => (
-                    <div key={page} className="border-b border-gray-800 pb-4 last:border-b-0">
-                      <h4 className="text-sm font-bold text-[#F3E5AB] uppercase tracking-wider mb-3 capitalize">{page}</h4>
-                      {page === 'accueil' && (
-                        <>
-                          <div className="grid grid-cols-1 gap-3 mb-3">
-                            <label className="text-xs text-gray-400">Hero Title</label>
-                            <input
-                              type="text"
-                              value={(storeFormData.pageTexts?.accueil?.heroTitle || '')}
-                              onChange={(e) =>
-                                setStoreFormData({
-                                  ...storeFormData,
-                                  pageTexts: {
-                                    ...storeFormData.pageTexts,
-                                    accueil: { ...storeFormData.pageTexts?.accueil, heroTitle: e.target.value },
-                                  },
-                                })
-                              }
-                              className="w-full bg-black border border-gray-800 rounded-lg p-2.5 text-xs text-white"
-                            />
-                          </div>
-                          <div className="grid grid-cols-1 gap-3 mb-3">
-                            <label className="text-xs text-gray-400">Hero Subtitle</label>
-                            <input
-                              type="text"
-                              value={(storeFormData.pageTexts?.accueil?.heroSubtitle || '')}
-                              onChange={(e) =>
-                                setStoreFormData({
-                                  ...storeFormData,
-                                  pageTexts: {
-                                    ...storeFormData.pageTexts,
-                                    accueil: { ...storeFormData.pageTexts?.accueil, heroSubtitle: e.target.value },
-                                  },
-                                })
-                              }
-                              className="w-full bg-black border border-gray-800 rounded-lg p-2.5 text-xs text-white"
-                            />
-                          </div>
-                          <div className="grid grid-cols-1 gap-3">
-                            <label className="text-xs text-gray-400">Hero Description</label>
-                            <textarea
-                              rows={2}
-                              value={(storeFormData.pageTexts?.accueil?.heroDescription || '')}
-                              onChange={(e) =>
-                                setStoreFormData({
-                                  ...storeFormData,
-                                  pageTexts: {
-                                    ...storeFormData.pageTexts,
-                                    accueil: { ...storeFormData.pageTexts?.accueil, heroDescription: e.target.value },
-                                  },
-                                })
-                              }
-                              className="w-full bg-black border border-gray-800 rounded-lg p-2.5 text-xs text-white"
-                            />
-                          </div>
-                        </>
-                      )}
-                      {page !== 'accueil' && (
-                        <>
-                          <div className="grid grid-cols-1 gap-3 mb-3">
-                            <label className="text-xs text-gray-400">Titre de la section</label>
-                            <input
-                              type="text"
-                              value={(storeFormData.pageTexts?.[page]?.title || '')}
-                              onChange={(e) =>
-                                setStoreFormData({
-                                  ...storeFormData,
-                                  pageTexts: {
-                                    ...storeFormData.pageTexts,
-                                    [page]: { ...storeFormData.pageTexts?.[page], title: e.target.value },
-                                  },
-                                })
-                              }
-                              className="w-full bg-black border border-gray-800 rounded-lg p-2.5 text-xs text-white"
-                            />
-                          </div>
-                        </>
-                      )}
+
+                  {/* 2. CARTE & SECTION "À PROPOS" (FONDATRICE & DIRECTION) */}
+                  <div className="border border-gray-800 rounded-xl p-4 bg-black/40 space-y-3">
+                    <h4 className="text-xs font-bold text-[#F3E5AB] uppercase tracking-wider">2. Carte & Section "À PROPOS" (Fondatrice & Direction)</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[11px] text-gray-400 block mb-1">Nom de la Fondatrice</label>
+                        <input
+                          type="text"
+                          value={storeFormData.founderSection?.name || ''}
+                          placeholder="Lizie Fifamè ALLATIN"
+                          onChange={(e) =>
+                            setStoreFormData({
+                              ...storeFormData,
+                              founderSection: { ...(storeFormData.founderSection || {}), name: e.target.value },
+                            })
+                          }
+                          className="w-full bg-black border border-gray-800 rounded-lg p-2 text-xs text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[11px] text-gray-400 block mb-1">Titre / Fonction Officielle</label>
+                        <input
+                          type="text"
+                          value={storeFormData.founderSection?.title || ''}
+                          placeholder="Fondatrice & Directrice Générale — ANONYM"
+                          onChange={(e) =>
+                            setStoreFormData({
+                              ...storeFormData,
+                              founderSection: { ...(storeFormData.founderSection || {}), title: e.target.value },
+                            })
+                          }
+                          className="w-full bg-black border border-gray-800 rounded-lg p-2 text-xs text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[11px] text-gray-400 block mb-1">Badge Photo ("Directrice Générale...")</label>
+                        <input
+                          type="text"
+                          value={storeFormData.founderSection?.badge || ''}
+                          placeholder="Directrice Générale & CEO"
+                          onChange={(e) =>
+                            setStoreFormData({
+                              ...storeFormData,
+                              founderSection: { ...(storeFormData.founderSection || {}), badge: e.target.value },
+                            })
+                          }
+                          className="w-full bg-black border border-gray-800 rounded-lg p-2 text-xs text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[11px] text-gray-400 block mb-1">Titre de la Section ("La Fondatrice...")</label>
+                        <input
+                          type="text"
+                          value={storeFormData.founderSection?.sectionTitle || ''}
+                          placeholder="La Fondatrice : Lizie Fifamè ALLATIN"
+                          onChange={(e) =>
+                            setStoreFormData({
+                              ...storeFormData,
+                              founderSection: { ...(storeFormData.founderSection || {}), sectionTitle: e.target.value },
+                            })
+                          }
+                          className="w-full bg-black border border-gray-800 rounded-lg p-2 text-xs text-white"
+                        />
+                      </div>
                     </div>
-                  ))}
+                    <div>
+                      <label className="text-[11px] text-gray-400 block mb-1">Citation Inspirante</label>
+                      <textarea
+                        rows={2}
+                        value={storeFormData.founderSection?.quote || ''}
+                        placeholder="Inspirée par l'excellence et le prestige royal..."
+                        onChange={(e) =>
+                          setStoreFormData({
+                            ...storeFormData,
+                            founderSection: { ...(storeFormData.founderSection || {}), quote: e.target.value },
+                          })
+                        }
+                        className="w-full bg-black border border-gray-800 rounded-lg p-2 text-xs text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] text-gray-400 block mb-1">Paragraphe Présentation / Histoire</label>
+                      <textarea
+                        rows={3}
+                        value={storeFormData.founderSection?.paragraph || ''}
+                        placeholder="Basée à Abomey-Calavi (Zogbadjè, Bénin)..."
+                        onChange={(e) =>
+                          setStoreFormData({
+                            ...storeFormData,
+                            founderSection: { ...(storeFormData.founderSection || {}), paragraph: e.target.value },
+                          })
+                        }
+                        className="w-full bg-black border border-gray-800 rounded-lg p-2 text-xs text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] text-gray-400 block mb-1">Badges de Valeurs de Marque (Séparés par une virgule)</label>
+                      <input
+                        type="text"
+                        value={(storeFormData.values || []).join(', ')}
+                        placeholder="UNICITÉ, ÉLÉGANCE, PERSONNALISATION"
+                        onChange={(e) =>
+                          setStoreFormData({
+                            ...storeFormData,
+                            values: e.target.value.split(',').map((v) => v.trim()).filter(Boolean),
+                          })
+                        }
+                        className="w-full bg-black border border-gray-800 rounded-lg p-2 text-xs text-white"
+                      />
+                    </div>
+
+                    {/* Engagements du Catalogue Officiel */}
+                    <div className="space-y-2 pt-2 border-t border-gray-900">
+                      <label className="text-[11px] font-semibold text-[#D4AF37] block">Engagements & Informations Officieuses (1 à 4)</label>
+                      {[0, 1, 2, 3].map((idx) => {
+                        const defaultCommitments = [
+                          { label: 'Garantie Inox 316L 1 An :', text: 'Nos bijoux ne rouillent pas, ne noircissent pas et résistent à l\'eau.' },
+                          { label: 'Gravure Laser & Impression HD :', text: 'Personnalisation millimétrée des prénoms, dates, symboles et logos.' },
+                          { label: 'Expédition & Livraison Bénin :', text: 'Livraison sécurisée à Cotonou, Abomey-Calavi, Parakou et toute la sous-région.' },
+                          { label: 'Service Client Direct WhatsApp :', text: 'Accompagnement personnalisé et réponse sous 24h par notre équipe.' },
+                        ];
+                        const currentCommitments = storeFormData.founderSection?.commitments || defaultCommitments;
+                        const itemLabel = currentCommitments[idx]?.label || defaultCommitments[idx].label;
+                        const itemText = currentCommitments[idx]?.text || defaultCommitments[idx].text;
+
+                        return (
+                          <div key={idx} className="p-2 bg-black border border-gray-800 rounded-lg space-y-1.5">
+                            <span className="text-[10px] font-mono text-gray-400">Engagement #{idx + 1}</span>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              <input
+                                type="text"
+                                value={itemLabel}
+                                placeholder="Libellé / Titre..."
+                                onChange={(e) => {
+                                  const updated = [...currentCommitments];
+                                  while (updated.length <= idx) updated.push({ icon: 'check', label: '', text: '' });
+                                  updated[idx] = { ...updated[idx], label: e.target.value };
+                                  setStoreFormData({
+                                    ...storeFormData,
+                                    founderSection: { ...(storeFormData.founderSection || {}), commitments: updated },
+                                  });
+                                }}
+                                className="w-full bg-[#111] border border-gray-800 rounded p-1.5 text-xs text-white"
+                              />
+                              <input
+                                type="text"
+                                value={itemText}
+                                placeholder="Texte explicatif..."
+                                onChange={(e) => {
+                                  const updated = [...currentCommitments];
+                                  while (updated.length <= idx) updated.push({ icon: 'check', label: '', text: '' });
+                                  updated[idx] = { ...updated[idx], text: e.target.value };
+                                  setStoreFormData({
+                                    ...storeFormData,
+                                    founderSection: { ...(storeFormData.founderSection || {}), commitments: updated },
+                                  });
+                                }}
+                                className="w-full bg-[#111] border border-gray-800 rounded p-1.5 text-xs text-white"
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* 3. LE PROCESSUS ANONYM */}
+                  <div className="border border-gray-800 rounded-xl p-4 bg-black/40 space-y-3">
+                    <h4 className="text-xs font-bold text-[#F3E5AB] uppercase tracking-wider">3. Section "Le Processus ANONYM"</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[11px] text-gray-400 block mb-1">Titre de la section</label>
+                        <input
+                          type="text"
+                          value={storeFormData.pageTexts?.processus?.title || ''}
+                          placeholder="Le Processus ANONYM"
+                          onChange={(e) =>
+                            setStoreFormData({
+                              ...storeFormData,
+                              pageTexts: {
+                                ...storeFormData.pageTexts,
+                                processus: { ...storeFormData.pageTexts?.processus, title: e.target.value },
+                              },
+                            })
+                          }
+                          className="w-full bg-black border border-gray-800 rounded-lg p-2 text-xs text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[11px] text-gray-400 block mb-1">Sous-titre de la section</label>
+                        <input
+                          type="text"
+                          value={storeFormData.pageTexts?.processus?.subtitle || ''}
+                          placeholder="De la sélection à la livraison..."
+                          onChange={(e) =>
+                            setStoreFormData({
+                              ...storeFormData,
+                              pageTexts: {
+                                ...storeFormData.pageTexts,
+                                processus: { ...storeFormData.pageTexts?.processus, subtitle: e.target.value },
+                              },
+                            })
+                          }
+                          className="w-full bg-black border border-gray-800 rounded-lg p-2 text-xs text-white"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 pt-2 border-t border-gray-900">
+                      <label className="text-[11px] font-semibold text-[#D4AF37] block">Étapes du Processus (1 à 6)</label>
+                      {[0, 1, 2, 3, 4, 5].map((idx) => {
+                        const defaultTitles = [
+                          '1. Choisissez votre produit',
+                          '2. Personnalisation',
+                          '3. Commande via WhatsApp',
+                          '4. Délai de fabrication',
+                          '5. Livraison partout au Bénin',
+                          '6. Garantie ANONYM',
+                        ];
+                        const currentRules = storeFormData.pageTexts?.processus?.rules || [];
+                        const ruleTitle = currentRules[idx]?.title || '';
+                        const ruleDesc = currentRules[idx]?.description || '';
+
+                        return (
+                          <div key={idx} className="p-2 bg-black border border-gray-800 rounded-lg space-y-1.5">
+                            <span className="text-[10px] font-mono text-gray-400">Étape #{idx + 1} ({defaultTitles[idx]})</span>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              <input
+                                type="text"
+                                value={ruleTitle}
+                                placeholder={defaultTitles[idx]}
+                                onChange={(e) => {
+                                  const updatedRules = [...currentRules];
+                                  while (updatedRules.length <= idx) updatedRules.push({});
+                                  updatedRules[idx] = { ...updatedRules[idx], title: e.target.value };
+                                  setStoreFormData({
+                                    ...storeFormData,
+                                    pageTexts: {
+                                      ...storeFormData.pageTexts,
+                                      processus: { ...storeFormData.pageTexts?.processus, rules: updatedRules },
+                                    },
+                                  });
+                                }}
+                                className="w-full bg-[#111] border border-gray-800 rounded p-1.5 text-xs text-white"
+                              />
+                              <input
+                                type="text"
+                                value={ruleDesc}
+                                placeholder="Description de cette étape..."
+                                onChange={(e) => {
+                                  const updatedRules = [...currentRules];
+                                  while (updatedRules.length <= idx) updatedRules.push({});
+                                  updatedRules[idx] = { ...updatedRules[idx], description: e.target.value };
+                                  setStoreFormData({
+                                    ...storeFormData,
+                                    pageTexts: {
+                                      ...storeFormData.pageTexts,
+                                      processus: { ...storeFormData.pageTexts?.processus, rules: updatedRules },
+                                    },
+                                  });
+                                }}
+                                className="w-full bg-[#111] border border-gray-800 rounded p-1.5 text-xs text-white"
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* 4. CARTES D'UNIVERS & PAGES DE CATÉGORIES */}
+                  <div className="border border-gray-800 rounded-xl p-4 bg-black/40 space-y-3">
+                    <h4 className="text-xs font-bold text-[#F3E5AB] uppercase tracking-wider">4. Cartes des Univers & Pages de Catégories (Bijoux, Emballages, Parfums, Accessoires)</h4>
+                    {(['bijoux', 'emballages', 'parfums', 'accessoires'] as const).map((cat) => (
+                      <div key={cat} className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-2.5 bg-black border border-gray-800 rounded-lg">
+                        <div>
+                          <label className="text-[10px] text-[#D4AF37] uppercase font-bold block mb-1">{cat} — Titre</label>
+                          <input
+                            type="text"
+                            value={storeFormData.pageTexts?.[cat]?.title || ''}
+                            placeholder={cat.toUpperCase()}
+                            onChange={(e) =>
+                              setStoreFormData({
+                                ...storeFormData,
+                                pageTexts: {
+                                  ...storeFormData.pageTexts,
+                                  [cat]: { ...storeFormData.pageTexts?.[cat], title: e.target.value },
+                                },
+                              })
+                            }
+                            className="w-full bg-[#111] border border-gray-800 rounded p-1.5 text-xs text-white"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] text-gray-400 block mb-1">{cat} — Description courte</label>
+                          <input
+                            type="text"
+                            value={storeFormData.pageTexts?.[cat]?.description || ''}
+                            placeholder="Description affichée sur la carte..."
+                            onChange={(e) =>
+                              setStoreFormData({
+                                ...storeFormData,
+                                pageTexts: {
+                                  ...storeFormData.pageTexts,
+                                  [cat]: { ...storeFormData.pageTexts?.[cat], description: e.target.value },
+                                },
+                              })
+                            }
+                            className="w-full bg-[#111] border border-gray-800 rounded p-1.5 text-xs text-white"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* 5. DEMANDE DE DEVIS & FOOTER */}
+                  <div className="border border-gray-800 rounded-xl p-4 bg-black/40 space-y-3">
+                    <h4 className="text-xs font-bold text-[#F3E5AB] uppercase tracking-wider">5. Demande de Devis & Pied de Page (Footer)</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[11px] text-gray-400 block mb-1">Titre Devis</label>
+                        <input
+                          type="text"
+                          value={storeFormData.pageTexts?.devis?.title || ''}
+                          placeholder="Demande de Devis Personnalisé"
+                          onChange={(e) =>
+                            setStoreFormData({
+                              ...storeFormData,
+                              pageTexts: {
+                                ...storeFormData.pageTexts,
+                                devis: { ...storeFormData.pageTexts?.devis, title: e.target.value },
+                              },
+                            })
+                          }
+                          className="w-full bg-black border border-gray-800 rounded-lg p-2 text-xs text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[11px] text-gray-400 block mb-1">Sous-titre Devis</label>
+                        <input
+                          type="text"
+                          value={storeFormData.pageTexts?.devis?.subtitle || ''}
+                          placeholder="Décrivez votre projet..."
+                          onChange={(e) =>
+                            setStoreFormData({
+                              ...storeFormData,
+                              pageTexts: {
+                                ...storeFormData.pageTexts,
+                                devis: { ...storeFormData.pageTexts?.devis, subtitle: e.target.value },
+                              },
+                            })
+                          }
+                          className="w-full bg-black border border-gray-800 rounded-lg p-2 text-xs text-white"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-[11px] text-gray-400 block mb-1">Bannière Baseline Footer</label>
+                      <input
+                        type="text"
+                        value={storeFormData.pageTexts?.footer?.baseline || ''}
+                        placeholder="QUALITÉ • CONFIANCE • ÉLÉGANCE"
+                        onChange={(e) =>
+                          setStoreFormData({
+                            ...storeFormData,
+                            pageTexts: {
+                              ...storeFormData.pageTexts,
+                              footer: { ...storeFormData.pageTexts?.footer, baseline: e.target.value },
+                            },
+                          })
+                        }
+                        className="w-full bg-black border border-gray-800 rounded-lg p-2 text-xs text-white"
+                      />
+                    </div>
+                  </div>
+
                   <div className="pt-4 border-t border-gray-800">
                     <button
                       type="submit"
-                      className="w-full py-3 bg-[#D4AF37] hover:bg-[#C5A059] text-black font-bold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer"
+                      className="w-full py-3 bg-[#D4AF37] hover:bg-[#C5A059] text-black font-bold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-lg"
                     >
-                      Enregistrer les modifications
+                      Enregistrer Tous les Textes du Site
                     </button>
                   </div>
                 </form>
@@ -3025,80 +3476,319 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
               {/* TAB: Analytics */}
               {adminTab === 'analytics' && (
                 <div className="space-y-6">
-                  <h3 className="text-lg font-serif font-bold text-[#D4AF37] flex items-center gap-2">
-                    <BarChart3 className="w-5 h-5" />
-                    <span>Tableau de Bord & Analytics Réels</span>
-                  </h3>
-
-                  {/* KPI Grid */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    <div className="bg-[#141414] border border-[#D4AF37]/30 rounded-2xl p-4 text-center">
-                      <span className="text-2xl font-serif font-bold text-[#F3E5AB] block">
-                        {formatPriceFCFA(orders.reduce((sum, o) => sum + (o.totalPrice || 0), 0))}
-                      </span>
-                      <span className="text-[10px] text-gray-400 uppercase tracking-wider">Chiffre d'Affaires</span>
-                    </div>
-
-                    <div className="bg-[#141414] border border-gray-800 rounded-2xl p-4 text-center">
-                      <span className="text-2xl font-serif font-bold text-white block">{orders.length}</span>
-                      <span className="text-[10px] text-gray-400 uppercase tracking-wider">Commandes Totales</span>
-                    </div>
-
-                    <div className="bg-[#141414] border border-gray-800 rounded-2xl p-4 text-center">
-                      <span className="text-2xl font-serif font-bold text-white block">
-                        {Object.values(analytics.productViews || {}).reduce((a, b) => a + b, 0)}
-                      </span>
-                      <span className="text-[10px] text-gray-400 uppercase tracking-wider">Vues Fiches Produits</span>
-                    </div>
-
-                    <div className="bg-[#141414] border border-gray-800 rounded-2xl p-4 text-center">
-                      <span className="text-2xl font-serif font-bold text-white block">{quoteRequests.length}</span>
-                      <span className="text-[10px] text-gray-400 uppercase tracking-wider">Demandes de Devis</span>
-                    </div>
+                  {/* Header */}
+                  <div>
+                    <h3 className="text-lg font-serif font-bold text-[#D4AF37] flex items-center gap-2">
+                      <BarChart3 className="w-5 h-5 text-[#D4AF37]" />
+                      <span>Tableau de Bord & Analytics Réels</span>
+                    </h3>
+                    <p className="text-xs text-gray-400 mt-1 leading-relaxed">
+                      Statistiques réelles sur la fréquentation, l'intérêt des visiteurs et les ventes afin d'orienter vos publications et promotions (WhatsApp, Instagram, Facebook).
+                    </p>
                   </div>
 
-                  {/* Top Viewed Products */}
-                  <div className="bg-[#141414] border border-gray-800 rounded-2xl p-5 space-y-3">
-                    <h4 className="text-sm font-serif font-bold text-white flex items-center gap-2">
-                      <Eye className="w-4 h-4 text-[#D4AF37]" />
-                      <span>Top 5 — Produits les Plus Consultés</span>
-                    </h4>
+                  {/* CALCULATED TIME-BASED VISITOR LOGS */}
+                  {(() => {
+                    const now = new Date();
+                    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+                    const weekStart = todayStart - 6 * 24 * 60 * 60 * 1000;
+                    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
 
-                    {(() => {
-                      const topViewed = Object.entries(analytics.productViews || {})
-                        .sort(([, a], [, b]) => b - a)
-                        .slice(0, 5)
-                        .map(([id, views]) => ({
-                          product: products.find((p) => p.id === id),
-                          views,
-                        }))
-                        .filter((item) => item.product);
+                    const logs = analytics.visitorLogs || [];
+                    const visitsToday = logs.filter((isoStr) => new Date(isoStr).getTime() >= todayStart).length;
+                    const visitsThisWeek = logs.filter((isoStr) => new Date(isoStr).getTime() >= weekStart).length;
+                    const visitsThisMonth = logs.filter((isoStr) => new Date(isoStr).getTime() >= monthStart).length;
+                    const totalVisits = analytics.totalVisits || logs.length;
 
-                      if (topViewed.length === 0) {
-                        return <p className="text-xs text-gray-500 italic">Aucune vue enregistrée pour le moment. Consulter un produit sur le site incrementera automatiquement ce compteur.</p>;
-                      }
+                    const totalRevenue = orders.reduce((sum, o) => sum + (o.totalPrice || 0), 0);
+                    const totalViews = Object.values(analytics.productViews || {}).reduce((a, b) => a + b, 0);
 
-                      return (
-                        <div className="space-y-2">
-                          {topViewed.map(({ product, views }, idx) => (
-                            <div key={product!.id} className="bg-black/60 border border-gray-800 rounded-xl p-3 flex items-center justify-between text-xs">
-                              <div className="flex items-center gap-3">
-                                <span className="font-bold text-[#D4AF37] font-mono">#{idx + 1}</span>
-                                <img src={product!.imageUrl} alt={product!.name} className="w-9 h-9 object-cover rounded-lg border border-gray-800" />
-                                <div>
-                                  <span className="font-bold text-white block">{product!.name}</span>
-                                  <span className="text-[10px] text-gray-500 font-mono">Réf #{product!.refCode}</span>
-                                </div>
-                              </div>
-                              <span className="font-mono font-bold text-emerald-400 bg-emerald-950/80 px-2.5 py-1 rounded-lg border border-emerald-800/40">
-                                👁️ {views} vue(s)
-                              </span>
+                    // Top viewed product
+                    const topViewedEntry = Object.entries(analytics.productViews || {})
+                      .sort(([, a], [, b]) => b - a)[0];
+                    const topViewedProduct = topViewedEntry ? products.find((p) => p.id === topViewedEntry[0]) : null;
+
+                    // Top ordered product
+                    const orderCountMap: Record<string, number> = {};
+                    orders.forEach((o) => {
+                      if (o.productId) orderCountMap[o.productId] = (orderCountMap[o.productId] || 0) + (o.quantity || 1);
+                    });
+                    const topOrderedEntry = Object.entries(orderCountMap).sort(([, a], [, b]) => b - a)[0];
+                    const topOrderedProduct = topOrderedEntry ? products.find((p) => p.id === topOrderedEntry[0]) : null;
+
+                    return (
+                      <>
+                        {/* 1. VISITOR TRAFFIC EVOLUTION (TODAY, WEEK, MONTH, TOTAL) */}
+                        <div className="space-y-3">
+                          <h4 className="text-xs font-semibold text-gray-300 uppercase tracking-wider flex items-center gap-1.5">
+                            <Users className="w-4 h-4 text-[#D4AF37]" />
+                            <span>Fréquentation du Site (Évolution temporelle réellle)</span>
+                          </h4>
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            <div className="bg-[#141414] border border-[#D4AF37]/40 rounded-2xl p-4 text-center shadow-lg relative overflow-hidden">
+                              <div className="absolute top-0 right-0 w-12 h-12 bg-[#D4AF37]/10 rounded-bl-full pointer-events-none" />
+                              <span className="text-2xl sm:text-3xl font-serif font-bold text-[#F3E5AB] block">{visitsToday}</span>
+                              <span className="text-[11px] font-semibold text-gray-300 block mt-0.5">Visiteurs Aujourd'hui</span>
+                              <span className="text-[9px] text-gray-500 font-mono block mt-1">Sessions uniques</span>
                             </div>
-                          ))}
+
+                            <div className="bg-[#141414] border border-gray-800 rounded-2xl p-4 text-center shadow-lg">
+                              <span className="text-2xl sm:text-3xl font-serif font-bold text-white block">{visitsThisWeek}</span>
+                              <span className="text-[11px] font-semibold text-gray-300 block mt-0.5">Cette Semaine</span>
+                              <span className="text-[9px] text-gray-500 font-mono block mt-1">7 derniers jours</span>
+                            </div>
+
+                            <div className="bg-[#141414] border border-gray-800 rounded-2xl p-4 text-center shadow-lg">
+                              <span className="text-2xl sm:text-3xl font-serif font-bold text-white block">{visitsThisMonth}</span>
+                              <span className="text-[11px] font-semibold text-gray-300 block mt-0.5">Ce Mois-ci</span>
+                              <span className="text-[9px] text-gray-500 font-mono block mt-1">30 derniers jours</span>
+                            </div>
+
+                            <div className="bg-[#141414] border border-gray-800 rounded-2xl p-4 text-center shadow-lg">
+                              <span className="text-2xl sm:text-3xl font-serif font-bold text-[#D4AF37] block">{totalVisits}</span>
+                              <span className="text-[11px] font-semibold text-gray-300 block mt-0.5">Visites Cumulées</span>
+                              <span className="text-[9px] text-gray-500 font-mono block mt-1">Total historique</span>
+                            </div>
+                          </div>
                         </div>
-                      );
-                    })()}
-                  </div>
+
+                        {/* 2. SALES & QUOTES OVERVIEW */}
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                          <div className="bg-gradient-to-br from-[#1A160C] to-[#121212] border border-[#D4AF37]/50 rounded-2xl p-4 text-center shadow-xl">
+                            <span className="text-xl sm:text-2xl font-serif font-bold text-[#F3E5AB] block truncate">
+                              {formatPriceFCFA(totalRevenue)}
+                            </span>
+                            <span className="text-[10px] text-[#D4AF37] font-semibold uppercase tracking-wider">Chiffre d'Affaires Enregistré</span>
+                          </div>
+
+                          <div className="bg-[#141414] border border-gray-800 rounded-2xl p-4 text-center shadow-lg">
+                            <span className="text-xl sm:text-2xl font-serif font-bold text-white block">{orders.length}</span>
+                            <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">Commandes Totales</span>
+                          </div>
+
+                          <div className="bg-[#141414] border border-gray-800 rounded-2xl p-4 text-center shadow-lg col-span-2 sm:col-span-1">
+                            <span className="text-xl sm:text-2xl font-serif font-bold text-white block">{quoteRequests.length}</span>
+                            <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">Demandes de Devis</span>
+                          </div>
+                        </div>
+
+                        {/* 3. STRATEGIC RECOMMENDATIONS FOR LIZIE (WHAT TO POST ON WHATSAPP & SOCIAL MEDIA) */}
+                        <div className="bg-gradient-to-r from-[#17140B] via-[#121212] to-[#17140B] border border-[#D4AF37]/40 rounded-2xl p-5 space-y-3 shadow-xl">
+                          <h4 className="text-xs font-bold text-[#D4AF37] uppercase tracking-wider flex items-center gap-2">
+                            <Sparkles className="w-4 h-4 text-[#D4AF37]" />
+                            <span>Conseils Marketing pour vos Statuts WhatsApp & Réseaux Sociaux</span>
+                          </h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                            {/* Product Trending */}
+                            <div className="bg-black/60 border border-amber-900/40 rounded-xl p-3.5 space-y-1.5">
+                              <span className="text-[#F3E5AB] font-bold font-serif flex items-center gap-1.5 text-xs">
+                                🔥 Produit le Plus Consulté sur le site
+                              </span>
+                              {topViewedProduct ? (
+                                <div className="flex items-center gap-2.5 pt-1">
+                                  <img src={topViewedProduct.imageUrl} alt={topViewedProduct.name} className="w-10 h-10 object-cover rounded-lg border border-[#D4AF37]/30" />
+                                  <div className="min-w-0 flex-1">
+                                    <p className="font-semibold text-white truncate">{topViewedProduct.name}</p>
+                                    <p className="text-[11px] text-amber-200/90 italic">
+                                      💡 <strong>Action recommandée :</strong> Postez ce bijou sur votre statut WhatsApp ! Il génère le plus de curiosité.
+                                    </p>
+                                  </div>
+                                </div>
+                              ) : (
+                                <p className="text-[11px] text-gray-400 italic">Consultez des fiches produits sur le site pour identifier le bijou star du moment.</p>
+                              )}
+                            </div>
+
+                            {/* Product Top Seller */}
+                            <div className="bg-black/60 border border-emerald-900/40 rounded-xl p-3.5 space-y-1.5">
+                              <span className="text-emerald-400 font-bold font-serif flex items-center gap-1.5 text-xs">
+                                🛍️ Produit le Plus Commandé
+                              </span>
+                              {topOrderedProduct ? (
+                                <div className="flex items-center gap-2.5 pt-1">
+                                  <img src={topOrderedProduct.imageUrl} alt={topOrderedProduct.name} className="w-10 h-10 object-cover rounded-lg border border-emerald-700/40" />
+                                  <div className="min-w-0 flex-1">
+                                    <p className="font-semibold text-white truncate">{topOrderedProduct.name}</p>
+                                    <p className="text-[11px] text-emerald-200/90 italic">
+                                      💡 <strong>Action recommandée :</strong> Mettez en avant ce best-seller en story avec un témoignage cliente.
+                                    </p>
+                                  </div>
+                                </div>
+                              ) : (
+                                <p className="text-[11px] text-gray-400 italic">Enregistrez des commandes pour identifier votre pièce la plus vendue.</p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* 4. TOP 5 MOST VIEWED PRODUCTS */}
+                        <div className="bg-[#141414] border border-gray-800 rounded-2xl p-5 space-y-4 shadow-lg">
+                          <div className="flex items-center justify-between">
+                            <h4 className="text-sm font-serif font-bold text-white flex items-center gap-2">
+                              <Eye className="w-4 h-4 text-[#D4AF37]" />
+                              <span>Produits les Plus Consultés (Vues Fiches Produits)</span>
+                            </h4>
+                            <span className="text-[11px] font-mono text-gray-400">Total : {totalViews} vue(s)</span>
+                          </div>
+
+                          {(() => {
+                            const topViewed = Object.entries(analytics.productViews || {})
+                              .sort(([, a], [, b]) => b - a)
+                              .slice(0, 5)
+                              .map(([id, views]) => ({
+                                product: products.find((p) => p.id === id),
+                                views,
+                              }))
+                              .filter((item) => item.product);
+
+                            if (topViewed.length === 0) {
+                              return (
+                                <div className="text-center py-6 bg-black/40 rounded-xl border border-gray-800/60">
+                                  <Eye className="w-7 h-7 text-gray-700 mx-auto mb-2" />
+                                  <p className="text-xs text-gray-500 italic">Aucune vue enregistrée pour l'instant.</p>
+                                  <p className="text-[11px] text-gray-600 mt-1">
+                                    Dès qu'un visiteur clique sur un bijou ou un produit, le compteur s'incrémente immédiatement.
+                                  </p>
+                                </div>
+                              );
+                            }
+
+                            return (
+                              <div className="space-y-2.5">
+                                {topViewed.map(({ product, views }, idx) => {
+                                  const percent = totalViews > 0 ? Math.round((views / totalViews) * 100) : 0;
+                                  return (
+                                    <div key={product!.id} className="bg-black/70 border border-gray-800 hover:border-[#D4AF37]/30 rounded-xl p-3 space-y-2 transition-all">
+                                      <div className="flex items-center justify-between text-xs">
+                                        <div className="flex items-center gap-3 min-w-0">
+                                          <span className="font-bold text-[#D4AF37] font-mono text-sm w-6 text-center">#{idx + 1}</span>
+                                          <img src={product!.imageUrl} alt={product!.name} className="w-10 h-10 object-cover rounded-lg border border-gray-800 shrink-0" />
+                                          <div className="min-w-0">
+                                            <span className="font-bold text-white block truncate">{product!.name}</span>
+                                            <span className="text-[10px] text-gray-500 font-mono">
+                                              Réf #{product!.refCode} • {formatPriceFCFA(product!.price)}
+                                            </span>
+                                          </div>
+                                        </div>
+                                        <div className="text-right shrink-0">
+                                          <span className="font-mono font-bold text-emerald-400 bg-emerald-950/80 px-2.5 py-1 rounded-lg border border-emerald-800/40 text-xs inline-block">
+                                            👁️ {views} vue{views > 1 ? 's' : ''}
+                                          </span>
+                                          <span className="text-[10px] text-gray-500 font-mono block mt-0.5">{percent}% du total</span>
+                                        </div>
+                                      </div>
+
+                                      {/* View Bar */}
+                                      <div className="w-full h-1.5 bg-gray-900 rounded-full overflow-hidden">
+                                        <div className="h-full bg-gradient-to-r from-[#D4AF37] to-amber-500 rounded-full" style={{ width: `${Math.min(100, Math.max(5, percent))}%` }} />
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            );
+                          })()}
+                        </div>
+
+                        {/* 5. TOP MOST ORDERED PRODUCTS */}
+                        <div className="bg-[#141414] border border-gray-800 rounded-2xl p-5 space-y-4 shadow-lg">
+                          <div className="flex items-center justify-between">
+                            <h4 className="text-sm font-serif font-bold text-white flex items-center gap-2">
+                              <ShoppingBag className="w-4 h-4 text-[#D4AF37]" />
+                              <span>Produits les Plus Commandés (Ventes Réelles)</span>
+                            </h4>
+                            <span className="text-[11px] font-mono text-gray-400">{orders.length} commande(s)</span>
+                          </div>
+
+                          {(() => {
+                            const orderStatsMap: Record<string, { count: number; totalQty: number; totalRev: number; name: string }> = {};
+                            orders.forEach((o) => {
+                              const key = o.productId || o.productName || 'inconnu';
+                              if (!orderStatsMap[key]) {
+                                orderStatsMap[key] = { count: 0, totalQty: 0, totalRev: 0, name: o.productName || 'Produit' };
+                              }
+                              orderStatsMap[key].count += 1;
+                              orderStatsMap[key].totalQty += o.quantity || 1;
+                              orderStatsMap[key].totalRev += o.totalPrice || 0;
+                            });
+
+                            const topOrderedList = Object.entries(orderStatsMap)
+                              .sort(([, a], [, b]) => b.count - a.count)
+                              .slice(0, 5);
+
+                            if (topOrderedList.length === 0) {
+                              return (
+                                <div className="text-center py-6 bg-black/40 rounded-xl border border-gray-800/60">
+                                  <ShoppingBag className="w-7 h-7 text-gray-700 mx-auto mb-2" />
+                                  <p className="text-xs text-gray-500 italic">Aucune commande enregistrée pour l'instant.</p>
+                                  <p className="text-[11px] text-gray-600 mt-1">
+                                    Les commandes passées depuis le panier s'afficheront ici avec le classement des produits les plus vendus.
+                                  </p>
+                                </div>
+                              );
+                            }
+
+                            return (
+                              <div className="space-y-2">
+                                {topOrderedList.map(([key, stats], idx) => {
+                                  const matchingProduct = products.find((p) => p.id === key || p.name === stats.name);
+                                  return (
+                                    <div key={key} className="bg-black/70 border border-gray-800 rounded-xl p-3 flex items-center justify-between text-xs">
+                                      <div className="flex items-center gap-3 min-w-0">
+                                        <span className="font-bold text-[#D4AF37] font-mono text-sm w-6 text-center">#{idx + 1}</span>
+                                        {matchingProduct ? (
+                                          <img src={matchingProduct.imageUrl} alt={matchingProduct.name} className="w-10 h-10 object-cover rounded-lg border border-gray-800 shrink-0" />
+                                        ) : (
+                                          <div className="w-10 h-10 rounded-lg bg-gray-800 flex items-center justify-center text-gray-500 text-[10px]">ANONYM</div>
+                                        )}
+                                        <div className="min-w-0">
+                                          <span className="font-bold text-white block truncate">{matchingProduct?.name || stats.name}</span>
+                                          <span className="text-[10px] text-gray-500 font-mono">
+                                            {stats.count} commande(s) • {stats.totalQty} pièce(s)
+                                          </span>
+                                        </div>
+                                      </div>
+                                      <div className="text-right shrink-0">
+                                        <span className="font-mono font-bold text-[#F3E5AB] block text-xs">
+                                          {formatPriceFCFA(stats.totalRev)}
+                                        </span>
+                                        <span className="text-[10px] text-emerald-400 font-mono">Revenu cumulé</span>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            );
+                          })()}
+                        </div>
+
+                        {/* 6. QUOTE REQUESTS BREAKDOWN */}
+                        {quoteRequests.length > 0 && (
+                          <div className="bg-[#141414] border border-gray-800 rounded-2xl p-5 space-y-3 shadow-lg">
+                            <h4 className="text-sm font-serif font-bold text-white flex items-center gap-2">
+                              <FileText className="w-4 h-4 text-[#D4AF37]" />
+                              <span>Demandes de Devis par Type de Création</span>
+                            </h4>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                              {(() => {
+                                const typeMap: Record<string, number> = {};
+                                quoteRequests.forEach((q) => {
+                                  const t = q.productType || 'Sur-mesure';
+                                  typeMap[t] = (typeMap[t] || 0) + 1;
+                                });
+                                return Object.entries(typeMap).map(([type, cnt]) => (
+                                  <div key={type} className="bg-black/60 border border-gray-800/80 rounded-xl p-3 text-center">
+                                    <span className="text-lg font-bold font-mono text-[#F3E5AB] block">{cnt}</span>
+                                    <span className="text-[11px] text-gray-400 capitalize block truncate">{type}</span>
+                                  </div>
+                                ));
+                              })()}
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
                 </div>
               )}
 
@@ -3312,11 +4002,521 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                 </div>
               )}
 
+              {/* TAB: Réalisations */}
+              {adminTab === 'realisations' && (
+                <RealisationsAdminTab
+                  realisations={realisations}
+                  onAddCollection={onAddRealisationCollection}
+                  onUpdateCollection={onUpdateRealisationCollection}
+                  onDeleteCollection={onDeleteRealisationCollection}
+                  onReorderCollections={onReorderRealisationCollections}
+                />
+              )}
+
             </div>
             )}
           </AdminErrorBoundary>
         </div>
       </div>
+    </div>
+  );
+};
+
+// ─── Réalisations Admin Tab Component ─────────────────────────────────────────
+
+interface RealisationsAdminTabProps {
+  realisations: RealisationCollection[];
+  onAddCollection?: (col: Omit<RealisationCollection, 'id' | 'createdAt' | 'order'>) => void;
+  onUpdateCollection?: (col: RealisationCollection) => void;
+  onDeleteCollection?: (id: string) => void;
+  onReorderCollections?: (cols: RealisationCollection[]) => void;
+}
+
+const RealisationsAdminTab: React.FC<RealisationsAdminTabProps> = ({
+  realisations,
+  onAddCollection,
+  onUpdateCollection,
+  onDeleteCollection,
+  onReorderCollections,
+}) => {
+  const sorted = [...realisations].sort((a, b) => a.order - b.order);
+
+  // New collection form
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newColName, setNewColName] = useState('');
+  const [newColDesc, setNewColDesc] = useState('');
+
+  // Edit collection name
+  const [editingColId, setEditingColId] = useState<string | null>(null);
+  const [editColName, setEditColName] = useState('');
+  const [editColDesc, setEditColDesc] = useState('');
+
+  // Delete confirm
+  const [deleteColId, setDeleteColId] = useState<string | null>(null);
+
+  // Photo add form per collection
+  const [addingPhotoForColId, setAddingPhotoForColId] = useState<string | null>(null);
+  const [newPhotoUrl, setNewPhotoUrl] = useState('');
+  const [newPhotoCaption, setNewPhotoCaption] = useState('');
+
+  // Delete photo
+  const [deletingPhoto, setDeletingPhoto] = useState<{ colId: string; photoId: string } | null>(null);
+
+  // Edit photo (image & caption)
+  const [editingPhoto, setEditingPhoto] = useState<{ colId: string; photoId: string } | null>(null);
+  const [editPhotoUrl, setEditPhotoUrl] = useState('');
+  const [editCaptionText, setEditCaptionText] = useState('');
+
+  // Expanded collections
+  const [expandedColId, setExpandedColId] = useState<string | null>(sorted[0]?.id || null);
+
+  const handleAddCollection = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newColName.trim()) return;
+    if (onAddCollection) {
+      onAddCollection({
+        name: newColName.trim(),
+        description: newColDesc.trim() || undefined,
+        photos: [],
+        visible: true,
+      });
+    }
+    setNewColName('');
+    setNewColDesc('');
+    setShowAddForm(false);
+  };
+
+  const handleSaveEditCol = (col: RealisationCollection) => {
+    if (!editColName.trim()) return;
+    if (onUpdateCollection) {
+      onUpdateCollection({ ...col, name: editColName.trim(), description: editColDesc.trim() || undefined });
+    }
+    setEditingColId(null);
+  };
+
+  const handleToggleVisible = (col: RealisationCollection) => {
+    if (onUpdateCollection) onUpdateCollection({ ...col, visible: !col.visible });
+  };
+
+  const handleMoveCol = (index: number, direction: 'up' | 'down') => {
+    const target = direction === 'up' ? index - 1 : index + 1;
+    if (target < 0 || target >= sorted.length) return;
+    const newSorted = [...sorted];
+    [newSorted[index], newSorted[target]] = [newSorted[target], newSorted[index]];
+    const reordered = newSorted.map((c, i) => ({ ...c, order: i }));
+    if (onReorderCollections) onReorderCollections(reordered);
+  };
+
+  const handleAddPhoto = (col: RealisationCollection) => {
+    if (!newPhotoUrl.trim()) return;
+    const newPhoto: RealisationPhoto = {
+      id: 'photo-' + Date.now(),
+      imageUrl: newPhotoUrl.trim(),
+      caption: newPhotoCaption.trim() || undefined,
+      order: col.photos.length,
+    };
+    if (onUpdateCollection) {
+      onUpdateCollection({ ...col, photos: [...col.photos, newPhoto] });
+    }
+    setNewPhotoUrl('');
+    setNewPhotoCaption('');
+    setAddingPhotoForColId(null);
+  };
+
+  const handleDeletePhoto = (col: RealisationCollection, photoId: string) => {
+    if (onUpdateCollection) {
+      const newPhotos = col.photos
+        .filter((p) => p.id !== photoId)
+        .map((p, i) => ({ ...p, order: i }));
+      onUpdateCollection({ ...col, photos: newPhotos });
+    }
+    setDeletingPhoto(null);
+  };
+
+  const handleSavePhotoEdit = (col: RealisationCollection, photoId: string) => {
+    if (!editPhotoUrl.trim()) return;
+    if (onUpdateCollection) {
+      const newPhotos = col.photos.map((p) =>
+        p.id === photoId
+          ? { ...p, imageUrl: editPhotoUrl.trim(), caption: editCaptionText.trim() || undefined }
+          : p
+      );
+      onUpdateCollection({ ...col, photos: newPhotos });
+    }
+    setEditingPhoto(null);
+  };
+
+  const handleMovePhoto = (col: RealisationCollection, index: number, direction: 'up' | 'down') => {
+    const target = direction === 'up' ? index - 1 : index + 1;
+    const sortedPhotos = [...col.photos].sort((a, b) => a.order - b.order);
+    if (target < 0 || target >= sortedPhotos.length) return;
+    [sortedPhotos[index], sortedPhotos[target]] = [sortedPhotos[target], sortedPhotos[index]];
+    const reordered = sortedPhotos.map((p, i) => ({ ...p, order: i }));
+    if (onUpdateCollection) onUpdateCollection({ ...col, photos: reordered });
+  };
+
+  const totalPhotos = realisations.reduce((sum, c) => sum + c.photos.length, 0);
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-serif font-bold text-white flex items-center gap-2">
+            📸 Galerie de Réalisations
+          </h3>
+          <p className="text-xs text-gray-500 mt-0.5">
+            {realisations.length} collection(s) • {totalPhotos} photo(s) au total
+          </p>
+        </div>
+        <button
+          onClick={() => setShowAddForm(!showAddForm)}
+          className="flex items-center gap-1.5 px-4 py-2 bg-[#D4AF37] text-black text-xs font-bold rounded-xl hover:bg-[#F3E5AB] transition-all cursor-pointer shadow-lg"
+        >
+          <Plus className="w-3.5 h-3.5" />
+          Nouvelle catégorie
+        </button>
+      </div>
+
+      {/* Storage warning */}
+      <div className="p-3 bg-amber-950/30 border border-amber-700/40 rounded-xl text-[11px] text-amber-200/80 leading-relaxed">
+        ℹ️ <strong>Information stockage :</strong> Les photos sont stockées directement dans le navigateur (localStorage). Pour de meilleures performances, privilégiez des photos compressées (moins de 500 Ko par photo). Si l'espace est plein, un message d'erreur s'affichera.
+      </div>
+
+      {/* Add collection form */}
+      {showAddForm && (
+        <form onSubmit={handleAddCollection} className="bg-[#141414] border border-[#D4AF37]/30 rounded-2xl p-5 space-y-3">
+          <h4 className="text-sm font-semibold text-[#D4AF37]">Nouvelle catégorie de réalisation</h4>
+          <div className="space-y-2">
+            <label className="block text-xs text-gray-400">Nom de la catégorie *</label>
+            <input
+              type="text"
+              value={newColName}
+              onChange={(e) => setNewColName(e.target.value)}
+              placeholder="ex : Réalisation Femme, Réalisation Enfants..."
+              className="w-full bg-black border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#D4AF37]"
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="block text-xs text-gray-400">Description (optionnel)</label>
+            <input
+              type="text"
+              value={newColDesc}
+              onChange={(e) => setNewColDesc(e.target.value)}
+              placeholder="ex : Bijoux et accessoires pour femmes"
+              className="w-full bg-black border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#D4AF37]"
+            />
+          </div>
+          <div className="flex gap-2 pt-1">
+            <button type="submit" className="px-5 py-2 bg-[#D4AF37] text-black font-bold text-xs rounded-xl hover:bg-[#F3E5AB] cursor-pointer">
+              Créer la catégorie
+            </button>
+            <button type="button" onClick={() => setShowAddForm(false)} className="px-5 py-2 bg-gray-800 text-gray-300 font-semibold text-xs rounded-xl hover:bg-gray-700 cursor-pointer">
+              Annuler
+            </button>
+          </div>
+        </form>
+      )}
+
+      {/* Collections list */}
+      <div className="space-y-4">
+        {sorted.length === 0 ? (
+          <div className="text-center py-12 bg-[#0F0F0F] rounded-2xl border border-gray-800">
+            <ImageIcon className="w-8 h-8 text-gray-700 mx-auto mb-3" />
+            <p className="text-sm text-gray-500 italic">Aucune catégorie de réalisation. Créez-en une pour commencer.</p>
+          </div>
+        ) : (
+          sorted.map((col, colIndex) => {
+            const isExpanded = expandedColId === col.id;
+            const sortedPhotos = [...col.photos].sort((a, b) => a.order - b.order);
+            const isEditingCol = editingColId === col.id;
+
+            return (
+              <div key={col.id} className={`bg-[#111] border rounded-2xl overflow-hidden transition-all ${col.visible ? 'border-gray-800' : 'border-gray-800/40 opacity-60'}`}>
+                {/* Collection header */}
+                <div className="p-4 flex items-center gap-3">
+                  {/* Reorder */}
+                  <div className="flex flex-col gap-0.5">
+                    <button
+                      onClick={() => handleMoveCol(colIndex, 'up')}
+                      disabled={colIndex === 0}
+                      className="p-0.5 text-gray-600 hover:text-[#D4AF37] disabled:opacity-20 cursor-pointer"
+                    ><ChevronUp className="w-3.5 h-3.5" /></button>
+                    <button
+                      onClick={() => handleMoveCol(colIndex, 'down')}
+                      disabled={colIndex === sorted.length - 1}
+                      className="p-0.5 text-gray-600 hover:text-[#D4AF37] disabled:opacity-20 cursor-pointer"
+                    ><ChevronDown className="w-3.5 h-3.5" /></button>
+                  </div>
+
+                  {/* Col info / edit form */}
+                  <div className="flex-1 min-w-0">
+                    {isEditingCol ? (
+                      <div className="flex gap-2 flex-wrap">
+                        <input
+                          type="text"
+                          value={editColName}
+                          onChange={(e) => setEditColName(e.target.value)}
+                          className="flex-1 min-w-[140px] bg-black border border-[#D4AF37]/50 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none"
+                        />
+                        <input
+                          type="text"
+                          value={editColDesc}
+                          onChange={(e) => setEditColDesc(e.target.value)}
+                          placeholder="Description..."
+                          className="flex-1 min-w-[140px] bg-black border border-gray-700 rounded-lg px-3 py-1.5 text-xs text-gray-300 focus:outline-none"
+                        />
+                        <button onClick={() => handleSaveEditCol(col)} className="px-3 py-1.5 bg-[#D4AF37] text-black text-xs font-bold rounded-lg cursor-pointer">
+                          <Save className="w-3.5 h-3.5" />
+                        </button>
+                        <button onClick={() => setEditingColId(null)} className="px-3 py-1.5 bg-gray-800 text-gray-300 text-xs rounded-lg cursor-pointer">
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div>
+                        <span className="text-sm font-semibold text-white">{col.name}</span>
+                        {col.description && <span className="text-xs text-gray-500 ml-2">{col.description}</span>}
+                        <span className="ml-2 text-[10px] font-mono text-gray-600">({sortedPhotos.length} photo{sortedPhotos.length !== 1 ? 's' : ''})</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Actions */}
+                  {!isEditingCol && (
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                      <button
+                        onClick={() => handleToggleVisible(col)}
+                        className={`p-1.5 rounded-lg border text-xs cursor-pointer ${col.visible ? 'border-emerald-700/40 text-emerald-400 bg-emerald-950/30' : 'border-gray-700 text-gray-600 bg-gray-900'}`}
+                        title={col.visible ? 'Masquer du site' : 'Afficher sur le site'}
+                      >
+                        {col.visible ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                      </button>
+                      <button
+                        onClick={() => { setEditingColId(col.id); setEditColName(col.name); setEditColDesc(col.description || ''); }}
+                        className="p-1.5 rounded-lg border border-gray-700 text-gray-400 hover:text-[#D4AF37] hover:border-[#D4AF37]/40 cursor-pointer"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => setDeleteColId(col.id)}
+                        className="p-1.5 rounded-lg border border-rose-900/50 text-rose-400 hover:bg-rose-950/40 cursor-pointer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => setExpandedColId(isExpanded ? null : col.id)}
+                        className="p-1.5 rounded-lg border border-gray-700 text-gray-400 hover:text-white cursor-pointer"
+                      >
+                        {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Expanded content: photos grid */}
+                {isExpanded && (
+                  <div className="border-t border-gray-800/60 p-4 space-y-4 bg-[#0C0C0C]">
+                    {/* Add photo button */}
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs text-gray-500">Photos ({sortedPhotos.length})</p>
+                      <button
+                        onClick={() => { setAddingPhotoForColId(col.id); setNewPhotoUrl(''); setNewPhotoCaption(''); }}
+                        className="flex items-center gap-1 px-3 py-1.5 bg-black border border-[#D4AF37]/40 text-[#D4AF37] text-xs rounded-lg hover:bg-[#1A160C] cursor-pointer transition-all"
+                      >
+                        <Plus className="w-3 h-3" /> Ajouter une photo
+                      </button>
+                    </div>
+
+                    {/* Add photo form */}
+                    {addingPhotoForColId === col.id && (
+                      <div className="bg-[#141414] border border-[#D4AF37]/20 rounded-xl p-4 space-y-3">
+                        <p className="text-xs font-semibold text-[#D4AF37]">Nouvelle photo</p>
+                        <div className="space-y-1">
+                          <label className="block text-[11px] text-gray-500">Photo (upload depuis votre appareil) *</label>
+                          <ImageUploader
+                            value={newPhotoUrl}
+                            onChange={setNewPhotoUrl}
+                            label="Photo de réalisation"
+                            aspectRatio="square"
+                            allowUrlInput={false}
+                            maxSizeMB={3}
+                            placeholder="Sélectionner une photo..."
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="block text-[11px] text-gray-500">Légende (optionnel)</label>
+                          <input
+                            type="text"
+                            value={newPhotoCaption}
+                            onChange={(e) => setNewPhotoCaption(e.target.value)}
+                            placeholder="ex : Bracelet personnalisé, initiales gravées"
+                            className="w-full bg-black border border-gray-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleAddPhoto(col)}
+                            disabled={!newPhotoUrl.trim()}
+                            className="px-4 py-2 bg-[#D4AF37] text-black font-bold text-xs rounded-lg hover:bg-[#F3E5AB] cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                          >
+                            Ajouter
+                          </button>
+                          <button
+                            onClick={() => setAddingPhotoForColId(null)}
+                            className="px-4 py-2 bg-gray-800 text-gray-300 text-xs rounded-lg hover:bg-gray-700 cursor-pointer"
+                          >
+                            Annuler
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Photos grid */}
+                    {sortedPhotos.length > 0 ? (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                        {sortedPhotos.map((photo, photoIdx) => (
+                          <div key={photo.id} className="group relative bg-[#111] border border-gray-800 rounded-xl overflow-hidden">
+                            <img
+                              src={photo.imageUrl}
+                              alt={photo.caption || 'Réalisation'}
+                              className="w-full aspect-square object-cover"
+                            />
+                            {/* Photo edit overlay (replace image + edit caption) */}
+                            {editingPhoto?.colId === col.id && editingPhoto.photoId === photo.id ? (
+                              <div className="p-3 space-y-2 border-t border-[#D4AF37]/30 bg-[#161616]">
+                                <p className="text-[11px] font-semibold text-[#D4AF37]">Modifier la photo</p>
+                                <ImageUploader
+                                  value={editPhotoUrl}
+                                  onChange={setEditPhotoUrl}
+                                  label="Remplacer la photo"
+                                  aspectRatio="square"
+                                  allowUrlInput={false}
+                                  maxSizeMB={3}
+                                  placeholder="Changer d'image..."
+                                />
+                                <input
+                                  type="text"
+                                  value={editCaptionText}
+                                  onChange={(e) => setEditCaptionText(e.target.value)}
+                                  placeholder="Légende..."
+                                  className="w-full bg-black border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
+                                />
+                                <div className="flex gap-1.5 pt-1">
+                                  <button
+                                    onClick={() => handleSavePhotoEdit(col, photo.id)}
+                                    disabled={!editPhotoUrl.trim()}
+                                    className="flex-1 py-1.5 bg-[#D4AF37] text-black text-xs font-bold rounded-lg cursor-pointer hover:bg-[#F3E5AB] disabled:opacity-40"
+                                  >
+                                    Enregistrer
+                                  </button>
+                                  <button
+                                    onClick={() => setEditingPhoto(null)}
+                                    className="flex-1 py-1.5 bg-gray-800 text-gray-300 text-xs rounded-lg cursor-pointer hover:bg-gray-700"
+                                  >
+                                    Annuler
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <>
+                                {photo.caption && (
+                                  <div className="px-2 py-1.5 border-t border-gray-800">
+                                    <p className="text-[10px] text-gray-400 italic truncate">{photo.caption}</p>
+                                  </div>
+                                )}
+                                {/* Action bar */}
+                                <div className="flex items-center justify-between px-2 py-1.5 bg-[#0A0A0A] border-t border-gray-800/60 gap-1">
+                                  <div className="flex gap-0.5">
+                                    <button onClick={() => handleMovePhoto(col, photoIdx, 'up')} disabled={photoIdx === 0} className="p-1 text-gray-600 hover:text-[#D4AF37] disabled:opacity-20 cursor-pointer"><ChevronUp className="w-3 h-3" /></button>
+                                    <button onClick={() => handleMovePhoto(col, photoIdx, 'down')} disabled={photoIdx === sortedPhotos.length - 1} className="p-1 text-gray-600 hover:text-[#D4AF37] disabled:opacity-20 cursor-pointer"><ChevronDown className="w-3 h-3" /></button>
+                                  </div>
+                                  <div className="flex gap-0.5">
+                                    <button
+                                      onClick={() => {
+                                        setEditingPhoto({ colId: col.id, photoId: photo.id });
+                                        setEditPhotoUrl(photo.imageUrl);
+                                        setEditCaptionText(photo.caption || '');
+                                      }}
+                                      className="p-1 text-gray-500 hover:text-[#D4AF37] cursor-pointer"
+                                      title="Modifier / Remplacer la photo"
+                                    ><Edit2 className="w-3 h-3" /></button>
+                                    <button
+                                      onClick={() => setDeletingPhoto({ colId: col.id, photoId: photo.id })}
+                                      className="p-1 text-gray-500 hover:text-rose-400 cursor-pointer"
+                                      title="Supprimer"
+                                    ><Trash2 className="w-3 h-3" /></button>
+                                  </div>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 bg-[#0A0A0A] rounded-xl border border-gray-800/60">
+                        <ImageIcon className="w-6 h-6 text-gray-700 mx-auto mb-2" />
+                        <p className="text-xs text-gray-600 italic">Aucune photo dans cette catégorie.</p>
+                        <p className="text-[11px] text-gray-700 mt-1">Cliquez sur "Ajouter une photo" pour commencer.</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Delete collection confirm modal */}
+      {deleteColId && (
+        <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm" onClick={() => setDeleteColId(null)}>
+          <div className="bg-[#161616] border-2 border-rose-800 rounded-3xl p-6 max-w-md w-full text-center space-y-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="w-14 h-14 rounded-full bg-rose-950/80 border border-rose-700 flex items-center justify-center mx-auto text-rose-400">
+              <Trash2 className="w-7 h-7" />
+            </div>
+            <h4 className="text-lg font-serif font-bold text-white">Supprimer la catégorie ?</h4>
+            <p className="text-xs text-gray-300 leading-relaxed">
+              Êtes-vous sûre de vouloir supprimer cette catégorie et <strong className="text-rose-300">toutes ses photos</strong> ? Cette action est irréversible.
+            </p>
+            <div className="flex justify-center gap-3 pt-2">
+              <button onClick={() => setDeleteColId(null)} className="px-5 py-2.5 bg-gray-800 text-gray-300 font-semibold text-xs rounded-xl hover:bg-gray-700 cursor-pointer">Annuler</button>
+              <button
+                onClick={() => { if (onDeleteCollection) onDeleteCollection(deleteColId); setDeleteColId(null); }}
+                className="px-5 py-2.5 bg-rose-700 hover:bg-rose-600 text-white font-bold text-xs rounded-xl cursor-pointer shadow-lg"
+              >
+                Oui, Supprimer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete photo confirm */}
+      {deletingPhoto && (
+        <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm" onClick={() => setDeletingPhoto(null)}>
+          <div className="bg-[#161616] border-2 border-rose-800 rounded-3xl p-6 max-w-sm w-full text-center space-y-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="w-12 h-12 rounded-full bg-rose-950/80 border border-rose-700 flex items-center justify-center mx-auto text-rose-400">
+              <Trash2 className="w-6 h-6" />
+            </div>
+            <h4 className="text-base font-serif font-bold text-white">Supprimer cette photo ?</h4>
+            <p className="text-xs text-gray-300">Cette action est irréversible.</p>
+            <div className="flex justify-center gap-3 pt-1">
+              <button onClick={() => setDeletingPhoto(null)} className="px-4 py-2 bg-gray-800 text-gray-300 font-semibold text-xs rounded-xl hover:bg-gray-700 cursor-pointer">Annuler</button>
+              <button
+                onClick={() => {
+                  const col = realisations.find((c) => c.id === deletingPhoto.colId);
+                  if (col) handleDeletePhoto(col, deletingPhoto.photoId);
+                }}
+                className="px-4 py-2 bg-rose-700 hover:bg-rose-600 text-white font-bold text-xs rounded-xl cursor-pointer"
+              >
+                Supprimer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

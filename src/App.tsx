@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StoreInfo, Product, CartItem, CategoryId, Collection, Notification, QuoteRequest, Order, AnalyticsData, Review } from './types';
+import { StoreInfo, Product, CartItem, CategoryId, Collection, Notification, QuoteRequest, Order, AnalyticsData, Review, RealisationCollection } from './types';
 import { STORE_INFO } from './data/storeInfo';
 import { INITIAL_PRODUCTS } from './data/products';
 import { CrownLogo } from './components/CrownLogo';
@@ -9,6 +9,7 @@ import { UniverseGrid } from './components/UniverseGrid';
 import { ProductCatalog } from './components/ProductCatalog';
 import { ProductDetailModal } from './components/ProductDetailModal';
 import { AboutFounder } from './components/AboutFounder';
+import { RealisationsGallery } from './components/RealisationsGallery';
 import { OrderingRulesSection } from './components/OrderingRulesSection';
 import { QuoteRequestSection } from './components/QuoteRequestSection';
 import { ContactSection } from './components/ContactSection';
@@ -42,6 +43,8 @@ import {
   saveSubCategoriesLvl1,
   loadSubCategoriesLvl2,
   saveSubCategoriesLvl2,
+  loadRealisations,
+  saveRealisations,
 } from './utils/helpers';
 import { SubCategoryLevel1, SubCategoryLevel2 } from './types';
 
@@ -121,6 +124,7 @@ export default function App() {
   const [analytics, setAnalytics] = useState<AnalyticsData>(loadAnalytics);
   const [subCategoriesLvl1, setSubCategoriesLvl1] = useState<SubCategoryLevel1[]>(loadSubCategoriesLvl1);
   const [subCategoriesLvl2, setSubCategoriesLvl2] = useState<SubCategoryLevel2[]>(loadSubCategoriesLvl2);
+  const [realisations, setRealisations] = useState<RealisationCollection[]>(loadRealisations);
 
   const [activeCategory, setActiveCategory] = useState<CategoryId | 'accueil' | 'contact'>('accueil');
   const [showGrid, setShowGrid] = useState<boolean>(true);
@@ -142,6 +146,7 @@ export default function App() {
   useEffect(() => { saveAnalytics(analytics); }, [analytics]);
   useEffect(() => { saveSubCategoriesLvl1(subCategoriesLvl1); }, [subCategoriesLvl1]);
   useEffect(() => { saveSubCategoriesLvl2(subCategoriesLvl2); }, [subCategoriesLvl2]);
+  useEffect(() => { saveRealisations(realisations); }, [realisations]);
 
   useEffect(() => {
     // 1. URL Hash listener (e.g. /#admin)
@@ -166,6 +171,28 @@ export default function App() {
       window.removeEventListener('hashchange', checkHash);
       window.removeEventListener('keydown', handleKeyDown);
     };
+  }, []);
+
+  // Real site visitor tracking per browser session
+  useEffect(() => {
+    try {
+      const hasSession = sessionStorage.getItem('anonym_visitor_session_v1');
+      if (!hasSession) {
+        sessionStorage.setItem('anonym_visitor_session_v1', 'true');
+        const nowIso = new Date().toISOString();
+        setAnalytics((prev) => {
+          const logs = prev.visitorLogs || [];
+          return {
+            ...prev,
+            visitorLogs: [nowIso, ...logs],
+            totalVisits: (prev.totalVisits || logs.length) + 1,
+            updatedAt: nowIso,
+          };
+        });
+      }
+    } catch (e) {
+      console.warn('Session storage inaccessible pour les analytics', e);
+    }
   }, []);
 
   const handleSelectCategory = (cat: CategoryId | 'accueil' | 'contact') => {
@@ -350,6 +377,29 @@ export default function App() {
     setSubCategoriesLvl2((prev) => prev.filter((c) => c.id !== id));
   };
 
+  // Realisations CRUD
+  const handleAddRealisationCollection = (c: Omit<RealisationCollection, 'id' | 'createdAt' | 'order'>) => {
+    const col: RealisationCollection = {
+      ...c,
+      id: 'real-' + Date.now(),
+      order: realisations.length,
+      createdAt: new Date().toISOString(),
+    };
+    setRealisations((prev) => [...prev, col]);
+  };
+
+  const handleUpdateRealisationCollection = (updated: RealisationCollection) => {
+    setRealisations((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
+  };
+
+  const handleReorderRealisationCollections = (newCols: RealisationCollection[]) => {
+    setRealisations(newCols);
+  };
+
+  const handleDeleteRealisationCollection = (id: string) => {
+    setRealisations((prev) => prev.filter((c) => c.id !== id));
+  };
+
   const handleUpdateReview = (updated: Review) => {
     setReviews((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
   };
@@ -432,7 +482,7 @@ export default function App() {
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white font-sans antialiased">
+    <div className="min-h-screen flex flex-col justify-between bg-[#050505] text-white font-sans antialiased overflow-x-hidden">
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <RoyalBackgroundAnimation />
         <div className="absolute top-1/4 left-10 w-[500px] h-[500px] bg-[#D4AF37]/10 rounded-full blur-[140px] pointer-events-none" />
@@ -454,7 +504,7 @@ export default function App() {
         onNavigateSection={handleNavigateSection}
       />
 
-      <main className="relative z-10">
+      <main className="relative z-10 flex-1 flex flex-col justify-between w-full">
         {/* ── HERO (always visible) ── */}
         <HeroSection
           storeInfo={storeInfo}
@@ -468,11 +518,12 @@ export default function App() {
           showGrid={showGrid}
           onSelectCategory={handleSelectCategory}
           onBackToGrid={handleBackToGrid}
+          storeInfo={storeInfo}
         />
 
         {/* ── CONTENT AREA : ONLY displayed when a card or page is active (!showGrid) ── */}
         {!showGrid && (
-          <div id="content-area">
+          <div id="content-area" className="flex-1 w-full">
             {/* Product Catalog for Bijoux, Emballages, Parfums, Accessoires */}
             {['bijoux', 'emballages', 'parfums', 'accessoires'].includes(activeCategory) && (
               <div id="catalogue">
@@ -497,6 +548,7 @@ export default function App() {
             {activeCategory === 'accueil' && (
               <div id="about-sections">
                 <AboutFounder storeInfo={storeInfo} />
+                <RealisationsGallery realisations={realisations} />
                 <OrderingRulesSection storeInfo={storeInfo} />
                 <QuoteRequestSection storeInfo={storeInfo} onAddQuoteRequest={handleAddQuoteRequest} />
                 <ReviewsSection storeInfo={storeInfo} reviews={reviews} onAddReview={handleAddReview} />
@@ -560,6 +612,11 @@ export default function App() {
           quoteRequests={quoteRequests}
           orders={orders}
           analytics={analytics}
+          realisations={realisations}
+          onAddRealisationCollection={handleAddRealisationCollection}
+          onUpdateRealisationCollection={handleUpdateRealisationCollection}
+          onDeleteRealisationCollection={handleDeleteRealisationCollection}
+          onReorderRealisationCollections={handleReorderRealisationCollections}
           onAddCollection={handleAddCollection}
           onUpdateCollection={handleUpdateCollection}
           onDeleteCollection={handleDeleteCollection}
@@ -574,6 +631,7 @@ export default function App() {
           onUpdateOrderStatus={handleUpdateOrderStatus}
           onDeleteOrder={handleDeleteOrder}
           onTrackProductView={handleTrackProductView}
+          onUpdateAnalytics={setAnalytics}
           subCategoriesLvl1={subCategoriesLvl1}
           subCategoriesLvl2={subCategoriesLvl2}
           onAddSubCatLvl1={handleAddSubCatLvl1}

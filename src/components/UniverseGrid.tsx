@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { UNIVERSE_CATEGORIES } from '../data/categories';
-import { CategoryId } from '../types';
+import { StoreInfo, CategoryId } from '../types';
 import { Home, Gem, Sparkles, Package, ShoppingBag, ChevronLeft, ShieldCheck, Award, Truck } from 'lucide-react';
 
 interface UniverseGridProps {
@@ -9,6 +9,7 @@ interface UniverseGridProps {
   showGrid: boolean;
   onSelectCategory: (cat: CategoryId | 'accueil') => void;
   onBackToGrid: () => void;
+  storeInfo?: StoreInfo;
 }
 
 // Rich media per card
@@ -71,6 +72,7 @@ export const UniverseGrid: React.FC<UniverseGridProps> = ({
   showGrid,
   onSelectCategory,
   onBackToGrid,
+  storeInfo,
 }) => {
   const activeItem = ALL_ITEMS.find((i) => i.id === activeCategory);
 
@@ -145,7 +147,7 @@ export const UniverseGrid: React.FC<UniverseGridProps> = ({
 
                       {/* Description */}
                       <p className="text-[10px] sm:text-xs lg:text-sm text-gray-400 font-sans line-clamp-2 leading-relaxed max-w-[150px] sm:max-w-none">
-                        {media.desc}
+                        {(storeInfo?.pageTexts?.[item.id]?.description) || media.desc}
                       </p>
 
                       {/* CTA */}

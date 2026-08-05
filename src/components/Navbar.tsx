@@ -34,8 +34,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onNavigateSection,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [logoClickCount, setLogoClickCount] = useState(0);
   const [activeSection, setActiveSection] = useState<string>('hero');
+  const longPressTimerRef = React.useRef<NodeJS.Timeout | null>(null);
 
   // Track scroll position to update active navbar section dynamically
   useEffect(() => {
@@ -65,16 +65,20 @@ export const Navbar: React.FC<NavbarProps> = ({
   }, [activeCategory]);
 
   const handleLogoClick = () => {
-    setLogoClickCount((prev) => {
-      const newCount = prev + 1;
-      if (newCount >= 3) {
-        onOpenAdmin();
-        return 0;
-      }
-      return newCount;
-    });
-    setTimeout(() => setLogoClickCount(0), 2000);
     onGoToHomeHero();
+  };
+
+  const handleLongPressStart = () => {
+    longPressTimerRef.current = setTimeout(() => {
+      onOpenAdmin();
+    }, 2500);
+  };
+
+  const handleLongPressEnd = () => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
   };
 
   useEffect(() => {
@@ -154,15 +158,14 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="flex-1 flex justify-start items-center">
           <button
             onClick={handleLogoClick}
+            onTouchStart={handleLongPressStart}
+            onTouchEnd={handleLongPressEnd}
+            onMouseDown={handleLongPressStart}
+            onMouseUp={handleLongPressEnd}
             className="text-left focus:outline-none group cursor-pointer relative shrink-0"
-            title="ANONYM"
+            title="ANONYM — Maintenir 2,5s pour accès mobile administrateur"
           >
             <CrownLogo size="md" />
-            {logoClickCount > 0 && logoClickCount < 3 && (
-              <span className="absolute -bottom-2 left-0 text-[9px] text-[#D4AF37] font-mono animate-pulse">
-                Clé d'accès : {3 - logoClickCount}...
-              </span>
-            )}
           </button>
         </div>
 

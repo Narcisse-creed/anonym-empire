@@ -290,9 +290,11 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
 
   // Product-level filters (only shown when products are visible)
   const [searchQuery,          setSearchQuery]          = useState('');
-  const [selectedQuickFilter,  setSelectedQuickFilter]  = useState<'tous' | 'disponible' | 'promotion' | 'nouveautes'>('tous');
+  const [selectedQuickFilter,  setSelectedQuickFilter]  = useState<'tous' | 'disponible' | 'sur-commande' | 'epuise' | 'nouveautes'>('tous');
   const [sortBy,               setSortBy]               = useState<'featured' | 'price-asc' | 'price-desc' | 'name'>('featured');
   const [viewMode,             setViewMode]             = useState<'list' | 'carousel'>('list');
+  const [minPrice,             setMinPrice]             = useState('');
+  const [maxPrice,             setMaxPrice]             = useState('');
 
   // Reset all nav when category changes at top level
   const resetAll = () => {
@@ -302,26 +304,35 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
     setAccMode(null);     setAccSubFilter(null);
     setActiveCollection(null);
     setSearchQuery('');   setSelectedQuickFilter('tous');
+    setMinPrice('');      setMaxPrice('');
   };
 
 
-  // ── filtered collections (legacy) ────────────────────────────────────────
-  const filteredCollections = useMemo(() =>
-    collections
-      .filter((col) => {
-        if (col.visible === false) return false;
-        if (selectedCategory !== 'all' && selectedCategory !== 'accueil') {
-          if (col.category && col.category !== selectedCategory) return false;
-        }
-        return true;
-      })
-      .sort((a, b) => (a.order || 0) - (b.order || 0)),
-  [collections, selectedCategory]);
+  // ── filtered collections (legacy) ─────────────────────────────────────────
+  const filteredCollections = useMemo(() => {
+    if (selectedCategory === 'accueil') return [];
+    return collections
+      .filter((c) => (!c.category || c.category === selectedCategory) && c.visible !== false)
+      .sort((a, b) => a.order - b.order);
+  }, [collections, selectedCategory]);
 
   // ── products: bijoux ─────────────────────────────────────────────────────
   const bijouxProducts = useMemo(() => {
+    if (bijouxCible === 'all' && bijouxType === 'all') {
+      return products.filter((p) => p.category === 'bijoux');
+    }
+    if (bijouxCible && bijouxCible !== 'all' && bijouxType === 'all') {
+      return products.filter((p) => {
+        if (p.category !== 'bijoux') return false;
+        if (bijouxCible === 'femme'  && p.gender !== 'femme'  && p.gender !== 'mixte') return false;
+        if (bijouxCible === 'homme'  && p.gender !== 'homme'  && p.gender !== 'mixte') return false;
+        if (bijouxCible === 'couple' && p.gender !== 'couple') return false;
+        if (bijouxCible === 'enfant' && p.gender !== 'enfant' && p.gender !== 'mixte') return false;
+        return true;
+      });
+    }
     if (!bijouxType || !bijouxCible) return [];
-    let list = products.filter((p) => {
+    return products.filter((p) => {
       if (p.category !== 'bijoux') return false;
       if (bijouxCible === 'femme'  && p.gender !== 'femme'  && p.gender !== 'mixte') return false;
       if (bijouxCible === 'homme'  && p.gender !== 'homme'  && p.gender !== 'mixte') return false;
@@ -340,45 +351,94 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
           montres:        ['montre', 'chrono'],
           medailles:      ['médaille', 'medaille', 'plaque'],
         };
-        const keywords = kws[bijouxType] || [];
-        if (keywords.length && !keywords.some((k) => name.includes(k) || sub.includes(k))) return false;
+        const keywords = kws[bijouxType] || [bijouxType];
+        if (!keywords.some((k) => name.includes(k) || sub.includes(k))) return false;
       }
       return true;
     });
-    if (list.length === 0) list = products.filter((p) => p.category === 'bijoux');
-    return applyFilters(list);
-  }, [products, bijouxCible, bijouxType, selectedQuickFilter, searchQuery, sortBy]);
+  }, [products, bijouxCible, bijouxType]);
 
   // ── products: accessoires ─────────────────────────────────────────────────
   const accProducts = useMemo(() => {
-    if (!accSubFilter) return [];
+    if (accMode === 'all') return products.filter((p) => p.category === 'accessoires');
+    if (!accSubFilter && !accMode) return [];
     let list = products.filter((p) => p.category === 'accessoires');
-    if (list.length === 0) list = products;
-    return applyFilters(list);
-  }, [products, accSubFilter, selectedQuickFilter, searchQuery, sortBy]);
+    if (accSubFilter) {
+      const kw = accSubFilter.toLowerCase();
+      list = list.filter(
+        (p) =>
+          (p.subCategory || '').toLowerCase().includes(kw) ||
+          p.name.toLowerCase().includes(kw)
+      );
+    }
+    return list;
+  }, [products, accSubFilter, accMode]);
 
   // ── products: legacy collection ───────────────────────────────────────────
   const collectionProducts = useMemo(() => {
     if (!activeCollection) return [];
-    let list = products.filter(
+    return products.filter(
       (p) => activeCollection.productIds.includes(p.id) || p.collectionIds?.includes(activeCollection.id),
     );
-    if (list.length === 0 && activeCollection.category)
-      list = products.filter((p) => p.category === activeCollection.category);
-    return applyFilters(list);
-  }, [products, activeCollection, selectedQuickFilter, searchQuery, sortBy]);
+  }, [products, activeCollection]);
 
-  function applyFilters(list: Product[]) {
-    if (selectedQuickFilter === 'disponible') list = list.filter((p) => p.availability === 'disponible');
-    if (selectedQuickFilter === 'promotion')  list = list.filter((p) => p.badge?.toLowerCase().includes('offre') || p.priceVariable);
-    if (selectedQuickFilter === 'nouveautes') list = list.filter((p) => p.badge?.toLowerCase().includes('nouveau') || p.isFeatured);
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      list = list.filter((p) => p.name.toLowerCase().includes(q) || p.refCode.toLowerCase().includes(q));
+  function applyFilters(inputList: Product[]) {
+    let list = [...inputList];
+
+    // 1. Quick status filter
+    if (selectedQuickFilter === 'disponible') {
+      list = list.filter((p) => (p.availability || 'disponible') === 'disponible');
+    } else if (selectedQuickFilter === 'sur-commande') {
+      list = list.filter((p) => p.availability === 'en-arrivage' || (p.availability as any) === 'sur-commande');
+    } else if (selectedQuickFilter === 'epuise') {
+      list = list.filter((p) => p.availability === 'epuise');
+    } else if (selectedQuickFilter === 'nouveautes') {
+      list = list.filter(
+        (p) =>
+          p.isFeatured ||
+          (p.badge &&
+            (p.badge.toLowerCase().includes('nouveau') ||
+              p.badge.toLowerCase().includes('nouvelle') ||
+              p.badge.toLowerCase().includes('nouveauté') ||
+              p.badge.toLowerCase().includes('offre') ||
+              p.badge.toLowerCase().includes('spéciale')))
+      );
     }
+
+    // 2. Price Min filter
+    if (minPrice.trim() !== '') {
+      const min = Number(minPrice);
+      if (!isNaN(min) && min >= 0) {
+        list = list.filter((p) => (Number(p.price) || 0) >= min);
+      }
+    }
+
+    // 3. Price Max filter
+    if (maxPrice.trim() !== '') {
+      const max = Number(maxPrice);
+      if (!isNaN(max) && max >= 0) {
+        list = list.filter((p) => (Number(p.price) || 0) <= max);
+      }
+    }
+
+    // 4. Text search filter
+    if (searchQuery.trim() !== '') {
+      const q = searchQuery.trim().toLowerCase();
+      list = list.filter(
+        (p) =>
+          p.name.toLowerCase().includes(q) ||
+          p.refCode.toLowerCase().includes(q) ||
+          p.description.toLowerCase().includes(q) ||
+          (p.material || '').toLowerCase().includes(q)
+      );
+    }
+
+    // 5. Sorting
     return list.sort((a, b) => {
-      if (sortBy === 'price-asc')  return a.price - b.price;
-      if (sortBy === 'price-desc') return b.price - a.price;
+      const priceA = Number(a.price) || 0;
+      const priceB = Number(b.price) || 0;
+      if (sortBy === 'price-asc')  return priceA - priceB;
+      if (sortBy === 'price-desc') return priceB - priceA;
       if (sortBy === 'name')       return a.name.localeCompare(b.name);
       return (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0);
     });
@@ -391,103 +451,232 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
   // PRODUCT LIST VIEW — shown only at the deepest navigation level
   // ─────────────────────────────────────────────────────────────────────────
   const renderProductList = (
-    list: Product[],
+    rawList: Product[],
     backLabel: string,
     title: string,
     breadcrumb: string[],
     onBack: () => void,
-  ) => (
-    <section id="catalogue" className="py-12 bg-[#080808] text-white min-h-screen">
-      <div className="max-w-7xl lg:max-w-[1400px] xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Back + breadcrumb */}
-        <div className="flex items-center justify-between mb-4">
-          <BackBtn label={backLabel} onClick={onBack} />
-          <Breadcrumb parts={breadcrumb} />
-        </div>
+  ) => {
+    const list = applyFilters(rawList);
+    const hasActiveFilters = Boolean(
+      selectedQuickFilter !== 'tous' || searchQuery.trim() || minPrice.trim() || maxPrice.trim()
+    );
 
-        <h2 className="text-xl sm:text-2xl font-serif font-bold text-white tracking-tight mb-4 pb-3 border-b border-[#D4AF37]/20">
-          {title}
-        </h2>
-
-        {/* ── FILTERS — only here, at product level ── */}
-        <div className="bg-[#0F0F0F] border border-[#D4AF37]/20 rounded-2xl p-4 mb-6 space-y-3">
-          {/* Search */}
-          <div className="relative">
-            <Search className="w-4 h-4 text-[#D4AF37] absolute left-3.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Rechercher un produit..."
-              className="w-full bg-black/80 border border-gray-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
-            />
+    return (
+      <section id="catalogue" className="py-12 bg-[#080808] text-white min-h-screen">
+        <div className="max-w-7xl lg:max-w-[1400px] xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Back + breadcrumb */}
+          <div className="flex items-center justify-between mb-4">
+            <BackBtn label={backLabel} onClick={onBack} />
+            <Breadcrumb parts={breadcrumb} />
           </div>
 
-          {/* Filter + Sort + View Mode */}
-          <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
-              {([ 
-                { v: 'tous',       label: `Tous (${list.length})` },
-                { v: 'disponible', label: '🟢 Disponible' },
-                { v: 'promotion',  label: '🔥 Offre' },
-                { v: 'nouveautes', label: '✨ Nouveau' },
-              ] as const).map(({ v, label }) => (
+          <h2 className="text-xl sm:text-2xl font-serif font-bold text-white tracking-tight mb-4 pb-3 border-b border-[#D4AF37]/20 flex items-center justify-between">
+            <span>{title}</span>
+            <span className="text-xs font-sans text-gray-400 font-normal">
+              {list.length} produit{list.length > 1 ? 's' : ''} {hasActiveFilters ? `trouvé(s) sur ${rawList.length}` : ''}
+            </span>
+          </h2>
+
+          {/* ── FILTERS — only here, at product level ── */}
+          <div className="bg-[#0F0F0F] border border-[#D4AF37]/20 rounded-2xl p-4 mb-6 space-y-3 shadow-lg">
+            {/* Search */}
+            <div className="relative">
+              <Search className="w-4 h-4 text-[#D4AF37] absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Rechercher par nom, référence (#001...), description..."
+                className="w-full bg-black/80 border border-gray-800 rounded-xl pl-10 pr-8 py-2.5 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
+              />
+              {searchQuery && (
                 <button
-                  key={v}
-                  onClick={() => setSelectedQuickFilter(v)}
-                  className={`px-3 py-1.5 rounded-xl border transition-all cursor-pointer whitespace-nowrap ${
-                    selectedQuickFilter === v
-                      ? 'bg-[#D4AF37] text-black font-bold border-[#D4AF37]'
-                      : 'bg-black/60 text-gray-400 border-gray-800 hover:text-[#D4AF37] hover:border-[#D4AF37]/40'
-                  }`}
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white text-xs"
                 >
-                  {label}
+                  ✕
                 </button>
-              ))}
+              )}
             </div>
 
-            <div className="flex items-center gap-2 ml-auto shrink-0">
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as any)}
-                className="bg-black/80 border border-gray-800 text-xs text-gray-400 rounded-xl px-3 py-1.5 focus:outline-none focus:border-[#D4AF37]"
-              >
-                <option value="featured">Tri : Vedettes</option>
-                <option value="price-asc">Prix ↑</option>
-                <option value="price-desc">Prix ↓</option>
-                <option value="name">Nom A-Z</option>
-              </select>
+            {/* Filter + Sort + View Mode */}
+            <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+                {([
+                  { v: 'tous',         label: `Tous (${rawList.length})` },
+                  { v: 'disponible',   label: '🟢 Disponible' },
+                  { v: 'sur-commande', label: '🟡 Sur commande' },
+                  { v: 'epuise',       label: '🔴 Épuisé' },
+                  { v: 'nouveautes',   label: '✨ Nouveau' },
+                ] as const).map(({ v, label }) => (
+                  <button
+                    key={v}
+                    onClick={() => setSelectedQuickFilter(v)}
+                    className={`px-3 py-1.5 rounded-xl border transition-all cursor-pointer whitespace-nowrap ${
+                      selectedQuickFilter === v
+                        ? 'bg-[#D4AF37] text-black font-bold border-[#D4AF37]'
+                        : 'bg-black/60 text-gray-400 border-gray-800 hover:text-[#D4AF37] hover:border-[#D4AF37]/40'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
 
-              {/* View Toggle */}
-              <div className="flex items-center bg-black/80 border border-gray-800 rounded-xl p-0.5">
-                <button
-                  onClick={() => setViewMode('list')}
-                  className={`px-2 py-1 rounded-lg text-[10px] font-semibold transition-all cursor-pointer ${
-                    viewMode === 'list'
-                      ? 'bg-[#D4AF37] text-black font-bold'
-                      : 'text-gray-400 hover:text-white'
-                  }`}
-                  title="Vue Liste WhatsApp"
+              <div className="flex items-center gap-2 ml-auto shrink-0">
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as any)}
+                  className="bg-black/80 border border-gray-800 text-xs text-gray-400 rounded-xl px-3 py-1.5 focus:outline-none focus:border-[#D4AF37]"
                 >
-                  Liste
+                  <option value="featured">Tri : Vedettes</option>
+                  <option value="price-asc">Prix ↑</option>
+                  <option value="price-desc">Prix ↓</option>
+                  <option value="name">Nom A-Z</option>
+                </select>
+
+                {/* View Toggle */}
+                <div className="flex items-center bg-black/80 border border-gray-800 rounded-xl p-0.5">
+                  <button
+                    onClick={() => setViewMode('list')}
+                    className={`px-2 py-1 rounded-lg text-[10px] font-semibold transition-all cursor-pointer ${
+                      viewMode === 'list'
+                        ? 'bg-[#D4AF37] text-black font-bold'
+                        : 'text-gray-400 hover:text-white'
+                    }`}
+                    title="Vue Liste WhatsApp"
+                  >
+                    Liste
+                  </button>
+                  <button
+                    onClick={() => setViewMode('carousel')}
+                    className={`px-2 py-1 rounded-lg text-[10px] font-semibold transition-all cursor-pointer ${
+                      viewMode === 'carousel'
+                        ? 'bg-[#D4AF37] text-black font-bold'
+                        : 'text-gray-400 hover:text-white'
+                    }`}
+                    title="Vue Carrousel Horizontal"
+                  >
+                    Défilant
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* ── PRIX MIN / MAX & RACCOURCIS ── */}
+            <div className="pt-2 border-t border-gray-800/60 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2 flex-1">
+                <span className="text-[#D4AF37] shrink-0 font-semibold">💰 Prix :</span>
+                <div className="relative flex-1">
+                  <input
+                    type="number"
+                    min="0"
+                    value={minPrice}
+                    onChange={(e) => setMinPrice(e.target.value)}
+                    placeholder="Min (FCFA)"
+                    className="w-full bg-black/80 border border-gray-800 rounded-xl px-3 py-1.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-[#D4AF37] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  />
+                </div>
+                <span className="text-gray-600 shrink-0">—</span>
+                <div className="relative flex-1">
+                  <input
+                    type="number"
+                    min="0"
+                    value={maxPrice}
+                    onChange={(e) => setMaxPrice(e.target.value)}
+                    placeholder="Max (FCFA)"
+                    className="w-full bg-black/80 border border-gray-800 rounded-xl px-3 py-1.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-[#D4AF37] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  />
+                </div>
+                {(minPrice || maxPrice) && (
+                  <button
+                    onClick={() => { setMinPrice(''); setMaxPrice(''); }}
+                    className="shrink-0 text-rose-400 hover:text-rose-300 transition-colors px-2 py-1 rounded-lg border border-rose-950 bg-rose-950/40 text-[11px] font-semibold"
+                    title="Effacer le filtre prix"
+                  >
+                    ✕ Effacer
+                  </button>
+                )}
+              </div>
+
+              {/* Raccourcis de prix rapides */}
+              <div className="flex items-center gap-1 overflow-x-auto no-scrollbar shrink-0">
+                <button
+                  type="button"
+                  onClick={() => { setMinPrice(''); setMaxPrice('10000'); }}
+                  className={`px-2 py-1 rounded-lg text-[10px] border transition-all cursor-pointer whitespace-nowrap ${
+                    maxPrice === '10000' && !minPrice
+                      ? 'bg-[#D4AF37]/20 border-[#D4AF37] text-[#F3E5AB] font-bold'
+                      : 'bg-black/40 border-gray-800 text-gray-400 hover:text-white'
+                  }`}
+                >
+                  &lt; 10.000 F
                 </button>
                 <button
-                  onClick={() => setViewMode('carousel')}
-                  className={`px-2 py-1 rounded-lg text-[10px] font-semibold transition-all cursor-pointer ${
-                    viewMode === 'carousel'
-                      ? 'bg-[#D4AF37] text-black font-bold'
-                      : 'text-gray-400 hover:text-white'
+                  type="button"
+                  onClick={() => { setMinPrice('10000'); setMaxPrice('25000'); }}
+                  className={`px-2 py-1 rounded-lg text-[10px] border transition-all cursor-pointer whitespace-nowrap ${
+                    minPrice === '10000' && maxPrice === '25000'
+                      ? 'bg-[#D4AF37]/20 border-[#D4AF37] text-[#F3E5AB] font-bold'
+                      : 'bg-black/40 border-gray-800 text-gray-400 hover:text-white'
                   }`}
-                  title="Vue Carrousel Horizontal"
                 >
-                  Défilant
+                  10k - 25k F
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setMinPrice('25000'); setMaxPrice(''); }}
+                  className={`px-2 py-1 rounded-lg text-[10px] border transition-all cursor-pointer whitespace-nowrap ${
+                    minPrice === '25000' && !maxPrice
+                      ? 'bg-[#D4AF37]/20 border-[#D4AF37] text-[#F3E5AB] font-bold'
+                      : 'bg-black/40 border-gray-800 text-gray-400 hover:text-white'
+                  }`}
+                >
+                  &gt; 25.000 F
                 </button>
               </div>
             </div>
+
+            {/* Resume filtres actifs */}
+            {hasActiveFilters && (
+              <div className="pt-2 border-t border-gray-800/40 flex items-center justify-between text-[11px] text-amber-200/90">
+                <span className="flex items-center gap-1 font-mono">
+                  <span>🔍 Filtres actifs :</span>
+                  {selectedQuickFilter !== 'tous' && (
+                    <span className="bg-[#D4AF37]/10 border border-[#D4AF37]/30 px-1.5 py-0.5 rounded text-[10px]">
+                      {selectedQuickFilter}
+                    </span>
+                  )}
+                  {(minPrice || maxPrice) && (
+                    <span className="bg-[#D4AF37]/10 border border-[#D4AF37]/30 px-1.5 py-0.5 rounded text-[10px]">
+                      Prix: {minPrice || '0'} à {maxPrice || '∞'} FCFA
+                    </span>
+                  )}
+                  {searchQuery && (
+                    <span className="bg-[#D4AF37]/10 border border-[#D4AF37]/30 px-1.5 py-0.5 rounded text-[10px]">
+                      "{searchQuery}"
+                    </span>
+                  )}
+                </span>
+                <button
+                  onClick={() => {
+                    setSelectedQuickFilter('tous');
+                    setMinPrice('');
+                    setMaxPrice('');
+                    setSearchQuery('');
+                  }}
+                  className="text-rose-400 hover:underline font-semibold text-[11px] cursor-pointer"
+                >
+                  Réinitialiser tous les filtres
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
         {/* ── PRODUCT CARDS ── */}
+        <div className="max-w-7xl lg:max-w-[1400px] xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pb-12">
         {list.length > 0 ? (
           viewMode === 'carousel' ? (
             /* Horizontal Carousel Scroll-X Mode */
@@ -497,7 +686,8 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
               </p>
               <div className="flex gap-4 overflow-x-auto pb-4 pt-1 snap-x snap-mandatory no-scrollbar">
                 {list.map((product) => {
-                  const isEpuise = product.availability === 'epuise';
+                  const isNouveau = product.isFeatured || product.badge?.toLowerCase().includes('nouveau');
+                  const availStatus = product.availability || 'disponible';
                   return (
                     <div
                       key={product.id}
@@ -521,28 +711,35 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
                               #{product.refCode}
                             </span>
                           )}
+                          {/* Badge Statut — coin supérieur droit */}
+                          <span className={`absolute top-1 right-1 text-[8px] font-bold px-1.5 py-0.5 rounded-full ${
+                            availStatus === 'epuise'
+                              ? 'bg-rose-950/90 text-rose-400 border border-rose-700/60'
+                              : availStatus === 'sur-commande' || availStatus === 'en-arrivage'
+                              ? 'bg-amber-950/90 text-amber-400 border border-amber-700/60'
+                              : availStatus === 'nouveau'
+                              ? 'bg-black/90 text-[#F3E5AB] border border-[#D4AF37]/60'
+                              : 'bg-emerald-950/90 text-emerald-400 border border-emerald-700/60'
+                          }`}>
+                            {availStatus === 'epuise' ? '🔴 Épuisé' : availStatus === 'sur-commande' || availStatus === 'en-arrivage' ? '🟡 Sur Cmd' : availStatus === 'nouveau' ? '✨ Nouveau' : '🟢 Dispo'}
+                          </span>
                         </div>
 
                         <h3 className="font-serif font-bold text-white group-hover:text-[#D4AF37] transition-colors text-xs line-clamp-1">
                           {product.name}
                         </h3>
+                        {isNouveau && (
+                          <span className="inline-block mt-0.5 text-[8px] font-bold text-black bg-[#D4AF37] px-1.5 py-0.5 rounded-full">✨ Nouveau</span>
+                        )}
                         <p className="text-[11px] text-gray-400 line-clamp-2 mt-0.5 font-sans leading-tight">
                           {product.description}
                         </p>
                       </div>
 
                       <div className="mt-3 pt-2 border-t border-gray-800/80 flex items-center justify-between">
-                        <div>
-                          <span className="text-xs font-bold text-[#F3E5AB] font-serif block">
-                            {formatPriceFCFA(product.price)}
-                          </span>
-                          {product.availability === 'disponible' && (
-                            <span className="text-[9px] text-emerald-400 font-medium block">● Disponible</span>
-                          )}
-                          {product.availability === 'epuise' && (
-                            <span className="text-[9px] text-rose-400 font-medium block">● Épuisé</span>
-                          )}
-                        </div>
+                        <span className="text-xs font-bold text-[#F3E5AB] font-serif">
+                          {formatPriceFCFA(product.price)}
+                        </span>
 
                         <button
                           onClick={(e) => {
@@ -564,7 +761,8 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
             <div className="space-y-3">
               {list.map((product) => {
                 const whatsappUrl = buildWhatsAppLink(whatsappNumber, generateSingleProductWhatsAppMsg(product));
-                const isEpuise = product.availability === 'epuise';
+                const availStatus = product.availability || 'disponible';
+                const isNouveau = product.isFeatured || product.badge?.toLowerCase().includes('nouveau');
                 return (
                   <div
                     key={product.id}
@@ -593,21 +791,31 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
                         <p className="text-xs text-gray-400 line-clamp-1 font-sans">
                           {product.description}
                         </p>
-                        <div className="flex items-center gap-2 pt-0.5">
+                        <div className="flex items-center gap-2 pt-0.5 flex-wrap">
                           <span className="text-xs font-bold text-[#F3E5AB] font-serif">
                             {formatPriceFCFA(product.price)}
                           </span>
-                          {product.availability === 'disponible' && (
-                            <span className="text-[10px] text-emerald-400 font-medium">● Disponible</span>
-                          )}
-                          {product.availability === 'epuise' && (
-                            <span className="text-[10px] text-rose-400 font-medium">● Épuisé</span>
+                          {/* Badge statut disponibilité */}
+                          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${
+                            availStatus === 'epuise'
+                              ? 'bg-rose-950/80 text-rose-400 border-rose-700/60'
+                              : availStatus === 'en-arrivage'
+                              ? 'bg-amber-950/80 text-amber-400 border-amber-700/60'
+                              : 'bg-emerald-950/80 text-emerald-400 border-emerald-700/60'
+                          }`}>
+                            {availStatus === 'epuise' ? '🔴 Épuisé' : availStatus === 'en-arrivage' ? '🟡 Sur commande' : '🟢 Disponible'}
+                          </span>
+                          {/* Badge Nouveau */}
+                          {isNouveau && (
+                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/40">
+                              ✨ Nouveau
+                            </span>
                           )}
                         </div>
                       </div>
                     </div>
 
-                    {/* Right: WhatsApp Business Style + Button */}
+                    {/* Right: Button */}
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -629,29 +837,30 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
             <h3 className="text-base font-serif font-bold text-white mb-1">Aucun produit trouvé</h3>
             <p className="text-xs text-gray-400 mb-4">Réinitialisez les filtres pour voir tous les articles.</p>
             <button
-              onClick={() => { setSearchQuery(''); setSelectedQuickFilter('tous'); }}
+              onClick={() => { setSearchQuery(''); setSelectedQuickFilter('tous'); setMinPrice(''); setMaxPrice(''); }}
               className="bg-[#D4AF37] text-black font-bold text-xs uppercase tracking-wider px-5 py-2.5 rounded-full hover:bg-[#F3E5AB] transition-all cursor-pointer"
             >
               Réinitialiser
             </button>
           </div>
         )}
-      </div>
-    </section>
-  );
+        </div>
+      </section>
+    );
+  };
 
   // ─────────────────────────────────────────────────────────────────────────
   // BIJOUX — Level 3: Products
   // ─────────────────────────────────────────────────────────────────────────
   if (selectedCategory === 'bijoux' && bijouxCible && bijouxType) {
-    const cibleLabel = dynamicLvl1Bijoux.find((c) => c.id === bijouxCible)?.label || bijouxCible.toUpperCase();
-    const typeLabel  = dynamicLvl2Bijoux.find((t) => t.id === bijouxType)?.label || bijouxType.toUpperCase();
+    const cibleLabel = bijouxCible === 'all' ? 'TOUS LES BIJOUX' : (dynamicLvl1Bijoux.find((c) => c.id === bijouxCible)?.label || bijouxCible.toUpperCase());
+    const typeLabel  = bijouxType === 'all' ? 'TOUS LES MODÈLES' : (dynamicLvl2Bijoux.find((t) => t.id === bijouxType)?.label || bijouxType.toUpperCase());
     return renderProductList(
       bijouxProducts,
-      `← ${cibleLabel}`,
-      `${cibleLabel} › ${typeLabel}`,
+      `← BIJOUX`,
+      bijouxType === 'all' ? cibleLabel : `${cibleLabel} › ${typeLabel}`,
       ['BIJOUX', cibleLabel, typeLabel],
-      () => { setBijouxType(null); setSearchQuery(''); setSelectedQuickFilter('tous'); },
+      () => { setBijouxType(null); if (bijouxCible === 'all') setBijouxCible(null); setSearchQuery(''); setSelectedQuickFilter('tous'); },
     );
   }
 
@@ -668,11 +877,17 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
         title={cibleObj?.label || ''}
       >
         <div className="space-y-3">
+          <NavBtn
+            label={`✨ TOUS LES ${cibleObj?.label || 'BIJOUX'}`}
+            index={0}
+            variant="bijoux"
+            onClick={() => { setBijouxType('all'); setSearchQuery(''); setSelectedQuickFilter('tous'); }}
+          />
           {types.map((t, idx) => (
             <NavBtn
               key={t.id}
               label={t.label}
-              index={idx}
+              index={idx + 1}
               variant="bijoux"
               onClick={() => { setBijouxType(t.id); setSearchQuery(''); setSelectedQuickFilter('tous'); }}
             />
@@ -686,6 +901,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
   // BIJOUX — Level 1: Cibles (boutons texte uniquement)
   // ─────────────────────────────────────────────────────────────────────────
   if (selectedCategory === 'bijoux') {
+    const totalBijouxCount = products.filter((p) => p.category === 'bijoux').length;
     return (
       <section id="catalogue" className="py-16 bg-[#080808] text-white min-h-screen">
         <motion.div
@@ -704,8 +920,14 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
             <p className="text-xs text-gray-500">Pour qui souhaitez-vous découvrir nos bijoux ?</p>
           </motion.div>
           <div className="space-y-3">
+            <NavBtn
+              label={`✨ TOUS LES BIJOUX (${totalBijouxCount})`}
+              index={0}
+              variant="bijoux"
+              onClick={() => { setBijouxCible('all'); setBijouxType('all'); setSearchQuery(''); setSelectedQuickFilter('tous'); }}
+            />
             {dynamicLvl1Bijoux.map((c, idx) => (
-              <NavBtn key={c.id} label={c.label} index={idx} variant="bijoux" onClick={() => setBijouxCible(c.id)} />
+              <NavBtn key={c.id} label={c.label} index={idx + 1} variant="bijoux" onClick={() => setBijouxCible(c.id)} />
             ))}
           </div>
         </motion.div>
@@ -717,14 +939,14 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
   // ACCESSOIRES — Level 3: Products
   // ─────────────────────────────────────────────────────────────────────────
   if (selectedCategory === 'accessoires' && accMode && accSubFilter) {
-    const parentLabel = dynamicLvl1Accessoires.find((o) => o.id === accMode)?.label || accMode.toUpperCase();
-    const subLabel = dynamicLvl2Accessoires.find((s) => s.id === accSubFilter)?.label || accSubFilter.toUpperCase();
+    const parentLabel = accMode === 'all' ? 'TOUS LES ACCESSOIRES' : (dynamicLvl1Accessoires.find((o) => o.id === accMode)?.label || accMode.toUpperCase());
+    const subLabel = accSubFilter === 'all' ? 'TOUS LES MODÈLES' : (dynamicLvl2Accessoires.find((s) => s.id === accSubFilter)?.label || accSubFilter.toUpperCase());
     return renderProductList(
       accProducts,
-      `← ${parentLabel}`,
-      subLabel,
+      `← ACCESSOIRES`,
+      accSubFilter === 'all' ? parentLabel : `${parentLabel} › ${subLabel}`,
       ['ACCESSOIRES', parentLabel, subLabel],
-      () => { setAccSubFilter(null); setSearchQuery(''); setSelectedQuickFilter('tous'); },
+      () => { setAccSubFilter(null); if (accMode === 'all') setAccMode(null); setSearchQuery(''); setSelectedQuickFilter('tous'); },
     );
   }
 
@@ -742,11 +964,17 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
           title={modeObj?.label || ''}
         >
           <div className="space-y-3">
+            <NavBtn
+              label={`✨ TOUS LES ACCESSOIRES ${modeObj?.label || ''}`}
+              index={0}
+              variant="accessoires"
+              onClick={() => { setAccSubFilter('all'); setSearchQuery(''); setSelectedQuickFilter('tous'); }}
+            />
             {sousCats.map((s, idx) => (
               <NavBtn
                 key={s.id}
                 label={s.label}
-                index={idx}
+                index={idx + 1}
                 variant="accessoires"
                 onClick={() => { setAccSubFilter(s.id); setSearchQuery(''); setSelectedQuickFilter('tous'); }}
               />
@@ -770,6 +998,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
   // ACCESSOIRES — Level 1: Subcategories (boutons texte)
   // ─────────────────────────────────────────────────────────────────────────
   if (selectedCategory === 'accessoires') {
+    const totalAccCount = products.filter((p) => p.category === 'accessoires').length;
     return (
       <section id="catalogue" className="py-16 bg-[#080808] text-white min-h-screen">
         <motion.div
@@ -783,11 +1012,17 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
             <p className="text-xs text-gray-500">Sélectionnez une catégorie d'accessoires.</p>
           </div>
           <div className="space-y-3">
+            <NavBtn
+              label={`✨ TOUS LES ACCESSOIRES (${totalAccCount})`}
+              index={0}
+              variant="accessoires"
+              onClick={() => { setAccMode('all'); setAccSubFilter('all'); setSearchQuery(''); setSelectedQuickFilter('tous'); }}
+            />
             {dynamicLvl1Accessoires.map((item, idx) => (
               <NavBtn
                 key={item.id}
                 label={item.label}
-                index={idx}
+                index={idx + 1}
                 variant="accessoires"
                 onClick={() => { setAccMode(item.id); setSearchQuery(''); setSelectedQuickFilter('tous'); }}
               />
@@ -802,15 +1037,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
   // ANONYM — Product fiche (after clicking a collection)
   // ─────────────────────────────────────────────────────────────────────────
   if (selectedCategory === 'parfums' && anonymCollection) {
-    const colLabel = ANONYM_COLLECTIONS.find((c) => c.id === anonymCollection)?.label || anonymCollection.toUpperCase();
-    const colObj = collections.find(
-      (c) => c.id === anonymCollection || c.name.toLowerCase().includes('invitation'),
-    );
-    let parfumProducts = colObj
-      ? products.filter((p) => colObj.productIds.includes(p.id) || p.collectionIds?.includes(colObj.id))
-      : products.filter((p) => p.category === 'parfums');
-    if (parfumProducts.length === 0) parfumProducts = products.filter((p) => p.category === 'parfums');
-    parfumProducts = applyFilters(parfumProducts);
+    const colLabel = anonymCollection === 'all' ? 'TOUS LES PARFUMS ANONYM' : (ANONYM_COLLECTIONS.find((c) => c.id === anonymCollection)?.label || anonymCollection.toUpperCase());
     return renderProductList(
       parfumProducts,
       '← ANONYM',
@@ -825,6 +1052,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
   // ─────────────────────────────────────────────────────────────────────────
   if (selectedCategory === 'parfums') {
     const adminParfumsCollections = collections.filter((c) => c.category === 'parfums' && c.visible !== false);
+    const totalParfumsCount = products.filter((p) => p.category === 'parfums').length;
     return (
       <section id="catalogue" className="py-16 bg-[#080808] text-white min-h-screen">
         <motion.div
@@ -838,13 +1066,19 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
             <p className="text-xs text-gray-500 italic">L'univers olfactif ANONYM — Sélectionnez une référence.</p>
           </div>
           <div className="space-y-3">
+            <NavBtn
+              label={`✨ TOUS LES PARFUMS ANONYM (${totalParfumsCount})`}
+              index={0}
+              variant="anonym"
+              onClick={() => { setAnonymCollection('all'); setSearchQuery(''); setSelectedQuickFilter('tous'); }}
+            />
             {dynamicLvl1Parfums.map((c, idx) => (
-              <NavBtn key={c.id} label={c.label} index={idx} variant="anonym" onClick={() => setAnonymCollection(c.id)} />
+              <NavBtn key={c.id} label={c.label} index={idx + 1} variant="anonym" onClick={() => setAnonymCollection(c.id)} />
             ))}
             {adminParfumsCollections
               .filter((c) => !dynamicLvl1Parfums.some((s) => s.id === c.id))
               .map((c, idx) => (
-                <NavBtn key={c.id} label={c.name.toUpperCase()} index={dynamicLvl1Parfums.length + idx} variant="anonym" onClick={() => setAnonymCollection(c.id)} />
+                <NavBtn key={c.id} label={c.name.toUpperCase()} index={dynamicLvl1Parfums.length + idx + 1} variant="anonym" onClick={() => setAnonymCollection(c.id)} />
               ))}
           </div>
         </motion.div>
@@ -856,17 +1090,14 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
   // EMBALLAGES — Level 3: Products
   // ─────────────────────────────────────────────────────────────────────────
   if (selectedCategory === 'emballages' && embMode && embSousFilter) {
-    const modeLabel = EMB_MODES.find((m) => m.id === embMode)?.label || embMode.toUpperCase();
-    const sousLabel = EMB_SOUS_CATEGORIES[embMode]?.find((s) => s.id === embSousFilter)?.label || embSousFilter.toUpperCase();
-    let embProducts = products.filter((p) => p.category === 'emballages');
-    if (embProducts.length === 0) embProducts = products;
-    embProducts = applyFilters(embProducts);
+    const modeLabel = embMode === 'all' ? 'TOUS LES EMBALLAGES' : (EMB_MODES.find((m) => m.id === embMode)?.label || embMode.toUpperCase());
+    const sousLabel = embSousFilter === 'all' ? 'TOUS LES PRODUITS' : (EMB_SOUS_CATEGORIES[embMode]?.find((s) => s.id === embSousFilter)?.label || embSousFilter.toUpperCase());
     return renderProductList(
       embProducts,
-      `← ${modeLabel}`,
-      sousLabel,
+      `← EMBALLAGES`,
+      embSousFilter === 'all' ? modeLabel : `${modeLabel} › ${sousLabel}`,
       ['EMBALLAGES', modeLabel, sousLabel],
-      () => { setEmbSousFilter(null); setSearchQuery(''); setSelectedQuickFilter('tous'); },
+      () => { setEmbSousFilter(null); if (embMode === 'all') setEmbMode(null); setSearchQuery(''); setSelectedQuickFilter('tous'); },
     );
   }
 
@@ -883,11 +1114,17 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
         title={modeObj?.label || ''}
       >
         <div className="space-y-3">
+          <NavBtn
+            label={`✨ TOUS LES EMBALLAGES ${modeObj?.label || ''}`}
+            index={0}
+            variant="emballages"
+            onClick={() => { setEmbSousFilter('all'); setSearchQuery(''); setSelectedQuickFilter('tous'); }}
+          />
           {sousCats.map((s, idx) => (
             <NavBtn
               key={s.id}
               label={s.label}
-              index={idx}
+              index={idx + 1}
               variant="emballages"
               onClick={() => { setEmbSousFilter(s.id); setSearchQuery(''); setSelectedQuickFilter('tous'); }}
             />
@@ -901,6 +1138,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
   // EMBALLAGES — Level 1: 4 modes de navigation (boutons texte)
   // ─────────────────────────────────────────────────────────────────────────
   if (selectedCategory === 'emballages') {
+    const totalEmbCount = products.filter((p) => p.category === 'emballages').length;
     return (
       <section id="catalogue" className="py-16 bg-[#080808] text-white min-h-screen">
         <motion.div
@@ -914,8 +1152,14 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
             <p className="text-xs text-gray-500">Comment souhaitez-vous rechercher votre emballage ?</p>
           </div>
           <div className="space-y-3">
+            <NavBtn
+              label={`✨ TOUS LES EMBALLAGES (${totalEmbCount})`}
+              index={0}
+              variant="emballages"
+              onClick={() => { setEmbMode('all'); setEmbSousFilter('all'); setSearchQuery(''); setSelectedQuickFilter('tous'); }}
+            />
             {EMB_MODES.map((m, idx) => (
-              <NavBtn key={m.id} label={m.label} index={idx} variant="emballages" onClick={() => setEmbMode(m.id)} />
+              <NavBtn key={m.id} label={m.label} index={idx + 1} variant="emballages" onClick={() => setEmbMode(m.id)} />
             ))}
           </div>
         </motion.div>

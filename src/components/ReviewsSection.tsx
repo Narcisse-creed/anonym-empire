@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Review, StoreInfo } from '../types';
 import { loadReviews, saveReviews } from '../utils/helpers';
 import { Star, MessageCircle, Upload, Send, X } from 'lucide-react';
+import { ImageUploader } from './ImageUploader';
 
 interface ReviewsSectionProps {
   storeInfo: StoreInfo;
@@ -143,28 +144,13 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[#D4AF37] uppercase mb-1">Photo du produit (optionnel)</label>
-              <div className="flex items-center gap-3">
-                <label htmlFor="photo-upload" className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#1A160C] border border-[#D4AF37]/60 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black font-semibold text-xs transition-all cursor-pointer shadow-md">
-                  <Upload className="w-4 h-4" />
-                  Choisir une photo
-                </label>
-                <input id="photo-upload" ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (!file) return;
-                  const reader = new FileReader();
-                  reader.onloadend = () => setFormPhoto(reader.result as string);
-                  reader.readAsDataURL(file);
-                }} />
-                {formPhoto && (
-                  <div className="relative inline-flex items-center">
-                    <img src={formPhoto} alt="Aperçu" className="w-10 h-10 rounded-full object-cover border border-[#D4AF37]/30" />
-                    <button type="button" onClick={() => { setFormPhoto(null); if (fileInputRef.current) fileInputRef.current.value = ''; }} className="absolute -top-1 -right-1 bg-[#121212] border border-[#D4AF37]/30 text-[#D4AF37] rounded-full w-4 h-4 flex items-center justify-center text-[10px] hover:bg-[#D4AF37] hover:text-black transition-all">
-                      <X className="w-2.5 h-2.5" />
-                    </button>
-                  </div>
-                )}
-              </div>
+              <ImageUploader
+                label="Photo du produit (optionnel)"
+                value={formPhoto || ''}
+                onChange={(val) => setFormPhoto(val || null)}
+                placeholder="Sélectionner une photo depuis votre galerie..."
+                helperText="Format image (JPG, PNG, WEBP) — Max 5 Mo"
+              />
             </div>
 
             <div className="flex items-center gap-3 pt-2">

@@ -17,6 +17,21 @@ export const STORE_INFO: StoreInfo = {
   rccm: 'RB/PNO/23 A 42601',
   ifu: '0202214967574',
   bankAccountInfo: 'MTN MoMo / Moov Money: 01 91 11 88 84 / 01 98 25 00 88 (LIZIE FIFAME ALLATIN)',
+  founderSection: {
+    photoUrl: '/images/lizie-black-outfit.jpg',
+    name: 'Lizie Fifamè ALLATIN',
+    title: 'Fondatrice & Directrice Générale — ANONYM',
+    badge: 'Directrice Générale & CEO',
+    quote: "Inspirée par l'excellence et le prestige royal, Lizie Fifamè ALLATIN dirige ANONYM depuis Abomey-Calavi avec une vision claire : immortaliser vos histoires à travers des bijoux gravés d'exception.",
+    sectionTitle: 'La Fondatrice : Lizie Fifamè ALLATIN',
+    paragraph: "Basée à Abomey-Calavi (Zogbadjè, Bénin), ANONYM est une maison béninoise d'excellence dédiée aux bijoux personnalisés, la parfumerie et la conception de coffrets de prestige. Nous traduisons vos émotions, prénoms et dates mémorables en œuvres durables.",
+    commitments: [
+      { icon: 'check',    label: 'Pour tous :',           text: 'Hommes, femmes, couples, enfants, bébés et animaux.' },
+      { icon: 'award',    label: 'Garantie 1 An :',       text: 'Acier inoxydable 316L, ne rouille ni ne noircit au parfum.' },
+      { icon: 'clock',    label: 'Délai de fabrication :', text: "4 à 6 semaines au plus tard pour les bijoux d'importation." },
+      { icon: 'sparkles', label: 'Commission 10% :',      text: "Programme d'apporteurs d'affaires et récompenses partenaires." },
+    ],
+  },
   pageTexts: {
     accueil: {
       heroTitle: 'ANONYM',

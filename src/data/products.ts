@@ -60,7 +60,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     description: 'Bijou personnalisé sur-mesure de la collection ANONYM. Acier Inoxydable 316L garanti 1 an sans rouille ni noircissement.',
     imageUrl: '/images/products/model-004.jpg',
     isFeatured: false,
-    
+    availability: 'en-arrivage',
     material: 'Acier Inoxydable 316L Plaqué Or',
     guarantee: '1 An de Garantie Officielle',
     customizationOptions: { allowName: true, allowDate: true },
@@ -124,7 +124,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     description: 'Bijou personnalisé sur-mesure de la collection ANONYM. Acier Inoxydable 316L garanti 1 an sans rouille ni noircissement.',
     imageUrl: '/images/products/model-008.jpg',
     isFeatured: false,
-    
+    availability: 'epuise',
     material: 'Acier Inoxydable 316L Plaqué Or',
     guarantee: '1 An de Garantie Officielle',
     customizationOptions: { allowName: true, allowDate: true },

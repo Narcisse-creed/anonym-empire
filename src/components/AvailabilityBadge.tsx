@@ -17,24 +17,38 @@ export const AvailabilityBadge: React.FC<AvailabilityBadgeProps> = ({
   const config = {
     disponible: {
       dot: 'bg-emerald-400',
-      text: 'Disponible',
+      text: '🟢 Disponible',
       bg: 'bg-emerald-950/60',
       border: 'border-emerald-700/60',
       textColor: 'text-emerald-400',
     },
+    'sur-commande': {
+      dot: 'bg-amber-400',
+      text: '🟡 Sur commande',
+      bg: 'bg-amber-950/60',
+      border: 'border-amber-700/60',
+      textColor: 'text-amber-400',
+    },
     'en-arrivage': {
       dot: 'bg-amber-400',
-      text: 'En cours d\'arrivage',
+      text: '🟡 Sur commande',
       bg: 'bg-amber-950/60',
       border: 'border-amber-700/60',
       textColor: 'text-amber-400',
     },
     epuise: {
       dot: 'bg-rose-500',
-      text: 'Épuisé',
+      text: '🔴 Épuisé',
       bg: 'bg-rose-950/60',
       border: 'border-rose-800/60',
       textColor: 'text-rose-400',
+    },
+    nouveau: {
+      dot: 'bg-amber-300',
+      text: '✨ Nouveau',
+      bg: 'bg-[#1A160C]',
+      border: 'border-[#D4AF37]/60',
+      textColor: 'text-[#F3E5AB]',
     },
   };
 

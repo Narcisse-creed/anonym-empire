@@ -1,7 +1,7 @@
 import React from 'react';
 import { StoreInfo } from '../types';
 import { CrownLogo } from './CrownLogo';
-import { MessageCircle, Facebook, Instagram, ShieldCheck } from 'lucide-react';
+import { MessageCircle, Facebook, Instagram } from 'lucide-react';
 
 interface FooterProps {
   storeInfo: StoreInfo;
@@ -16,7 +16,7 @@ export const Footer: React.FC<FooterProps> = ({ storeInfo, onOpenAdmin }) => {
         {/* Brand Baseline Banner */}
         <div className="text-center py-6 border-b border-gray-900">
           <span className="font-serif font-bold text-xs sm:text-base tracking-[0.3em] uppercase text-transparent bg-clip-text bg-gradient-to-r from-[#F3E5AB] via-[#D4AF37] to-[#AA771C]">
-            QUALITÉ • CONFIANCE • ÉLÉGANCE
+            {storeInfo.pageTexts?.footer?.baseline || 'QUALITÉ • CONFIANCE • ÉLÉGANCE'}
           </span>
         </div>
 
@@ -54,7 +54,7 @@ export const Footer: React.FC<FooterProps> = ({ storeInfo, onOpenAdmin }) => {
               target="_blank"
               rel="noopener noreferrer"
               className="p-3 rounded-full bg-[#121212] border border-[#D4AF37]/30 text-[#D4AF37] hover:bg-emerald-600 hover:text-white hover:border-emerald-500 transition-all shadow-md"
-               title="WhatsApp ANONYM"
+              title="WhatsApp ANONYM"
             >
               <MessageCircle className="w-5 h-5" />
             </a>
@@ -64,7 +64,7 @@ export const Footer: React.FC<FooterProps> = ({ storeInfo, onOpenAdmin }) => {
               target="_blank"
               rel="noopener noreferrer"
               className="p-3 rounded-full bg-[#121212] border border-[#D4AF37]/30 text-[#D4AF37] hover:bg-blue-600 hover:text-white hover:border-blue-500 transition-all shadow-md"
-               title="Facebook ANONYM"
+              title="Facebook ANONYM"
             >
               <Facebook className="w-5 h-5" />
             </a>
@@ -74,7 +74,7 @@ export const Footer: React.FC<FooterProps> = ({ storeInfo, onOpenAdmin }) => {
               target="_blank"
               rel="noopener noreferrer"
               className="p-3 rounded-full bg-[#121212] border border-[#D4AF37]/30 text-[#D4AF37] hover:bg-pink-600 hover:text-white hover:border-pink-500 transition-all shadow-md"
-               title="Instagram ANONYM"
+              title="Instagram ANONYM"
             >
               <Instagram className="w-5 h-5" />
             </a>

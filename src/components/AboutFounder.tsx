@@ -1,42 +1,50 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { StoreInfo } from '../types';
+import React from 'react';
+import { motion } from 'motion/react';
+import { StoreInfo, FounderCommitment } from '../types';
 import { CrownLogo } from './CrownLogo';
-import { Sparkles, CheckCircle2, Clock, Award, Shield, PhoneCall, ChevronLeft, ChevronRight } from 'lucide-react';
-import { FOUNDER_SLIDES } from '../data/founderMedia';
+import { Sparkles, CheckCircle2, Clock, Award, Shield, PhoneCall } from 'lucide-react';
 
 interface AboutFounderProps {
   storeInfo: StoreInfo;
 }
 
+const FALLBACK_PHOTO = '/images/lizie-black-outfit.jpg';
+
+function CommitmentIcon({ icon }: { icon: FounderCommitment['icon'] }) {
+  const cls = 'w-4 h-4 text-[#D4AF37] shrink-0 mt-0.5';
+  switch (icon) {
+    case 'award':    return <Award className={cls} />;
+    case 'clock':    return <Clock className={cls} />;
+    case 'sparkles': return <Sparkles className={cls} />;
+    case 'phone':    return <PhoneCall className={cls} />;
+    default:         return <CheckCircle2 className={cls} />;
+  }
+}
+
+const DEFAULT_COMMITMENTS: FounderCommitment[] = [
+  { icon: 'check',    label: 'Pour tous :',            text: 'Hommes, femmes, couples, enfants, bébés et animaux.' },
+  { icon: 'award',    label: 'Garantie 1 An :',        text: 'Acier inoxydable 316L, ne rouille ni ne noircit au parfum.' },
+  { icon: 'clock',    label: 'Délai de fabrication :', text: "4 à 6 semaines au plus tard pour les bijoux d'importation." },
+  { icon: 'sparkles', label: 'Commission 10% :',       text: "Programme d'apporteurs d'affaires et récompenses partenaires." },
+];
+
 export const AboutFounder: React.FC<AboutFounderProps> = ({ storeInfo }) => {
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [direction, setDirection] = useState(1);
+  const fs = storeInfo.founderSection ?? {};
 
-  const goTo = useCallback((idx: number) => {
-    setDirection(idx > currentSlide ? 1 : -1);
-    setCurrentSlide(idx);
-  }, [currentSlide]);
+  const photoUrl     = fs.photoUrl     || FALLBACK_PHOTO;
+  const name         = fs.name         || 'Lizie Fifamè ALLATIN';
+  const title        = fs.title        || 'Fondatrice & Directrice Générale — ANONYM';
+  const badge        = fs.badge        || 'Directrice Générale & CEO';
+  const quote        = fs.quote        || "Inspirée par l'excellence et le prestige royal, Lizie Fifamè ALLATIN dirige ANONYM depuis Abomey-Calavi avec une vision claire...";
+  const sectionTitle = fs.sectionTitle || 'La Fondatrice : Lizie Fifamè ALLATIN';
+  const paragraph    = fs.paragraph    || "Basée à Abomey-Calavi (Zogbadjè, Bénin), ANONYM est une maison béninoise d'excellence dédiée aux bijoux personnalisés, la parfumerie et la conception de coffrets de prestige. Nous traduisons vos émotions, prénoms et dates mémorables en œuvres durables.";
+  const commitments  = (fs.commitments && fs.commitments.length > 0) ? fs.commitments : DEFAULT_COMMITMENTS;
 
-  const goPrev = () => {
-    const prev = (currentSlide - 1 + FOUNDER_SLIDES.length) % FOUNDER_SLIDES.length;
-    setDirection(-1);
-    setCurrentSlide(prev);
-  };
-
-  const goNext = useCallback(() => {
-    const next = (currentSlide + 1) % FOUNDER_SLIDES.length;
-    setDirection(1);
-    setCurrentSlide(next);
-  }, [currentSlide]);
-
-  // Auto-play every 4 seconds
-  useEffect(() => {
-    const timer = setInterval(goNext, 4000);
-    return () => clearInterval(timer);
-  }, [goNext]);
-
-  const slide = FOUNDER_SLIDES[currentSlide];
+  // Split sectionTitle to colour the founder name in gold
+  // Expected format: "La Fondatrice : Lizie Fifamè ALLATIN"
+  const colonIdx = sectionTitle.indexOf(':');
+  const sectionPrefix = colonIdx !== -1 ? sectionTitle.slice(0, colonIdx + 1) : sectionTitle;
+  const sectionSuffix = colonIdx !== -1 ? sectionTitle.slice(colonIdx + 1).trim() : '';
 
   return (
     <section id="about" className="py-20 bg-[#080808] text-white relative border-b border-[#D4AF37]/20 overflow-hidden">
@@ -45,7 +53,7 @@ export const AboutFounder: React.FC<AboutFounderProps> = ({ storeInfo }) => {
       <div className="absolute bottom-10 right-0 w-96 h-96 bg-[#B8935F]/10 rounded-full blur-[120px] pointer-events-none" />
 
       <div className="max-w-7xl lg:max-w-[1400px] xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        
+
         {/* Section Title Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
           <motion.div
@@ -66,7 +74,7 @@ export const AboutFounder: React.FC<AboutFounderProps> = ({ storeInfo }) => {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="text-3xl sm:text-5xl font-serif font-bold text-white tracking-tight"
           >
-            L'Histoire & La Direction
+            L'Histoire &amp; La Direction
             <span className="block text-2xl sm:text-3xl font-serif italic text-transparent bg-clip-text bg-gradient-to-r from-[#F3E5AB] via-[#D4AF37] to-[#AA771C] mt-2">
               « L'art de se démarquer »
             </span>
@@ -74,8 +82,8 @@ export const AboutFounder: React.FC<AboutFounderProps> = ({ storeInfo }) => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          
-          {/* Left Column: Founder Photo CAROUSEL (§5 — 3 images cycling, single frame, arrows + auto-play) */}
+
+          {/* Left Column: Single Founder Photo (no carousel) */}
           <div className="lg:col-span-5 relative">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
@@ -86,80 +94,43 @@ export const AboutFounder: React.FC<AboutFounderProps> = ({ storeInfo }) => {
             >
               <div className="aspect-[3/4] relative rounded-2xl overflow-hidden bg-black">
 
-                {/* Cycling images — AnimatePresence for smooth cross-fade */}
-                <AnimatePresence initial={false} custom={direction} mode="wait">
-                  <motion.img
-                    key={slide.id}
-                    custom={direction}
-                    initial={{ opacity: 0, x: direction * 40 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: direction * -40 }}
-                    transition={{ duration: 0.55, ease: 'easeInOut' }}
-                    src={slide.imageUrl}
-                    alt={slide.title}
-                    referrerPolicy="no-referrer"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src =
-                        'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?q=80&w=1200&auto=format&fit=crop';
-                    }}
-                    className="absolute inset-0 w-full h-full object-cover object-top filter saturate-[1.05]"
-                  />
-                </AnimatePresence>
+                {/* Single fixed photo */}
+                <img
+                  src={photoUrl}
+                  alt={name}
+                  referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src =
+                      'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?q=80&w=1200&auto=format&fit=crop';
+                  }}
+                  className="absolute inset-0 w-full h-full object-cover object-top filter saturate-[1.05]"
+                />
 
                 {/* Dark Vignette */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent pointer-events-none z-10" />
 
-                {/* Slide Badge */}
+                {/* Badge */}
                 <div className="absolute top-4 left-4 z-20 px-3 py-1 rounded-full bg-black/80 backdrop-blur-md border border-[#D4AF37]/40 text-[#D4AF37] text-xs font-mono font-bold">
-                  {slide.badge}
+                  {badge}
                 </div>
-
-                {/* Dot indicators */}
-                <div className="absolute top-4 right-4 z-20 flex gap-1.5">
-                  {FOUNDER_SLIDES.map((_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => goTo(i)}
-                      className={`w-2 h-2 rounded-full transition-all duration-300 cursor-pointer ${
-                        i === currentSlide ? 'bg-[#D4AF37] scale-125' : 'bg-white/40 hover:bg-white/70'
-                      }`}
-                    />
-                  ))}
-                </div>
-
-                {/* Prev / Next arrows */}
-                <button
-                  onClick={goPrev}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-black/70 backdrop-blur-sm border border-[#D4AF37]/40 flex items-center justify-center text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black transition-all cursor-pointer shadow-lg"
-                  aria-label="Image précédente"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={goNext}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-black/70 backdrop-blur-sm border border-[#D4AF37]/40 flex items-center justify-center text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black transition-all cursor-pointer shadow-lg"
-                  aria-label="Image suivante"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
 
                 {/* Bottom Info Overlay */}
                 <div className="absolute bottom-4 left-4 right-4 z-20 p-4 rounded-2xl bg-black/85 backdrop-blur-md border border-[#D4AF37]/40 text-center space-y-1 shadow-xl">
                   <span className="font-serif font-bold text-base sm:text-lg text-[#F3E5AB] block">
-                    {slide.title}
+                    {name}
                   </span>
                   <span className="text-xs font-sans text-amber-200/90 block">
-                    {slide.subtitle}
+                    {title}
                   </span>
                   <p className="text-[11px] text-gray-300 font-sans italic line-clamp-2 pt-1 border-t border-gray-800/80 mt-1">
-                    « {slide.description} »
+                    « {quote} »
                   </p>
                 </div>
               </div>
             </motion.div>
           </div>
 
-          {/* Right Column: Detailed Brand Presentation & PDF Conditions */}
+          {/* Right Column: Detailed Brand Presentation & Commitments */}
           <div className="lg:col-span-7 space-y-6">
             <motion.div
               initial={{ opacity: 0, x: 20 }}
@@ -170,10 +141,13 @@ export const AboutFounder: React.FC<AboutFounderProps> = ({ storeInfo }) => {
             >
               <div className="text-center">
                 <h3 className="text-2xl font-serif font-bold text-white mb-2 text-center">
-                  La Fondatrice : <span className="text-[#D4AF37]">Lizie Fifamè ALLATIN</span>
+                  {sectionSuffix
+                    ? <>{sectionPrefix} <span className="text-[#D4AF37]">{sectionSuffix}</span></>
+                    : <span className="text-[#D4AF37]">{sectionTitle}</span>
+                  }
                 </h3>
                 <p className="text-gray-300 font-sans text-sm sm:text-base leading-relaxed text-center max-w-xl mx-auto">
-                  Basée à <strong className="text-white">Abomey-Calavi (Zogbadjè, Bénin)</strong>, <strong className="text-[#F3E5AB]">ANONYM</strong> est une maison béninoise d'excellence dédiée aux bijoux personnalisés, la parfumerie et la conception de coffrets de prestige. Nous traduisons vos émotions, prénoms et dates mémorables en œuvres durables.
+                  {paragraph}
                 </p>
               </div>
 
@@ -189,33 +163,20 @@ export const AboutFounder: React.FC<AboutFounderProps> = ({ storeInfo }) => {
                 ))}
               </div>
 
-              {/* Catalog Official Commitments (PDF Data) */}
+              {/* Catalog Official Commitments */}
               <div className="space-y-3 pt-2">
                 <h4 className="text-base font-serif font-semibold text-[#D4AF37] flex items-center gap-2">
                   <Shield className="w-4 h-4 text-[#D4AF37]" />
-                  <span>Engagements & Informations du Catalogue Officiel</span>
+                  <span>Engagements &amp; Informations du Catalogue Officiel</span>
                 </h4>
 
                 <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm text-gray-300">
-                  <li className="flex items-start gap-2.5 bg-[#121212] p-3 rounded-xl border border-gray-800/80 hover:border-[#D4AF37]/30 transition-all">
-                    <CheckCircle2 className="w-4 h-4 text-[#D4AF37] shrink-0 mt-0.5" />
-                    <span><strong>Pour tous :</strong> Hommes, femmes, couples, enfants, bébés et animaux.</span>
-                  </li>
-
-                  <li className="flex items-start gap-2.5 bg-[#121212] p-3 rounded-xl border border-gray-800/80 hover:border-[#D4AF37]/30 transition-all">
-                    <Award className="w-4 h-4 text-[#D4AF37] shrink-0 mt-0.5" />
-                    <span><strong>Garantie 1 An :</strong> Acier inoxydable 316L, ne rouille ni ne noircit au parfum.</span>
-                  </li>
-
-                  <li className="flex items-start gap-2.5 bg-[#121212] p-3 rounded-xl border border-gray-800/80 hover:border-[#D4AF37]/30 transition-all">
-                    <Clock className="w-4 h-4 text-[#D4AF37] shrink-0 mt-0.5" />
-                    <span><strong>Délai de fabrication :</strong> 4 à 6 semaines au plus tard pour les bijoux d'importation.</span>
-                  </li>
-
-                  <li className="flex items-start gap-2.5 bg-[#121212] p-3 rounded-xl border border-gray-800/80 hover:border-[#D4AF37]/30 transition-all">
-                    <Sparkles className="w-4 h-4 text-[#D4AF37] shrink-0 mt-0.5" />
-                    <span><strong>Commission 10% :</strong> Programme d'apporteurs d'affaires et récompenses partenaires.</span>
-                  </li>
+                  {commitments.map((c, idx) => (
+                    <li key={idx} className="flex items-start gap-2.5 bg-[#121212] p-3 rounded-xl border border-gray-800/80 hover:border-[#D4AF37]/30 transition-all">
+                      <CommitmentIcon icon={c.icon} />
+                      <span><strong>{c.label}</strong> {c.text}</span>
+                    </li>
+                  ))}
                 </ul>
               </div>
 
@@ -226,7 +187,7 @@ export const AboutFounder: React.FC<AboutFounderProps> = ({ storeInfo }) => {
                     <PhoneCall className="w-5 h-5" />
                   </div>
                   <div>
-                    <span className="text-xs text-gray-400 block">Paiements & Transferts de Validation :</span>
+                    <span className="text-xs text-gray-400 block">Paiements &amp; Transferts de Validation :</span>
                     <span className="font-mono font-bold text-amber-200 text-sm">
                       {storeInfo.phone1} / {storeInfo.phone2}
                     </span>

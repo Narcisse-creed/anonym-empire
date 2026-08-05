@@ -1,16 +1,18 @@
 import React from 'react';
 import { StoreInfo } from '../types';
 import { buildWhatsAppLink } from '../utils/helpers';
-import { MessageCircle, Clock, ShieldCheck, Sparkles, Truck, CheckCircle } from 'lucide-react';
+import { ShoppingBag, Sparkles, MessageCircle, Clock, Truck, ShieldCheck, CheckCircle } from 'lucide-react';
 
 interface OrderingRulesSectionProps {
   storeInfo: StoreInfo;
 }
 
 export const OrderingRulesSection: React.FC<OrderingRulesSectionProps> = ({ storeInfo }) => {
-  const rules = [
+  const customRules = storeInfo.pageTexts?.processus?.rules || [];
+
+  const defaultRules = [
     {
-      icon: Sparkles,
+      icon: ShoppingBag,
       title: '1. Choisissez votre produit',
       description: 'Parcourez le catalogue ANONYM et sélectionnez le bijou, parfum, emballage ou accessoire de votre choix. Chaque pièce est unique et personnalisable.',
     },
@@ -40,6 +42,13 @@ export const OrderingRulesSection: React.FC<OrderingRulesSectionProps> = ({ stor
       description: 'Tous les bijoux en acier inoxydable 316L bénéficient d\'une garantie d\'un an contre la rouille et le noircissement. Satisfaction garantie ou échange possible.',
     },
   ];
+
+  const rules = defaultRules.map((def, idx) => ({
+    icon: def.icon,
+    title: customRules[idx]?.title || def.title,
+    description: customRules[idx]?.description || def.description,
+  }));
+
   return (
     <section id="comment-commander" className="py-16 bg-[#080808] text-white relative border-b border-[#D4AF37]/20">
       <div className="max-w-7xl lg:max-w-[1400px] xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
@@ -49,26 +58,28 @@ export const OrderingRulesSection: React.FC<OrderingRulesSectionProps> = ({ stor
             <span>Comment Commander</span>
           </div>
           <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white tracking-tight">
-            Le Processus ANONYM
+            {storeInfo.pageTexts?.processus?.title || 'Le Processus ANONYM'}
           </h2>
           <p className="text-sm text-gray-400 mt-2 font-sans">
-            De la sélection à la livraison, chaque étape est pensée pour votre satisfaction.
+            {storeInfo.pageTexts?.processus?.subtitle || 'De la sélection à la livraison, chaque étape est pensée pour votre satisfaction.'}
           </p>
         </div>
 
-        <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {rules.map((rule, idx) => (
             <div
               key={idx}
-              className="flex items-start gap-4 bg-[#0F0F0F] rounded-2xl border border-[#D4AF37]/15 p-5 hover:border-[#D4AF37]/30 transition-all group"
+              className="flex flex-col items-center text-center bg-[#0F0F0F] rounded-2xl border border-[#D4AF37]/20 p-6 hover:border-[#D4AF37]/50 hover:shadow-[0_0_20px_rgba(212,175,55,0.15)] transition-all duration-300 group"
             >
-              <div className="p-3 rounded-xl bg-[#1A160C] border border-[#D4AF37]/30 text-[#D4AF37] shrink-0 group-hover:bg-[#D4AF37]/10 transition-colors">
-                <rule.icon className="w-5 h-5" />
+              <div className="p-3.5 rounded-2xl bg-[#1A160C] border border-[#D4AF37]/40 text-[#D4AF37] mb-4 group-hover:scale-110 group-hover:bg-[#D4AF37] group-hover:text-black transition-all shadow-md">
+                <rule.icon className="w-6 h-6" />
               </div>
-              <div>
-                <h4 className="font-serif font-bold text-white text-sm mb-1">{rule.title}</h4>
-                <p className="text-xs text-gray-400 font-sans leading-relaxed">{rule.description}</p>
-              </div>
+              <h3 className="font-serif font-bold text-white text-base mb-2 group-hover:text-[#D4AF37] transition-colors">
+                {rule.title}
+              </h3>
+              <p className="text-xs text-gray-400 font-sans leading-relaxed">
+                {rule.description}
+              </p>
             </div>
           ))}
         </div>

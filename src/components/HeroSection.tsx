@@ -98,7 +98,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ storeInfo }) => {
   return (
     <section
       id="hero"
-      className="relative text-white overflow-hidden pt-10 pb-8 sm:pt-12 sm:pb-12 border-b border-[#D4AF37]/20"
+      className="relative text-white overflow-hidden py-8 sm:py-12 md:py-16 lg:py-20 xl:py-24 border-b border-[#D4AF37]/20 flex flex-col justify-center min-h-[45vh] lg:min-h-[52vh] xl:min-h-[56vh] w-full"
       style={{
         background: `
           radial-gradient(ellipse 120% 60% at 50% 0%, rgba(26,18,5,0.95) 0%, transparent 70%),
@@ -150,13 +150,38 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ storeInfo }) => {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="flex justify-center mb-8"
+          className="flex justify-center mb-3"
         >
-          <div className="inline-flex items-center gap-2.5 px-5 py-2 rounded-full bg-[#18150D]/80 border border-[#D4AF37]/40 shadow-[0_0_30px_rgba(212,175,55,0.25)] backdrop-blur-sm">
-            <CrownLogo size="sm" showText={false} />
-            <span className="font-serif italic text-xs sm:text-sm text-[#F3E5AB] tracking-wide">
-              Maison de Création &amp; Personnalisation
+          <div className="inline-flex items-center justify-center px-5 py-1.5 rounded-full bg-[#18150D]/80 border border-[#D4AF37]/40 shadow-[0_0_30px_rgba(212,175,55,0.25)] backdrop-blur-sm">
+            <span className="font-serif italic text-xs sm:text-sm text-[#F3E5AB] tracking-wide text-center">
+              {storeInfo.pageTexts?.accueil?.badgeTop || 'Maison de Création & Personnalisation'}
             </span>
+          </div>
+        </motion.div>
+
+        {/* Brand Logo Emblem — Centré et équilibré sous le badge et au-dessus du titre ANONYM */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.85 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.7, delay: 0.1 }}
+          className="flex flex-col items-center justify-center mb-2"
+        >
+          <div className="relative group">
+            {/* Ambient Gold Aura Glow */}
+            <div className="absolute inset-0 rounded-full bg-[#D4AF37]/35 blur-lg pointer-events-none transform scale-125 group-hover:scale-135 transition-transform duration-500" />
+            
+            {/* Balanced Official Logo Image / Emblem */}
+            <div className="relative w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-full bg-gradient-to-br from-[#2A2213] via-[#16120B] to-[#050403] p-1 border-2 border-[#D4AF37] shadow-[0_0_25px_rgba(212,175,55,0.4)] group-hover:border-[#F3E5AB] group-hover:shadow-[0_0_35px_rgba(212,175,55,0.55)] transition-all duration-300 flex items-center justify-center overflow-hidden">
+              <img
+                src="/images/logo-anonym-empire-transparent.png"
+                alt="ANONYM EMPIRE Logo"
+                className="w-full h-full object-contain object-center filter brightness-[1.35] contrast-[1.1] drop-shadow-[0_0_8px_rgba(212,175,55,0.7)] group-hover:scale-105 transition-transform duration-300"
+                style={{ mixBlendMode: 'screen' }}
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = '/images/logo-anonym-empire-transparent.png';
+                }}
+              />
+            </div>
           </div>
         </motion.div>
 
@@ -165,7 +190,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ storeInfo }) => {
           initial={{ opacity: 0, y: 30, scale: 0.96 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.8, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-          className="text-6xl sm:text-8xl lg:text-9xl font-serif font-extrabold tracking-tight text-center leading-[1.0] mb-5"
+          className="text-6xl sm:text-8xl lg:text-9xl font-serif font-extrabold tracking-tight text-center leading-[1.0] mb-2"
         >
           <motion.span
             animate={{
@@ -198,7 +223,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ storeInfo }) => {
           transition={{ duration: 0.7, delay: 0.3 }}
           className="text-2xl sm:text-3xl lg:text-4xl font-serif font-light italic text-center text-[#E8D5A3]/90 mb-8"
         >
-          « L'art de se démarquer »
+          {storeInfo.pageTexts?.accueil?.heroSubtitle || '« L\'art de se démarquer »'}
         </motion.p>
 
         {/* Quality badge — cascade step 4 */}
@@ -210,7 +235,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ storeInfo }) => {
         >
           <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-xl bg-[#0F0E08]/80 border border-[#D4AF37]/30 text-xs font-mono text-[#F3E5AB] backdrop-blur-sm shadow-[0_0_20px_rgba(212,175,55,0.15)]">
             <Sparkles className="w-3.5 h-3.5 text-[#D4AF37] fill-[#D4AF37] animate-pulse" />
-            <span className="tracking-[0.2em] uppercase">Qualité · Confiance · Élégance</span>
+            <span className="tracking-[0.2em] uppercase">
+              {storeInfo.pageTexts?.accueil?.badgeQuality || 'Qualité · Confiance · Élégance'}
+            </span>
           </div>
         </motion.div>
 
@@ -245,12 +272,12 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ storeInfo }) => {
           className="grid grid-cols-3 gap-4 sm:gap-6 lg:gap-8 max-w-2xl sm:max-w-3xl lg:max-w-4xl mx-auto mb-4 sm:mb-6"
         >
           {[
-            { value: '211+', label: 'Modèles de Bijoux', icon: Gem },
-            { value: '1 An', label: 'Garantie Inox 316L', icon: ShieldCheck },
-            { value: '100%', label: 'Sur-Mesure', icon: Star },
+            { value: storeInfo.pageTexts?.accueil?.stat1Value || '211+', label: storeInfo.pageTexts?.accueil?.stat1Label || 'Modèles de Bijoux', icon: Gem },
+            { value: storeInfo.pageTexts?.accueil?.stat2Value || '1 An', label: storeInfo.pageTexts?.accueil?.stat2Label || 'Garantie Inox 316L', icon: ShieldCheck },
+            { value: storeInfo.pageTexts?.accueil?.stat3Value || '100%', label: storeInfo.pageTexts?.accueil?.stat3Label || 'Sur-Mesure', icon: Star },
           ].map(({ value, label, icon: Icon }, i) => (
             <motion.div
-              key={label}
+              key={i}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.72 + i * 0.08 }}
