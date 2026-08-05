@@ -317,87 +317,142 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
   }, [collections, selectedCategory]);
 
   // ── products: bijoux ─────────────────────────────────────────────────────
+  // ── products: bijoux ─────────────────────────────────────────────────────
   const bijouxProducts = useMemo(() => {
-    if (bijouxCible === 'all' && bijouxType === 'all') {
-      return products.filter((p) => p.category === 'bijoux');
-    }
-    if (bijouxCible && bijouxCible !== 'all' && bijouxType === 'all') {
-      return products.filter((p) => {
-        if (p.category !== 'bijoux') return false;
+    const allBijoux = products.filter((p) => p.category === 'bijoux');
+    if (!bijouxCible && !bijouxType) return allBijoux;
+
+    return allBijoux.filter((p) => {
+      // 1. Filter by target gender if specified
+      if (bijouxCible && bijouxCible !== 'all') {
         if (bijouxCible === 'femme'  && p.gender !== 'femme'  && p.gender !== 'mixte') return false;
         if (bijouxCible === 'homme'  && p.gender !== 'homme'  && p.gender !== 'mixte') return false;
         if (bijouxCible === 'couple' && p.gender !== 'couple') return false;
         if (bijouxCible === 'enfant' && p.gender !== 'enfant' && p.gender !== 'mixte') return false;
-        return true;
-      });
-    }
-    if (!bijouxType || !bijouxCible) return [];
-    return products.filter((p) => {
-      if (p.category !== 'bijoux') return false;
-      if (bijouxCible === 'femme'  && p.gender !== 'femme'  && p.gender !== 'mixte') return false;
-      if (bijouxCible === 'homme'  && p.gender !== 'homme'  && p.gender !== 'mixte') return false;
-      if (bijouxCible === 'couple' && p.gender !== 'couple') return false;
-      if (bijouxCible === 'enfant' && p.gender !== 'enfant' && p.gender !== 'mixte') return false;
-      if (bijouxType !== 'autres') {
-        const name = p.name.toLowerCase();
-        const sub  = (p.subCategory || '').toLowerCase();
-        const kws: Record<string, string[]> = {
-          colliers:       ['collier', 'chaîne', 'chaine', 'pendentif', 'sautoir'],
-          bracelets:      ['bracelet', 'jonc', 'gourmette'],
-          bagues:         ['bague', 'anneau', 'chevalière'],
-          boucles:        ['boucle', 'créole', 'puce'],
-          'chaines-pieds':['pied', 'anklet'],
-          'perles-hanche':['perle', 'baya', 'hanche'],
-          montres:        ['montre', 'chrono'],
-          medailles:      ['médaille', 'medaille', 'plaque'],
-        };
-        const keywords = kws[bijouxType] || [bijouxType];
-        if (!keywords.some((k) => name.includes(k) || sub.includes(k))) return false;
       }
+
+      // 2. Filter by jewellery type if specified
+      if (bijouxType && bijouxType !== 'all' && bijouxType !== 'autres') {
+        const name = (p.name || '').toLowerCase();
+        const sub  = (p.subCategory || '').toLowerCase();
+        const mat  = (p.material || '').toLowerCase();
+        const text = `${name} ${sub} ${mat}`;
+
+        const kws: Record<string, string[]> = {
+          colliers:       ['collier', 'chaîne', 'chaine', 'pendentif', 'sautoir', 'médaillon', 'medaillon'],
+          bracelets:      ['bracelet', 'jonc', 'gourmette', 'manchette'],
+          bagues:         ['bague', 'anneau', 'chevalière', 'chevaliere', 'alliance'],
+          boucles:        ['boucle', 'créole', 'creole', 'puce', 'pendantes'],
+          'chaines-pieds':['pied', 'anklet', 'cheville'],
+          'perles-hanche':['perle', 'baya', 'hanche', 'taille'],
+          montres:        ['montre', 'chrono', 'cadran'],
+          medailles:      ['médaille', 'medaille', 'plaque', 'écusson', 'ecusson'],
+          manchettes:     ['manchette', 'bouton', 'boutons'],
+        };
+        const keywords = kws[bijouxType] || [bijouxType.toLowerCase()];
+        if (!keywords.some((k) => text.includes(k))) return false;
+      }
+
       return true;
     });
   }, [products, bijouxCible, bijouxType]);
 
   // ── products: emballages ─────────────────────────────────────────────────
   const embProducts = useMemo(() => {
-    if (embMode === 'all') return products.filter((p) => p.category === 'emballages');
-    if (!embSousFilter && !embMode) return [];
-    let list = products.filter((p) => p.category === 'emballages');
-    if (embSousFilter && embSousFilter !== 'all') {
-      const kw = embSousFilter.toLowerCase();
-      list = list.filter(
-        (p) =>
-          (p.subCategory || '').toLowerCase().includes(kw) ||
-          p.name.toLowerCase().includes(kw)
-      );
-    }
-    return list;
+    const allEmb = products.filter((p) => p.category === 'emballages');
+    if (!embMode || embMode === 'all') return allEmb;
+    if (!embSousFilter || embSousFilter === 'all') return allEmb;
+
+    const filterClean = (embSousFilter || '').toLowerCase().replace('emb-', '');
+
+    const keywordMap: Record<string, string[]> = {
+      // Types
+      boites:        ['boîte', 'boite', 'coffret', 'écrin', 'ecrin', 'box', 'étui', 'etui'],
+      sachets:       ['sachet', 'pochon', 'pochette', 'bag', 'velours'],
+      sacs:          ['sac', 'kraft', 'caba', 'tote', 'shopping'],
+      pots:          ['pot', 'bocal', 'jarre'],
+      flacons:       ['flacon', 'bouteille', 'fiole', 'spray', 'vaporisateur'],
+      
+      // Matériaux
+      papier:        ['papier', 'kraft', 'carton'],
+      plastique:     ['plastique', 'pvc', 'poly'],
+      verre:         ['verre', 'cristal'],
+      aluminium:     ['aluminium', 'alu', 'métal', 'metal'],
+      biodegradable: ['biodégradable', 'eco', 'écologique', 'recyclé', 'kraft'],
+      
+      // Secteurs
+      restauration:  ['restauration', 'alimentaire', 'repas', 'burger', 'nourriture'],
+      cosmetiques:   ['cosmétique', 'cosmetique', 'beauté', 'beaute', 'soin'],
+      boutiques:     ['boutique', 'magasin', 'shop', 'vente'],
+
+      // Occasions
+      mariage:       ['mariage', 'noces'],
+      anniversaire:  ['anniversaire', 'fête', 'fete'],
+      cadeaux:       ['cadeau', 'offrir', 'surprise'],
+      pro:           ['professionnel', 'entreprise', 'pro', 'event'],
+    };
+
+    const keywords = keywordMap[filterClean] || [filterClean];
+
+    const filtered = allEmb.filter((p) => {
+      const text = `${p.name} ${p.subCategory || ''} ${p.description || ''} ${p.material || ''}`.toLowerCase();
+      return keywords.some((kw) => text.includes(kw));
+    });
+
+    return filtered.length > 0 ? filtered : allEmb;
   }, [products, embSousFilter, embMode]);
 
   // ── products: parfums ───────────────────────────────────────────────────
   const parfumProducts = useMemo(() => {
-    if (anonymCollection === 'all') return products.filter((p) => p.category === 'parfums');
-    if (!anonymCollection) return [];
-    return products.filter((p) => {
-      if (p.category !== 'parfums') return false;
-      return p.collectionIds?.includes(anonymCollection) || (p.subCategory || '').toLowerCase().includes(anonymCollection.toLowerCase());
+    const allParfums = products.filter((p) => p.category === 'parfums');
+    if (!anonymCollection || anonymCollection === 'all') return allParfums;
+
+    const filtered = allParfums.filter((p) => {
+      if (p.collectionIds?.includes(anonymCollection)) return true;
+      const text = `${p.name} ${p.subCategory || ''} ${p.description || ''}`.toLowerCase();
+      const colClean = anonymCollection.toLowerCase().replace('anonym-', '');
+      return text.includes(colClean);
     });
+
+    return filtered.length > 0 ? filtered : allParfums;
   }, [products, anonymCollection]);
 
   // ── products: accessoires ─────────────────────────────────────────────────
   const accProducts = useMemo(() => {
-    if (accMode === 'all') return products.filter((p) => p.category === 'accessoires');
-    if (!accSubFilter && !accMode) return [];
-    let list = products.filter((p) => p.category === 'accessoires');
-    if (accSubFilter) {
-      const kw = accSubFilter.toLowerCase();
-      list = list.filter(
-        (p) =>
-          (p.subCategory || '').toLowerCase().includes(kw) ||
-          p.name.toLowerCase().includes(kw)
-      );
-    }
-    return list;
+    const allAcc = products.filter((p) => p.category === 'accessoires');
+    if (!accMode && !accSubFilter) return allAcc;
+    if (accMode === 'all' && (!accSubFilter || accSubFilter === 'all')) return allAcc;
+
+    const filterClean = (accSubFilter && accSubFilter !== 'all' ? accSubFilter : accMode || '').toLowerCase().replace('acc-', '');
+    if (!filterClean || filterClean === 'all') return allAcc;
+
+    const keywordMap: Record<string, string[]> = {
+      // Types
+      verres:         ['verre', 'gobelet', 'cup', 'chope'],
+      tasses:         ['tasse', 'mug', 'bol', 'thermos'],
+      stylos:         ['stylo', 'crayon', 'plume', 'pen'],
+      portecles:      ['porte-clés', 'porte clés', 'porte clef', 'porte-clef', 'porte-cles', 'clé', 'clef', 'keyring'],
+      nounours:       ['nounours', 'peluche', 'ours', 'doudou'],
+      bijoux:         ['bijou', 'bracelet', 'collier', 'plaque'],
+
+      // Occasions
+      cadeaux:        ['cadeau', 'offrir', 'coffret', 'souvenir'],
+      social:         ['social', 'événement', 'evenement', 'fête', 'fete'],
+      pro:            ['professionnel', 'entreprise', 'pro', 'business'],
+      entreprises:    ['entreprise', 'société', 'societe', 'bureau', 'goodies'],
+      anniversaire:   ['anniversaire', 'fête', 'fete'],
+      mariage:        ['mariage', 'noces', 'union'],
+      'saint-valentin':['valentin', 'amour', 'coeur', 'cœur'],
+    };
+
+    const keywords = keywordMap[filterClean] || [filterClean];
+
+    const filtered = allAcc.filter((p) => {
+      const text = `${p.name} ${p.subCategory || ''} ${p.description || ''} ${p.material || ''}`.toLowerCase();
+      return keywords.some((kw) => text.includes(kw));
+    });
+
+    return filtered.length > 0 ? filtered : allAcc;
   }, [products, accSubFilter, accMode]);
 
   // ── products: legacy collection ───────────────────────────────────────────
