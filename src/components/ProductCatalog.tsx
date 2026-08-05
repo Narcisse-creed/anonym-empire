@@ -333,12 +333,14 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
 
       // 2. Filter by jewellery type if specified
       if (bijouxType && bijouxType !== 'all' && bijouxType !== 'autres') {
+        const cleanType = bijouxType.replace(/^(femme|homme|enfant|couple|animaux)-/, '').toLowerCase();
         const sub = (p.subCategory || '').toLowerCase();
         // Direct subCategory match first
         const isDirectMatch =
-          sub === bijouxType.toLowerCase() ||
-          (bijouxType === 'boucles' && (sub === 'boucles' || sub === 'boucles-oreilles')) ||
-          (bijouxType === 'colliers' && sub.includes('collier'));
+          sub === cleanType ||
+          sub.includes(cleanType) ||
+          (cleanType === 'boucles' && (sub === 'boucles' || sub === 'boucles-oreilles')) ||
+          (cleanType === 'colliers' && sub.includes('collier'));
 
         if (!isDirectMatch) {
           const name = (p.name || '').toLowerCase();
@@ -356,7 +358,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
             medailles:      ['médaille', 'medaille', 'plaque', 'écusson', 'ecusson'],
             manchettes:     ['manchette', 'bouton', 'boutons'],
           };
-          const keywords = kws[bijouxType] || [bijouxType.toLowerCase()];
+          const keywords = kws[cleanType] || [cleanType];
           if (!keywords.some((k) => text.includes(k))) return false;
         }
       }
@@ -371,7 +373,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
     if (!embMode || embMode === 'all') return allEmb;
     if (!embSousFilter || embSousFilter === 'all') return allEmb;
 
-    const filterClean = (embSousFilter || '').toLowerCase().replace('emb-', '');
+    const filterClean = (embSousFilter || '').toLowerCase().replace(/^(emb|type|materiau|secteur|occasion)-/, '');
 
     const keywordMap: Record<string, string[]> = {
       // Types
@@ -435,7 +437,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
     if (!accMode && !accSubFilter) return allAcc;
     if (accMode === 'all' && (!accSubFilter || accSubFilter === 'all')) return allAcc;
 
-    const filterClean = (accSubFilter && accSubFilter !== 'all' ? accSubFilter : accMode || '').toLowerCase().replace('acc-', '');
+    const filterClean = (accSubFilter && accSubFilter !== 'all' ? accSubFilter : accMode || '').toLowerCase().replace(/^(acc|cadeaux|social|pro|entreprises|anniversaire|mariage|saint-valentin)-/, '');
     if (!filterClean || filterClean === 'all') return allAcc;
 
     const keywordMap: Record<string, string[]> = {
