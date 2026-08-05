@@ -816,7 +816,7 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
 
               <div>
                 <h3 className="text-2xl font-serif font-bold text-white mb-2">
-                  Accès Restreint Propriétaire
+                  Espace Privé
                 </h3>
                 <p className="text-xs text-gray-400">
                   Veuillez saisir votre mot de passe pour gérer les bijoux, ajouter des photos ou modifier les tarifs.
