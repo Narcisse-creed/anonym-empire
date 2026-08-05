@@ -28,7 +28,7 @@ interface State {
   error: Error | null;
 }
 
-class GlobalErrorBoundary extends Component<Props, State> {
+class GlobalErrorBoundary extends React.Component<Props, State> {
   public state: State = {
     hasError: false,
     error: null,

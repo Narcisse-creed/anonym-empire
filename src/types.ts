@@ -31,14 +31,14 @@ export type SubCategory =
   | 'accessoires'
   | string;
 
-export type GenderCategory = 'femme' | 'homme' | 'couple' | 'mixte';
+export type GenderCategory = 'femme' | 'homme' | 'couple' | 'mixte' | 'enfant';
 
 export type MetalFinish = 'or-jaune' | 'argent-massif' | 'or-rose' | 'noir-mat';
 
 export type AvailabilityStatus = 'disponible' | 'sur-commande' | 'en-arrivage' | 'epuise' | 'nouveau';
 
 export interface FounderCommitment {
-  icon: 'check' | 'award' | 'clock' | 'sparkles' | 'phone';
+  icon?: 'check' | 'award' | 'clock' | 'sparkles' | 'phone' | string;
   label: string;
   text: string;
 }
@@ -116,6 +116,7 @@ export interface Notification {
 export interface QuoteRequest {
   id: string;
   productType: string;
+  category?: CategoryId;
   description: string;
   quantity: number;
   budget?: string;

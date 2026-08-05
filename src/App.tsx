@@ -48,14 +48,21 @@ import {
 } from './utils/helpers';
 import { SubCategoryLevel1, SubCategoryLevel2 } from './types';
 
-// Top-level Error Boundary for Admin Modal in App.tsx
-class AdminOuterErrorBoundary extends React.Component<
-  { children: React.ReactNode; onClose: () => void },
-  { hasError: boolean; error: Error | null }
-> {
-  constructor(props: any) {
+interface AdminOuterErrorBoundaryProps {
+  children: React.ReactNode;
+  onClose: () => void;
+}
+
+interface AdminOuterErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+class AdminOuterErrorBoundary extends React.Component<AdminOuterErrorBoundaryProps, AdminOuterErrorBoundaryState> {
+  public state: AdminOuterErrorBoundaryState = { hasError: false, error: null };
+
+  constructor(props: AdminOuterErrorBoundaryProps) {
     super(props);
-    this.state = { hasError: false, error: null };
   }
 
   static getDerivedStateFromError(error: Error) {

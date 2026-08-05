@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Product, StoreInfo, CategoryId, SubCategory, GenderCategory, Collection, Review, QuoteRequest, Order, AnalyticsData, SubCategoryLevel1, SubCategoryLevel2, RealisationCollection, RealisationPhoto } from '../types';
+import { Product, StoreInfo, CategoryId, SubCategory, GenderCategory, Collection, Review, QuoteRequest, Order, AnalyticsData, SubCategoryLevel1, SubCategoryLevel2, RealisationCollection, RealisationPhoto, AvailabilityStatus } from '../types';
 import { UNIVERSE_CATEGORIES } from '../data/categories';
 import { loadProducts, saveProducts, loadStoreInfo, saveStoreInfo, loadCollections, saveCollections, loadReviews, saveReviews, loadQuoteRequests, saveQuoteRequests, loadNotifications, saveNotifications, loadOrders, saveOrders, loadAnalytics, saveAnalytics, formatPriceFCFA } from '../utils/helpers';
 import { X, Lock, Key, Plus, Edit2, Trash2, RotateCcw, Save, ShieldCheck, Download, Upload, ChevronUp, ChevronDown, Filter, Star, FileText, BarChart3, MessageSquare, Clock, CheckCircle, XCircle, Package, Settings, Layout, Eye, EyeOff, Search, ArrowUpDown, ArrowUp, ArrowDown, Image as ImageIcon, Users, TrendingUp, Sparkles, ShoppingBag } from 'lucide-react';
@@ -39,6 +39,7 @@ interface AdminPortalModalProps {
   onDeleteOrder: (id: string) => void;
   analytics: AnalyticsData;
   onTrackProductView: (productId: string) => void;
+  onUpdateAnalytics?: (data: AnalyticsData) => void;
   subCategoriesLvl1?: SubCategoryLevel1[];
   subCategoriesLvl2?: SubCategoryLevel2[];
   onAddSubCatLvl1?: (cat: Omit<SubCategoryLevel1, 'id' | 'order'>) => void;
@@ -57,14 +58,21 @@ interface AdminPortalModalProps {
   onReorderRealisationCollections?: (cols: RealisationCollection[]) => void;
 }
 
-// Defensive Error Boundary for Admin Portal (Top-level module scope to prevent unmount on re-render)
-class AdminErrorBoundary extends React.Component<
-  { children: React.ReactNode; onReset?: () => void },
-  { hasError: boolean; errorMessage: string }
-> {
-  constructor(props: any) {
+interface AdminErrorBoundaryProps {
+  children: React.ReactNode;
+  onReset?: () => void;
+}
+
+interface AdminErrorBoundaryState {
+  hasError: boolean;
+  errorMessage: string;
+}
+
+class AdminErrorBoundary extends React.Component<AdminErrorBoundaryProps, AdminErrorBoundaryState> {
+  public state: AdminErrorBoundaryState = { hasError: false, errorMessage: '' };
+
+  constructor(props: AdminErrorBoundaryProps) {
     super(props);
-    this.state = { hasError: false, errorMessage: '' };
   }
 
   static getDerivedStateFromError(error: Error) {
@@ -136,7 +144,7 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
   onAddOrder,
   onUpdateOrderStatus,
   onDeleteOrder,
-  analytics = { totalViews: 0, totalOrders: 0, revenueEstimate: 0, viewsByProduct: {} },
+  analytics = { productViews: {}, favorites: {}, totalOrders: 0, totalRevenue: 0, updatedAt: new Date().toISOString(), visitorLogs: [], totalVisits: 0 },
   onTrackProductView,
   subCategoriesLvl1 = [],
   subCategoriesLvl2 = [],
@@ -2895,11 +2903,11 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                     <div className="space-y-2 pt-2 border-t border-gray-900">
                       <label className="text-[11px] font-semibold text-[#D4AF37] block">Engagements & Informations Officieuses (1 à 4)</label>
                       {[0, 1, 2, 3].map((idx) => {
-                        const defaultCommitments = [
-                          { label: 'Garantie Inox 316L 1 An :', text: 'Nos bijoux ne rouillent pas, ne noircissent pas et résistent à l\'eau.' },
-                          { label: 'Gravure Laser & Impression HD :', text: 'Personnalisation millimétrée des prénoms, dates, symboles et logos.' },
-                          { label: 'Expédition & Livraison Bénin :', text: 'Livraison sécurisée à Cotonou, Abomey-Calavi, Parakou et toute la sous-région.' },
-                          { label: 'Service Client Direct WhatsApp :', text: 'Accompagnement personnalisé et réponse sous 24h par notre équipe.' },
+                        const defaultCommitments: import('../types').FounderCommitment[] = [
+                          { icon: 'check', label: 'Garantie Inox 316L 1 An :', text: 'Nos bijoux ne rouillent pas, ne noircissent pas et résistent à l\'eau.' },
+                          { icon: 'check', label: 'Gravure Laser & Impression HD :', text: 'Personnalisation millimétrée des prénoms, dates, symboles et logos.' },
+                          { icon: 'check', label: 'Expédition & Livraison Bénin :', text: 'Livraison sécurisée à Cotonou, Abomey-Calavi, Parakou et toute la sous-région.' },
+                          { icon: 'check', label: 'Service Client Direct WhatsApp :', text: 'Accompagnement personnalisé et réponse sous 24h par notre équipe.' },
                         ];
                         const currentCommitments = storeFormData.founderSection?.commitments || defaultCommitments;
                         const itemLabel = currentCommitments[idx]?.label || defaultCommitments[idx].label;
@@ -2916,7 +2924,7 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                                 onChange={(e) => {
                                   const updated = [...currentCommitments];
                                   while (updated.length <= idx) updated.push({ icon: 'check', label: '', text: '' });
-                                  updated[idx] = { ...updated[idx], label: e.target.value };
+                                  updated[idx] = { icon: (updated[idx]?.icon || 'check'), label: e.target.value, text: (updated[idx]?.text || '') };
                                   setStoreFormData({
                                     ...storeFormData,
                                     founderSection: { ...(storeFormData.founderSection || {}), commitments: updated },
@@ -2929,9 +2937,9 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                                 value={itemText}
                                 placeholder="Texte explicatif..."
                                 onChange={(e) => {
-                                  const updated = [...currentCommitments];
+                                  const updated: import('../types').FounderCommitment[] = [...currentCommitments];
                                   while (updated.length <= idx) updated.push({ icon: 'check', label: '', text: '' });
-                                  updated[idx] = { ...updated[idx], text: e.target.value };
+                                  updated[idx] = { icon: (updated[idx]?.icon || 'check'), label: (updated[idx]?.label || ''), text: e.target.value };
                                   setStoreFormData({
                                     ...storeFormData,
                                     founderSection: { ...(storeFormData.founderSection || {}), commitments: updated },
@@ -3501,11 +3509,12 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                     const totalVisits = analytics.totalVisits || logs.length;
 
                     const totalRevenue = orders.reduce((sum, o) => sum + (o.totalPrice || 0), 0);
-                    const totalViews = Object.values(analytics.productViews || {}).reduce((a, b) => a + b, 0);
+                    const viewsMap: Record<string, number> = analytics.productViews || {};
+                    const totalViews = Object.values(viewsMap).reduce((a, b) => (a || 0) + (b || 0), 0);
 
                     // Top viewed product
-                    const topViewedEntry = Object.entries(analytics.productViews || {})
-                      .sort(([, a], [, b]) => b - a)[0];
+                    const topViewedEntry = Object.entries(viewsMap)
+                      .sort(([, a], [, b]) => (b || 0) - (a || 0))[0];
                     const topViewedProduct = topViewedEntry ? products.find((p) => p.id === topViewedEntry[0]) : null;
 
                     // Top ordered product
@@ -3632,12 +3641,13 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                           </div>
 
                           {(() => {
-                            const topViewed = Object.entries(analytics.productViews || {})
-                              .sort(([, a], [, b]) => b - a)
+                            const pViews: Record<string, number> = analytics.productViews || {};
+                            const topViewed = Object.entries(pViews)
+                              .sort(([, a], [, b]) => (b || 0) - (a || 0))
                               .slice(0, 5)
                               .map(([id, views]) => ({
                                 product: products.find((p) => p.id === id),
-                                views,
+                                views: Number(views) || 0,
                               }))
                               .filter((item) => item.product);
 

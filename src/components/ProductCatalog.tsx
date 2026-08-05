@@ -236,7 +236,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
   const [embSousFilter, setEmbSousFilter] = useState<string | null>(null);
 
   // Accessoires navigation
-  const [accMode,      setAccMode]      = useState<'occasion' | 'type' | null>(null);
+  const [accMode,      setAccMode]      = useState<string | null>(null);
   const [accSubFilter, setAccSubFilter] = useState<string | null>(null);
 
   // Legacy collection navigation
@@ -357,6 +357,32 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
       return true;
     });
   }, [products, bijouxCible, bijouxType]);
+
+  // ── products: emballages ─────────────────────────────────────────────────
+  const embProducts = useMemo(() => {
+    if (embMode === 'all') return products.filter((p) => p.category === 'emballages');
+    if (!embSousFilter && !embMode) return [];
+    let list = products.filter((p) => p.category === 'emballages');
+    if (embSousFilter && embSousFilter !== 'all') {
+      const kw = embSousFilter.toLowerCase();
+      list = list.filter(
+        (p) =>
+          (p.subCategory || '').toLowerCase().includes(kw) ||
+          p.name.toLowerCase().includes(kw)
+      );
+    }
+    return list;
+  }, [products, embSousFilter, embMode]);
+
+  // ── products: parfums ───────────────────────────────────────────────────
+  const parfumProducts = useMemo(() => {
+    if (anonymCollection === 'all') return products.filter((p) => p.category === 'parfums');
+    if (!anonymCollection) return [];
+    return products.filter((p) => {
+      if (p.category !== 'parfums') return false;
+      return p.collectionIds?.includes(anonymCollection) || (p.subCategory || '').toLowerCase().includes(anonymCollection.toLowerCase());
+    });
+  }, [products, anonymCollection]);
 
   // ── products: accessoires ─────────────────────────────────────────────────
   const accProducts = useMemo(() => {

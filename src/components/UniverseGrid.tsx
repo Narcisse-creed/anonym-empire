@@ -5,9 +5,9 @@ import { StoreInfo, CategoryId } from '../types';
 import { Home, Gem, Sparkles, Package, ShoppingBag, ChevronLeft, ShieldCheck, Award, Truck } from 'lucide-react';
 
 interface UniverseGridProps {
-  activeCategory: CategoryId | 'accueil';
+  activeCategory: CategoryId | 'accueil' | 'contact';
   showGrid: boolean;
-  onSelectCategory: (cat: CategoryId | 'accueil') => void;
+  onSelectCategory: (cat: CategoryId | 'accueil' | 'contact') => void;
   onBackToGrid: () => void;
   storeInfo?: StoreInfo;
 }

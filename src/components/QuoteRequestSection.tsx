@@ -29,6 +29,7 @@ export const QuoteRequestSection: React.FC<QuoteRequestSectionProps> = ({ storeI
     if (!formData.contactName.trim() || !formData.contactPhone.trim()) return;
 
     const requestPayload = {
+      productType: formData.productType || 'bijoux',
       category: (formData.productType.toLowerCase() as any) || 'bijoux',
       description: formData.description,
       quantity: formData.quantity,
