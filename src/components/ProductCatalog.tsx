@@ -192,7 +192,7 @@ const PageShell: React.FC<{
   title: string;
   children: React.ReactNode;
 }> = ({ back, breadcrumb, title, children }) => (
-  <section id="catalogue" className="py-12 bg-[#080808] text-white min-h-screen">
+  <section id="catalogue" className="py-12 bg-[#080808] text-white min-h-0">
     <motion.div
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
@@ -544,7 +544,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
     );
 
     return (
-      <section id="catalogue" className="py-12 bg-[#080808] text-white min-h-screen">
+      <section id="catalogue" className="py-12 bg-[#080808] text-white min-h-0">
         <div className="max-w-7xl lg:max-w-[1400px] xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
           {/* Back + breadcrumb */}
           <div className="flex items-center justify-between mb-4">
@@ -984,7 +984,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
   if (selectedCategory === 'bijoux') {
     const totalBijouxCount = products.filter((p) => p.category === 'bijoux').length;
     return (
-      <section id="catalogue" className="py-16 bg-[#080808] text-white min-h-screen">
+      <section id="catalogue" className="py-16 bg-[#080808] text-white min-h-0">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -1081,7 +1081,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
   if (selectedCategory === 'accessoires') {
     const totalAccCount = products.filter((p) => p.category === 'accessoires').length;
     return (
-      <section id="catalogue" className="py-16 bg-[#080808] text-white min-h-screen">
+      <section id="catalogue" className="py-16 bg-[#080808] text-white min-h-0">
         <motion.div
           initial={{ opacity: 0, y: 25 }}
           animate={{ opacity: 1, y: 0 }}
@@ -1135,7 +1135,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
     const adminParfumsCollections = collections.filter((c) => c.category === 'parfums' && c.visible !== false);
     const totalParfumsCount = products.filter((p) => p.category === 'parfums').length;
     return (
-      <section id="catalogue" className="py-16 bg-[#080808] text-white min-h-screen">
+      <section id="catalogue" className="py-16 bg-[#080808] text-white min-h-0">
         <motion.div
           initial={{ opacity: 0, filter: 'blur(8px)', y: 15 }}
           animate={{ opacity: 1, filter: 'blur(0px)', y: 0 }}
@@ -1221,7 +1221,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
   if (selectedCategory === 'emballages') {
     const totalEmbCount = products.filter((p) => p.category === 'emballages').length;
     return (
-      <section id="catalogue" className="py-16 bg-[#080808] text-white min-h-screen">
+      <section id="catalogue" className="py-16 bg-[#080808] text-white min-h-0">
         <motion.div
           initial={{ opacity: 0, scale: 0.94, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -1265,7 +1265,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
   // LEGACY: Collections list (parfums, emballages) — boutons texte
   // ─────────────────────────────────────────────────────────────────────────
   return (
-    <section id="catalogue" className="py-16 bg-[#080808] text-white min-h-screen">
+    <section id="catalogue" className="py-16 bg-[#080808] text-white min-h-0">
       <div className="max-w-7xl lg:max-w-[1400px] xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-10">
           <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white tracking-tight mb-2">

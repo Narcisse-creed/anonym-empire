@@ -489,7 +489,7 @@ export default function App() {
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
-    <div className="min-h-screen flex flex-col justify-between bg-[#050505] text-white font-sans antialiased overflow-x-hidden">
+    <div className="min-h-screen flex flex-col bg-[#050505] text-white font-sans antialiased overflow-x-hidden">
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <RoyalBackgroundAnimation />
         <div className="absolute top-1/4 left-10 w-[500px] h-[500px] bg-[#D4AF37]/10 rounded-full blur-[140px] pointer-events-none" />
@@ -511,7 +511,7 @@ export default function App() {
         onNavigateSection={handleNavigateSection}
       />
 
-      <main className="relative z-10 flex-1 flex flex-col justify-between w-full">
+      <main className="relative z-10 flex-1 flex flex-col w-full">
         {/* ── HERO (always visible) ── */}
         <HeroSection
           storeInfo={storeInfo}
