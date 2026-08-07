@@ -132,11 +132,11 @@ export const Navbar: React.FC<NavbarProps> = ({
   const btnBase =
     'px-4 py-2 rounded-xl text-xs lg:text-sm font-semibold tracking-widest uppercase transition-all cursor-pointer';
   const btnActive =
-    'text-[#D4AF37] bg-[#D4AF37]/15 border border-[#D4AF37]/50 shadow-[0_0_20px_rgba(212,175,55,0.35)] font-bold';
-  const btnIdle = 'text-gray-300 hover:text-[#D4AF37] hover:bg-white/5';
+    'text-[#D4AF37] bg-[#D4AF37]/15 border border-[#D4AF37]/50 shadow-[0_0_20px_rgba(212,175,55,0.25)] font-bold';
+  const btnIdle = 'text-gray-700 hover:text-[#D4AF37] hover:bg-black/5';
 
   return (
-    <header className="sticky top-0 z-40 bg-[#0A0A0A]/95 backdrop-blur-md border-b border-[#D4AF37]/20 shadow-[0_4px_30px_rgba(0,0,0,0.8)] transition-all">
+    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#D4AF37]/25 shadow-[0_2px_20px_rgba(0,0,0,0.08)] transition-all">
       {/* ── Marquee ticker ── */}
       <div className="overflow-hidden bg-[#0D0D0D] border-b border-[#D4AF37]/10 py-1.5">
         <div className="whitespace-nowrap animate-[marqueeScroll_35s_linear_infinite] inline-block text-[10px] font-mono text-[#D4AF37]/70 tracking-widest uppercase">
@@ -218,7 +218,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Cart */}
           <button
             onClick={onOpenCart}
-            className="relative p-2.5 rounded-full bg-[#161616] hover:bg-[#222222] border border-[#D4AF37]/40 text-[#D4AF37] transition-all cursor-pointer shadow-md group"
+            className="relative p-2.5 rounded-full bg-white hover:bg-gray-50 border border-[#D4AF37]/40 text-[#D4AF37] transition-all cursor-pointer shadow-sm group"
             title="Mon Panier / Sélection"
           >
             <ShoppingBag className="w-5 h-5 group-hover:scale-110 transition-transform" />
@@ -244,7 +244,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Mobile hamburger */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 rounded-xl bg-[#161616] text-gray-300 hover:text-[#D4AF37] border border-gray-800 focus:outline-none"
+            className="md:hidden p-2 rounded-xl bg-gray-100 text-gray-700 hover:text-[#D4AF37] border border-gray-200 focus:outline-none"
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
@@ -253,11 +253,11 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-[#0A0A0A] border-b border-[#D4AF37]/30 px-4 pt-3 pb-6 space-y-3">
+        <div className="md:hidden bg-white border-b border-[#D4AF37]/25 px-4 pt-3 pb-6 space-y-3 shadow-lg">
           <button
             onClick={() => handleNavClick('hero')}
             className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium tracking-wider uppercase transition-all ${
-              activeSection === 'hero' ? 'bg-[#D4AF37]/15 text-[#D4AF37] border border-[#D4AF37]/30' : 'text-gray-300'
+              activeSection === 'hero' ? 'bg-[#D4AF37]/15 text-[#D4AF37] border border-[#D4AF37]/30' : 'text-gray-700 hover:text-[#D4AF37] hover:bg-gray-50'
             }`}
           >
             Accueil
@@ -265,7 +265,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             onClick={() => handleNavClick('catalogue')}
             className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium tracking-wider uppercase transition-all ${
-              activeSection === 'catalogue' ? 'bg-[#D4AF37]/15 text-[#D4AF37] border border-[#D4AF37]/30' : 'text-gray-300'
+              activeSection === 'catalogue' ? 'bg-[#D4AF37]/15 text-[#D4AF37] border border-[#D4AF37]/30' : 'text-gray-700 hover:text-[#D4AF37] hover:bg-gray-50'
             }`}
           >
             Catalogue (5 Cartes)
@@ -273,7 +273,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             onClick={() => handleNavClick('contact')}
             className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium tracking-wider uppercase transition-all ${
-              activeSection === 'contact' ? 'bg-[#D4AF37]/15 text-[#D4AF37] border border-[#D4AF37]/30' : 'text-gray-300'
+              activeSection === 'contact' ? 'bg-[#D4AF37]/15 text-[#D4AF37] border border-[#D4AF37]/30' : 'text-gray-700 hover:text-[#D4AF37] hover:bg-gray-50'
             }`}
           >
             Contact

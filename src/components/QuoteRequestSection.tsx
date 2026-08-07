@@ -61,10 +61,10 @@ export const QuoteRequestSection: React.FC<QuoteRequestSectionProps> = ({ storeI
 
   if (submitted) {
     return (
-      <section id="devis" className="py-20 bg-[#0B0B0B] text-white relative border-b border-[#D4AF37]/20">
+      <section id="devis" className="py-20 bg-[#F0EDE7] text-[#1A1A1A] relative border-b border-[#D4AF37]/20">
         <div className="max-w-2xl mx-auto px-4 text-center">
           <ShieldCheck className="w-16 h-16 text-[#D4AF37] mx-auto mb-4" />
-          <h2 className="text-2xl font-serif font-bold text-white mb-3">Demande de Devis Envoyée</h2>
+          <h2 className="text-2xl font-serif font-bold text-gray-900 mb-3">Demande de Devis Envoyée</h2>
           <p className="text-sm text-gray-400 mb-6">
             Nous vous remercions pour votre demande. Un conseiller ANONYM vous contactera sous peu via WhatsApp.
           </p>
@@ -81,29 +81,29 @@ export const QuoteRequestSection: React.FC<QuoteRequestSectionProps> = ({ storeI
   }
 
   return (
-    <section id="devis" className="py-16 bg-[#0B0B0B] text-white relative border-b border-[#D4AF37]/20">
+    <section id="devis" className="py-16 bg-[#F0EDE7] text-[#1A1A1A] relative border-b border-[#D4AF37]/20">
       <div className="max-w-4xl lg:max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1A160C] border border-[#D4AF37]/40 text-[#D4AF37] text-xs font-semibold uppercase tracking-widest mb-3">
             <FileText className="w-3.5 h-3.5" />
             <span>Sur Mesure / Demande de Devis</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white tracking-tight">
+          <h2 className="text-3xl sm:text-4xl font-serif font-bold text-gray-900 tracking-tight">
             {storeInfo.pageTexts?.devis?.title || 'Demande de Devis Personnalisé'}
           </h2>
-          <p className="text-sm text-gray-400 mt-2 font-sans">
+          <p className="text-sm text-gray-600 mt-2 font-sans">
             {storeInfo.pageTexts?.devis?.subtitle || 'Décrivez votre projet et un conseiller ANONYM vous contactera sous peu.'}
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-[#121212] rounded-3xl border border-[#D4AF37]/30 p-6 sm:p-8 space-y-6">
+        <form onSubmit={handleSubmit} className="bg-white rounded-3xl border border-[#D4AF37]/30 p-6 sm:p-8 space-y-6 shadow-sm">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-[#D4AF37] uppercase mb-1">Type de Produit</label>
               <select
                 value={formData.productType}
                 onChange={(e) => setFormData({ ...formData, productType: e.target.value })}
-                className="w-full bg-black/80 border border-gray-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-[#D4AF37]"
+                className="w-full bg-gray-50 border border-gray-300 rounded-xl p-3 text-sm text-gray-900 focus:outline-none focus:border-[#D4AF37]"
               >
                 {productTypes.map((t) => (
                   <option key={t} value={t}>{t}</option>
@@ -121,7 +121,7 @@ export const QuoteRequestSection: React.FC<QuoteRequestSectionProps> = ({ storeI
                   setFormData({ ...formData, quantity: val ? Math.max(1, parseInt(val)) : 1 });
                 }}
                 placeholder="1"
-                className="w-full bg-black/80 border border-gray-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-[#D4AF37]"
+                className="w-full bg-gray-50 border border-gray-300 rounded-xl p-3 text-sm text-gray-900 focus:outline-none focus:border-[#D4AF37]"
               />
             </div>
           </div>
@@ -135,7 +135,7 @@ export const QuoteRequestSection: React.FC<QuoteRequestSectionProps> = ({ storeI
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder="Décrivez ce que vous souhaitez commander en détail..."
-              className="w-full bg-black/80 border border-gray-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-[#D4AF37]"
+              className="w-full bg-gray-50 border border-gray-300 rounded-xl p-3 text-sm text-gray-900 focus:outline-none focus:border-[#D4AF37] placeholder:text-gray-400"
             />
           </div>
 
@@ -147,7 +147,7 @@ export const QuoteRequestSection: React.FC<QuoteRequestSectionProps> = ({ storeI
                 value={formData.budget}
                 onChange={(e) => setFormData({ ...formData, budget: e.target.value.replace(/\D/g, '') })}
                 placeholder="Ex: 50000 (Chiffres uniquement)"
-                className="w-full bg-black/80 border border-gray-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-[#D4AF37]"
+                className="w-full bg-gray-50 border border-gray-300 rounded-xl p-3 text-sm text-gray-900 focus:outline-none focus:border-[#D4AF37] placeholder:text-gray-400"
               />
             </div>
             <div>
@@ -157,7 +157,7 @@ export const QuoteRequestSection: React.FC<QuoteRequestSectionProps> = ({ storeI
                 min={new Date().toISOString().split('T')[0]}
                 value={formData.deadline}
                 onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
-                className="w-full bg-black/80 border border-gray-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-[#D4AF37]"
+                className="w-full bg-gray-50 border border-gray-300 rounded-xl p-3 text-sm text-gray-900 focus:outline-none focus:border-[#D4AF37]"
               />
             </div>
           </div>
@@ -172,7 +172,7 @@ export const QuoteRequestSection: React.FC<QuoteRequestSectionProps> = ({ storeI
             />
           </div>
 
-          <div className="bg-[#1A160C] rounded-xl p-4 border border-[#D4AF37]/20">
+          <div className="bg-[#FAF8F3] rounded-xl p-4 border border-[#D4AF37]/30">
             <h4 className="text-xs font-bold text-[#D4AF37] uppercase tracking-wider mb-3">Vos Coordonnées</h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
@@ -184,7 +184,7 @@ export const QuoteRequestSection: React.FC<QuoteRequestSectionProps> = ({ storeI
                   value={formData.contactName}
                   onChange={(e) => setFormData({ ...formData, contactName: e.target.value })}
                   placeholder="Ex: Marie Dossou"
-                  className="w-full bg-black/80 border border-gray-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-[#D4AF37]"
+                  className="w-full bg-white border border-gray-300 rounded-xl p-3 text-sm text-gray-900 focus:outline-none focus:border-[#D4AF37] placeholder:text-gray-400"
                 />
               </div>
               <div>
@@ -195,7 +195,7 @@ export const QuoteRequestSection: React.FC<QuoteRequestSectionProps> = ({ storeI
                   value={formData.contactPhone}
                   onChange={(e) => setFormData({ ...formData, contactPhone: e.target.value.replace(/[^\d\s+\-()]/g, '') })}
                   placeholder="Ex: +229 97 00 00 00"
-                  className="w-full bg-black/80 border border-gray-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-[#D4AF37]"
+                  className="w-full bg-white border border-gray-300 rounded-xl p-3 text-sm text-gray-900 focus:outline-none focus:border-[#D4AF37] placeholder:text-gray-400"
                 />
               </div>
             </div>

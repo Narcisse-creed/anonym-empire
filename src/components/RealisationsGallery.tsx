@@ -154,7 +154,7 @@ export const RealisationsGallery: React.FC<RealisationsGalleryProps> = ({ realis
 
   return (
     <>
-      <section id="realisations" className="py-16 bg-[#070707] text-white relative overflow-hidden">
+      <section id="realisations" className="py-16 bg-[#F8F6F2] relative overflow-hidden">
         {/* Subtle background glow */}
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[600px] h-[200px] bg-[#D4AF37]/5 blur-[100px] rounded-full pointer-events-none" />
 
@@ -171,10 +171,10 @@ export const RealisationsGallery: React.FC<RealisationsGalleryProps> = ({ realis
               <Sparkles className="w-3.5 h-3.5" />
               Nos Réalisations
             </div>
-            <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white tracking-tight mb-3">
+            <h2 className="text-3xl sm:text-4xl font-serif font-bold text-gray-900 tracking-tight mb-3">
               Créations Passées
             </h2>
-            <p className="text-sm text-gray-400 max-w-xl mx-auto leading-relaxed">
+            <p className="text-sm text-gray-600 max-w-xl mx-auto leading-relaxed">
               Découvrez quelques-unes de nos réalisations — des créations uniques livrées à nos clientes, 
               témoignant du soin et du savoir-faire qui anime chaque pièce ANONYM.
             </p>
@@ -195,8 +195,8 @@ export const RealisationsGallery: React.FC<RealisationsGalleryProps> = ({ realis
                   onClick={() => handleCollectionChange(col.id)}
                   className={`px-4 py-2 rounded-xl border text-xs font-semibold tracking-wide uppercase transition-all cursor-pointer ${
                     activeCollectionId === col.id
-                      ? 'bg-[#D4AF37] text-black border-[#D4AF37] shadow-[0_0_20px_rgba(212,175,55,0.3)]'
-                      : 'bg-black/60 text-gray-400 border-gray-800 hover:text-[#D4AF37] hover:border-[#D4AF37]/40'
+                      ? 'bg-[#D4AF37] text-black border-[#D4AF37] shadow-[0_2px_15px_rgba(212,175,55,0.25)]'
+                      : 'bg-white text-gray-700 border-gray-300 hover:text-[#D4AF37] hover:border-[#D4AF37]/40 shadow-sm'
                   }`}
                 >
                   {col.name}
@@ -236,7 +236,7 @@ export const RealisationsGallery: React.FC<RealisationsGalleryProps> = ({ realis
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ duration: 0.3, delay: idx * 0.04 }}
                       onClick={() => openLightbox(activeCollection.id, idx)}
-                      className="group relative aspect-square rounded-2xl overflow-hidden bg-[#111] border border-gray-800/80 hover:border-[#D4AF37]/60 cursor-pointer shadow-lg transition-all hover:shadow-[0_0_25px_rgba(212,175,55,0.15)]"
+                      className="group relative aspect-square rounded-2xl overflow-hidden bg-gray-100 border border-gray-200 hover:border-[#D4AF37]/60 cursor-pointer shadow-sm transition-all hover:shadow-[0_4px_20px_rgba(212,175,55,0.15)]"
                     >
                       <img
                         src={photo.imageUrl}
@@ -268,7 +268,7 @@ export const RealisationsGallery: React.FC<RealisationsGalleryProps> = ({ realis
                   <div className="text-center pt-2">
                     <button
                       onClick={() => setVisibleCount((prev) => prev + 8)}
-                      className="px-6 py-2.5 rounded-full border border-[#D4AF37]/40 bg-black/80 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black transition-all text-xs font-semibold uppercase tracking-wider cursor-pointer shadow-lg"
+                      className="px-6 py-2.5 rounded-full border border-[#D4AF37]/40 bg-white text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black transition-all text-xs font-semibold uppercase tracking-wider cursor-pointer shadow-sm"
                     >
                       Voir plus de réalisations (+{sortedPhotos.length - visibleCount})
                     </button>
@@ -281,7 +281,7 @@ export const RealisationsGallery: React.FC<RealisationsGalleryProps> = ({ realis
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="text-center py-16 bg-[#0F0F0F] rounded-3xl border border-gray-800/60"
+                className="text-center py-16 bg-white rounded-3xl border border-gray-200 shadow-sm"
               >
                 <ImageIcon className="w-10 h-10 text-[#D4AF37]/30 mx-auto mb-3" />
                 <p className="text-sm text-gray-500 font-serif italic">

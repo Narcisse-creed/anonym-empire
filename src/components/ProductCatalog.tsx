@@ -166,7 +166,7 @@ const NavBtn: React.FC<{
 const BackBtn: React.FC<{ label: string; onClick: () => void }> = ({ label, onClick }) => (
   <button
     onClick={onClick}
-    className="inline-flex items-center gap-2 text-xs font-semibold text-[#D4AF37] hover:text-white bg-[#141414] px-4 py-2 rounded-full border border-[#D4AF37]/30 transition-all cursor-pointer"
+    className="inline-flex items-center gap-2 text-xs font-semibold text-[#D4AF37] hover:text-[#996515] bg-white px-4 py-2 rounded-full border border-[#D4AF37]/40 transition-all cursor-pointer shadow-xs"
   >
     <ArrowLeft className="w-4 h-4" />
     {label}
@@ -192,7 +192,7 @@ const PageShell: React.FC<{
   title: string;
   children: React.ReactNode;
 }> = ({ back, breadcrumb, title, children }) => (
-  <section id="catalogue" className="py-12 bg-[#080808] text-white min-h-0">
+  <section id="catalogue" className="py-12 bg-[#F8F6F2] text-[#1A1A1A] min-h-0">
     <motion.div
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
@@ -205,7 +205,7 @@ const PageShell: React.FC<{
         <Breadcrumb parts={breadcrumb} />
       </div>
       {/* Title */}
-      <h2 className="text-2xl sm:text-3xl font-serif font-bold text-white tracking-tight mb-8 pb-3 border-b border-[#D4AF37]/20">
+      <h2 className="text-2xl sm:text-3xl font-serif font-bold text-gray-900 tracking-tight mb-8 pb-3 border-b border-[#D4AF37]/20">
         ← {title}
       </h2>
       {children}
@@ -560,7 +560,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
     );
 
     return (
-      <section id="catalogue" className="py-12 bg-[#080808] text-white min-h-0">
+      <section id="catalogue" className="py-12 bg-[#F8F6F2] text-[#1A1A1A] min-h-0">
         <div className="max-w-7xl lg:max-w-[1400px] xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
           {/* Back + breadcrumb */}
           <div className="flex items-center justify-between mb-4">
@@ -568,15 +568,15 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
             <Breadcrumb parts={breadcrumb} />
           </div>
 
-          <h2 className="text-xl sm:text-2xl font-serif font-bold text-white tracking-tight mb-4 pb-3 border-b border-[#D4AF37]/20 flex items-center justify-between">
+          <h2 className="text-xl sm:text-2xl font-serif font-bold text-gray-900 tracking-tight mb-4 pb-3 border-b border-[#D4AF37]/20 flex items-center justify-between">
             <span>{title}</span>
-            <span className="text-xs font-sans text-gray-400 font-normal">
+            <span className="text-xs font-sans text-gray-600 font-normal">
               {list.length} produit{list.length > 1 ? 's' : ''} {hasActiveFilters ? `trouvé(s) sur ${rawList.length}` : ''}
             </span>
           </h2>
 
           {/* ── FILTERS — only here, at product level ── */}
-          <div className="bg-[#0F0F0F] border border-[#D4AF37]/20 rounded-2xl p-4 mb-6 space-y-3 shadow-lg">
+          <div className="bg-white border border-[#D4AF37]/25 rounded-2xl p-4 mb-6 space-y-3 shadow-sm">
             {/* Search */}
             <div className="relative">
               <Search className="w-4 h-4 text-[#D4AF37] absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -585,12 +585,12 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Rechercher par nom, référence (#001...), description..."
-                className="w-full bg-black/80 border border-gray-800 rounded-xl pl-10 pr-8 py-2.5 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
+                className="w-full bg-gray-50 border border-gray-300 rounded-xl pl-10 pr-8 py-2.5 text-xs text-gray-900 focus:outline-none focus:border-[#D4AF37] placeholder:text-gray-400"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white text-xs"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-900 text-xs"
                 >
                   ✕
                 </button>
@@ -613,7 +613,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
                     className={`px-3 py-1.5 rounded-xl border transition-all cursor-pointer whitespace-nowrap ${
                       selectedQuickFilter === v
                         ? 'bg-[#D4AF37] text-black font-bold border-[#D4AF37]'
-                        : 'bg-black/60 text-gray-400 border-gray-800 hover:text-[#D4AF37] hover:border-[#D4AF37]/40'
+                        : 'bg-gray-100 text-gray-700 border-gray-200 hover:text-[#D4AF37] hover:border-[#D4AF37]/40'
                     }`}
                   >
                     {label}
@@ -625,7 +625,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as any)}
-                  className="bg-black/80 border border-gray-800 text-xs text-gray-400 rounded-xl px-3 py-1.5 focus:outline-none focus:border-[#D4AF37]"
+                  className="bg-gray-50 border border-gray-300 text-xs text-gray-700 rounded-xl px-3 py-1.5 focus:outline-none focus:border-[#D4AF37]"
                 >
                   <option value="featured">Tri : Vedettes</option>
                   <option value="price-asc">Prix ↑</option>
@@ -634,13 +634,13 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
                 </select>
 
                 {/* View Toggle */}
-                <div className="flex items-center bg-black/80 border border-gray-800 rounded-xl p-0.5">
+                <div className="flex items-center bg-gray-100 border border-gray-200 rounded-xl p-0.5">
                   <button
                     onClick={() => setViewMode('list')}
                     className={`px-2 py-1 rounded-lg text-[10px] font-semibold transition-all cursor-pointer ${
                       viewMode === 'list'
                         ? 'bg-[#D4AF37] text-black font-bold'
-                        : 'text-gray-400 hover:text-white'
+                        : 'text-gray-600 hover:text-gray-900'
                     }`}
                     title="Vue Liste WhatsApp"
                   >
@@ -651,7 +651,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
                     className={`px-2 py-1 rounded-lg text-[10px] font-semibold transition-all cursor-pointer ${
                       viewMode === 'carousel'
                         ? 'bg-[#D4AF37] text-black font-bold'
-                        : 'text-gray-400 hover:text-white'
+                        : 'text-gray-600 hover:text-gray-900'
                     }`}
                     title="Vue Carrousel Horizontal"
                   >
@@ -662,32 +662,32 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
             </div>
 
             {/* ── PRIX MIN / MAX & RACCOURCIS ── */}
-            <div className="pt-2 border-t border-gray-800/60 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 text-xs">
+            <div className="pt-2 border-t border-gray-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 text-xs">
               <div className="flex items-center gap-2 flex-1">
-                <span className="text-[#D4AF37] shrink-0 font-semibold">💰 Prix :</span>
+                <span className="text-[#8A6A20] shrink-0 font-semibold">💰 Prix :</span>
                 <div className="relative flex-1">
                   <input
                     type="text"
                     value={minPrice}
                     onChange={(e) => setMinPrice(e.target.value.replace(/\D/g, ''))}
                     placeholder="Min (FCFA)"
-                    className="w-full bg-black/80 border border-gray-800 rounded-xl px-3 py-1.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-[#D4AF37]"
+                    className="w-full bg-gray-50 border border-gray-300 rounded-xl px-3 py-1.5 text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#D4AF37]"
                   />
                 </div>
-                <span className="text-gray-600 shrink-0">—</span>
+                <span className="text-gray-400 shrink-0">—</span>
                 <div className="relative flex-1">
                   <input
                     type="text"
                     value={maxPrice}
                     onChange={(e) => setMaxPrice(e.target.value.replace(/\D/g, ''))}
                     placeholder="Max (FCFA)"
-                    className="w-full bg-black/80 border border-gray-800 rounded-xl px-3 py-1.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-[#D4AF37]"
+                    className="w-full bg-gray-50 border border-gray-300 rounded-xl px-3 py-1.5 text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#D4AF37]"
                   />
                 </div>
                 {(minPrice || maxPrice) && (
                   <button
                     onClick={() => { setMinPrice(''); setMaxPrice(''); }}
-                    className="shrink-0 text-rose-400 hover:text-rose-300 transition-colors px-2 py-1 rounded-lg border border-rose-950 bg-rose-950/40 text-[11px] font-semibold"
+                    className="shrink-0 text-rose-600 hover:text-rose-700 transition-colors px-2 py-1 rounded-lg border border-rose-200 bg-rose-50 text-[11px] font-semibold"
                     title="Effacer le filtre prix"
                   >
                     ✕ Effacer
@@ -702,8 +702,8 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
                   onClick={() => { setMinPrice(''); setMaxPrice('10000'); }}
                   className={`px-2 py-1 rounded-lg text-[10px] border transition-all cursor-pointer whitespace-nowrap ${
                     maxPrice === '10000' && !minPrice
-                      ? 'bg-[#D4AF37]/20 border-[#D4AF37] text-[#F3E5AB] font-bold'
-                      : 'bg-black/40 border-gray-800 text-gray-400 hover:text-white'
+                      ? 'bg-[#D4AF37]/20 border-[#D4AF37] text-[#8A6A20] font-bold'
+                      : 'bg-gray-50 border-gray-200 text-gray-600 hover:text-gray-900'
                   }`}
                 >
                   &lt; 10.000 F
@@ -713,8 +713,8 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
                   onClick={() => { setMinPrice('10000'); setMaxPrice('25000'); }}
                   className={`px-2 py-1 rounded-lg text-[10px] border transition-all cursor-pointer whitespace-nowrap ${
                     minPrice === '10000' && maxPrice === '25000'
-                      ? 'bg-[#D4AF37]/20 border-[#D4AF37] text-[#F3E5AB] font-bold'
-                      : 'bg-black/40 border-gray-800 text-gray-400 hover:text-white'
+                      ? 'bg-[#D4AF37]/20 border-[#D4AF37] text-[#8A6A20] font-bold'
+                      : 'bg-gray-50 border-gray-200 text-gray-600 hover:text-gray-900'
                   }`}
                 >
                   10k - 25k F
@@ -724,8 +724,8 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
                   onClick={() => { setMinPrice('25000'); setMaxPrice(''); }}
                   className={`px-2 py-1 rounded-lg text-[10px] border transition-all cursor-pointer whitespace-nowrap ${
                     minPrice === '25000' && !maxPrice
-                      ? 'bg-[#D4AF37]/20 border-[#D4AF37] text-[#F3E5AB] font-bold'
-                      : 'bg-black/40 border-gray-800 text-gray-400 hover:text-white'
+                      ? 'bg-[#D4AF37]/20 border-[#D4AF37] text-[#8A6A20] font-bold'
+                      : 'bg-gray-50 border-gray-200 text-gray-600 hover:text-gray-900'
                   }`}
                 >
                   &gt; 25.000 F
@@ -787,10 +787,10 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
                     <div
                       key={product.id}
                       onClick={() => onQuickView(product)}
-                      className="group shrink-0 w-[200px] sm:w-[230px] bg-[#111111] hover:bg-[#161616] border border-gray-800/80 hover:border-[#D4AF37]/50 rounded-2xl p-3 flex flex-col justify-between transition-all cursor-pointer shadow-xl snap-start"
+                      className="group shrink-0 w-[200px] sm:w-[230px] bg-white hover:bg-gray-50 border border-gray-200 hover:border-[#D4AF37]/50 rounded-2xl p-3 flex flex-col justify-between transition-all cursor-pointer shadow-sm snap-start"
                     >
                       <div>
-                        <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-black mb-3 border border-gray-800">
+                        <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-gray-100 mb-3 border border-gray-200">
                           <img
                             src={product.imageUrl}
                             alt={product.name}
@@ -820,19 +820,19 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
                           </span>
                         </div>
 
-                        <h3 className="font-serif font-bold text-white group-hover:text-[#D4AF37] transition-colors text-xs line-clamp-1">
+                        <h3 className="font-serif font-bold text-gray-900 group-hover:text-[#D4AF37] transition-colors text-xs line-clamp-1">
                           {product.name}
                         </h3>
                         {isNouveau && (
                           <span className="inline-block mt-0.5 text-[8px] font-bold text-black bg-[#D4AF37] px-1.5 py-0.5 rounded-full">✨ Nouveau</span>
                         )}
-                        <p className="text-[11px] text-gray-400 line-clamp-2 mt-0.5 font-sans leading-tight">
+                        <p className="text-[11px] text-gray-600 line-clamp-2 mt-0.5 font-sans leading-tight">
                           {product.description}
                         </p>
                       </div>
 
-                      <div className="mt-3 pt-2 border-t border-gray-800/80 flex items-center justify-between">
-                        <span className="text-xs font-bold text-[#F3E5AB] font-serif">
+                      <div className="mt-3 pt-2 border-t border-gray-200 flex items-center justify-between">
+                        <span className="text-xs font-bold text-[#8A6A20] font-serif">
                           {formatPriceFCFA(product.price)}
                         </span>
 
@@ -862,11 +862,11 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
                   <div
                     key={product.id}
                     onClick={() => onQuickView(product)}
-                    className="group bg-[#111111] hover:bg-[#161616] border border-gray-800/80 hover:border-[#D4AF37]/50 rounded-2xl p-3 flex items-center justify-between gap-3 transition-all cursor-pointer shadow-md"
+                    className="group bg-white hover:bg-gray-50 border border-gray-200 hover:border-[#D4AF37]/50 rounded-2xl p-3 flex items-center justify-between gap-3 transition-all cursor-pointer shadow-sm"
                   >
                     {/* Left: Thumbnail & Info */}
                     <div className="flex items-center gap-3.5 flex-1 min-w-0">
-                      <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-black shrink-0 border border-gray-800">
+                      <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-gray-100 shrink-0 border border-gray-200">
                         <img
                           src={product.imageUrl}
                           alt={product.name}
@@ -880,14 +880,14 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
                       </div>
 
                       <div className="flex-1 min-w-0 space-y-0.5">
-                        <h3 className="font-serif font-bold text-white group-hover:text-[#D4AF37] transition-colors text-xs sm:text-sm line-clamp-1">
+                        <h3 className="font-serif font-bold text-gray-900 group-hover:text-[#D4AF37] transition-colors text-xs sm:text-sm line-clamp-1">
                           {product.name}
                         </h3>
-                        <p className="text-xs text-gray-400 line-clamp-1 font-sans">
+                        <p className="text-xs text-gray-600 line-clamp-1 font-sans">
                           {product.description}
                         </p>
                         <div className="flex items-center gap-2 pt-0.5 flex-wrap">
-                          <span className="text-xs font-bold text-[#F3E5AB] font-serif">
+                          <span className="text-xs font-bold text-[#8A6A20] font-serif">
                             {formatPriceFCFA(product.price)}
                           </span>
                           {/* Badge statut disponibilité */}
@@ -927,10 +927,10 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
             </div>
           )
         ) : (
-          <div className="text-center py-16 bg-[#0F0F0F] rounded-3xl border border-gray-800">
+          <div className="text-center py-16 bg-white rounded-3xl border border-gray-200 shadow-sm">
             <Sparkles className="w-10 h-10 text-[#D4AF37] mx-auto mb-3 opacity-40" />
-            <h3 className="text-base font-serif font-bold text-white mb-1">Aucun produit trouvé</h3>
-            <p className="text-xs text-gray-400 mb-4">Réinitialisez les filtres pour voir tous les articles.</p>
+            <h3 className="text-base font-serif font-bold text-gray-900 mb-1">Aucun produit trouvé</h3>
+            <p className="text-xs text-gray-600 mb-4">Réinitialisez les filtres pour voir tous les articles.</p>
             <button
               onClick={() => { setSearchQuery(''); setSelectedQuickFilter('tous'); setMinPrice(''); setMaxPrice(''); }}
               className="bg-[#D4AF37] text-black font-bold text-xs uppercase tracking-wider px-5 py-2.5 rounded-full hover:bg-[#F3E5AB] transition-all cursor-pointer"
@@ -998,7 +998,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
   if (selectedCategory === 'bijoux') {
     const totalBijouxCount = products.filter((p) => p.category === 'bijoux').length;
     return (
-      <section id="catalogue" className="py-16 bg-[#080808] text-white min-h-0">
+      <section id="catalogue" className="py-16 bg-[#F8F6F2] text-[#1A1A1A] min-h-0">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -1011,8 +1011,8 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
             transition={{ duration: 0.4 }}
             className="text-center mb-10"
           >
-            <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white tracking-tight mb-2">BIJOUX</h2>
-            <p className="text-xs text-gray-500">Pour qui souhaitez-vous découvrir nos bijoux ?</p>
+            <h2 className="text-3xl sm:text-4xl font-serif font-bold text-gray-900 tracking-tight mb-2">BIJOUX</h2>
+            <p className="text-xs text-gray-600">Pour qui souhaitez-vous découvrir nos bijoux ?</p>
           </motion.div>
           <div className="space-y-3">
             <NavBtn
@@ -1095,7 +1095,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
   if (selectedCategory === 'accessoires') {
     const totalAccCount = products.filter((p) => p.category === 'accessoires').length;
     return (
-      <section id="catalogue" className="py-16 bg-[#080808] text-white min-h-0">
+      <section id="catalogue" className="py-16 bg-[#F8F6F2] text-[#1A1A1A] min-h-0">
         <motion.div
           initial={{ opacity: 0, y: 25 }}
           animate={{ opacity: 1, y: 0 }}
@@ -1103,8 +1103,8 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
           className="max-w-7xl lg:max-w-[1400px] xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8"
         >
           <div className="text-center mb-10">
-            <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white tracking-tight mb-2">ACCESSOIRES</h2>
-            <p className="text-xs text-gray-500">Sélectionnez une catégorie d'accessoires.</p>
+            <h2 className="text-3xl sm:text-4xl font-serif font-bold text-gray-900 tracking-tight mb-2">ACCESSOIRES</h2>
+            <p className="text-xs text-gray-600">Sélectionnez une catégorie d'accessoires.</p>
           </div>
           <div className="space-y-3">
             <NavBtn
@@ -1149,7 +1149,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
     const adminParfumsCollections = collections.filter((c) => c.category === 'parfums' && c.visible !== false);
     const totalParfumsCount = products.filter((p) => p.category === 'parfums').length;
     return (
-      <section id="catalogue" className="py-16 bg-[#080808] text-white min-h-0">
+      <section id="catalogue" className="py-16 bg-[#F8F6F2] text-[#1A1A1A] min-h-0">
         <motion.div
           initial={{ opacity: 0, filter: 'blur(8px)', y: 15 }}
           animate={{ opacity: 1, filter: 'blur(0px)', y: 0 }}
@@ -1157,8 +1157,8 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
           className="max-w-7xl lg:max-w-[1400px] xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8"
         >
           <div className="text-center mb-10">
-            <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white tracking-tight mb-2">ANONYM</h2>
-            <p className="text-xs text-gray-500 italic">L'univers olfactif ANONYM — Sélectionnez une référence.</p>
+            <h2 className="text-3xl sm:text-4xl font-serif font-bold text-gray-900 tracking-tight mb-2">ANONYM</h2>
+            <p className="text-xs text-gray-600 italic">L'univers olfactif ANONYM — Sélectionnez une référence.</p>
           </div>
           <div className="space-y-3">
             <NavBtn
@@ -1235,7 +1235,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
   if (selectedCategory === 'emballages') {
     const totalEmbCount = products.filter((p) => p.category === 'emballages').length;
     return (
-      <section id="catalogue" className="py-16 bg-[#080808] text-white min-h-0">
+      <section id="catalogue" className="py-16 bg-[#F8F6F2] text-[#1A1A1A] min-h-0">
         <motion.div
           initial={{ opacity: 0, scale: 0.94, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -1243,8 +1243,8 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
           className="max-w-7xl lg:max-w-[1400px] xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8"
         >
           <div className="text-center mb-10">
-            <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white tracking-tight mb-2">EMBALLAGES</h2>
-            <p className="text-xs text-gray-500">Comment souhaitez-vous rechercher votre emballage ?</p>
+            <h2 className="text-3xl sm:text-4xl font-serif font-bold text-gray-900 tracking-tight mb-2">EMBALLAGES</h2>
+            <p className="text-xs text-gray-600">Comment souhaitez-vous rechercher votre emballage ?</p>
           </div>
           <div className="space-y-3">
             <NavBtn
@@ -1279,13 +1279,13 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
   // LEGACY: Collections list (parfums, emballages) — boutons texte
   // ─────────────────────────────────────────────────────────────────────────
   return (
-    <section id="catalogue" className="py-16 bg-[#080808] text-white min-h-0">
+    <section id="catalogue" className="py-16 bg-[#F8F6F2] text-[#1A1A1A] min-h-0">
       <div className="max-w-7xl lg:max-w-[1400px] xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-10">
-          <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white tracking-tight mb-2">
+          <h2 className="text-3xl sm:text-4xl font-serif font-bold text-gray-900 tracking-tight mb-2">
             {selectedCategory.toUpperCase()}
           </h2>
-          <p className="text-xs text-gray-500">Sélectionnez une collection.</p>
+          <p className="text-xs text-gray-600">Sélectionnez une collection.</p>
         </div>
         <div className="space-y-3">
           {filteredCollections.map((col) => (

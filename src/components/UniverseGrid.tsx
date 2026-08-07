@@ -79,7 +79,7 @@ export const UniverseGrid: React.FC<UniverseGridProps> = ({
   return (
     <section
       id="universe-nav"
-      className="bg-[#080808] border-b border-[#D4AF37]/20 sticky top-20 z-30 shadow-2xl backdrop-blur-md"
+      className="bg-[#F0EDE7] border-b border-[#D4AF37]/20 sticky top-20 z-30 shadow-[0_4px_20px_rgba(0,0,0,0.08)] backdrop-blur-md"
     >
       <AnimatePresence mode="wait">
         {showGrid ? (
@@ -167,33 +167,33 @@ export const UniverseGrid: React.FC<UniverseGridProps> = ({
               transition={{ duration: 0.6, delay: 0.3 }}
               className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 pt-6 sm:pt-8 border-t border-[#D4AF37]/25 mt-4 sm:mt-6"
             >
-              <div className="flex items-center gap-3.5 p-4 sm:p-5 rounded-2xl bg-[#121212]/90 border border-[#D4AF37]/25 shadow-lg hover:border-[#D4AF37] hover:shadow-[0_0_20px_rgba(212,175,55,0.2)] transition-all">
+              <div className="flex items-center gap-3.5 p-4 sm:p-5 rounded-2xl bg-white border border-[#D4AF37]/25 shadow-sm hover:border-[#D4AF37] hover:shadow-[0_0_16px_rgba(212,175,55,0.15)] transition-all">
                 <div className="p-3 rounded-xl bg-[#D4AF37]/15 text-[#D4AF37] shrink-0">
                   <ShieldCheck className="w-6 h-6 lg:w-7 lg:h-7" />
                 </div>
                 <div>
-                  <h4 className="text-xs sm:text-sm lg:text-base font-semibold text-white">Garantie 1 An Inaltérable</h4>
-                  <p className="text-[11px] sm:text-xs lg:text-sm text-gray-400">Acier Inoxydable 316L résistant eau &amp; parfum</p>
+                  <h4 className="text-xs sm:text-sm lg:text-base font-semibold text-gray-900">Garantie 1 An Inaltérable</h4>
+                  <p className="text-[11px] sm:text-xs lg:text-sm text-gray-600">Acier Inoxydable 316L résistant eau &amp; parfum</p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3.5 p-4 sm:p-5 rounded-2xl bg-[#121212]/90 border border-[#D4AF37]/25 shadow-lg hover:border-[#D4AF37] hover:shadow-[0_0_20px_rgba(212,175,55,0.2)] transition-all">
+              <div className="flex items-center gap-3.5 p-4 sm:p-5 rounded-2xl bg-white border border-[#D4AF37]/25 shadow-sm hover:border-[#D4AF37] hover:shadow-[0_0_16px_rgba(212,175,55,0.15)] transition-all">
                 <div className="p-3 rounded-xl bg-[#D4AF37]/15 text-[#D4AF37] shrink-0">
                   <Award className="w-6 h-6 lg:w-7 lg:h-7" />
                 </div>
                 <div>
-                  <h4 className="text-xs sm:text-sm lg:text-base font-semibold text-white">Gravure Laser Millimétrée</h4>
-                  <p className="text-[11px] sm:text-xs lg:text-sm text-gray-400">Prénoms, dates, symboles &amp; photos sur-mesure</p>
+                  <h4 className="text-xs sm:text-sm lg:text-base font-semibold text-gray-900">Gravure Laser Millimétrée</h4>
+                  <p className="text-[11px] sm:text-xs lg:text-sm text-gray-600">Prénoms, dates, symboles &amp; photos sur-mesure</p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3.5 p-4 rounded-2xl bg-[#121212]/90 border border-[#D4AF37]/25 shadow-lg hover:border-[#D4AF37] hover:shadow-[0_0_20px_rgba(212,175,55,0.2)] transition-all">
+              <div className="flex items-center gap-3.5 p-4 rounded-2xl bg-white border border-[#D4AF37]/25 shadow-sm hover:border-[#D4AF37] hover:shadow-[0_0_16px_rgba(212,175,55,0.15)] transition-all">
                 <div className="p-3 rounded-xl bg-[#D4AF37]/15 text-[#D4AF37] shrink-0">
                   <Truck className="w-6 h-6" />
                 </div>
                 <div>
-                  <h4 className="text-xs sm:text-sm font-semibold text-white">Expédition Tout le Bénin</h4>
-                  <p className="text-[11px] sm:text-xs text-gray-400">Livraison Cotonou, Calavi, Parakou &amp; sous-région</p>
+                  <h4 className="text-xs sm:text-sm font-semibold text-gray-900">Éxpédition Tout le Bénin</h4>
+                  <p className="text-[11px] sm:text-xs text-gray-600">Livraison Cotonou, Calavi, Parakou &amp; sous-région</p>
                 </div>
               </div>
             </motion.div>
@@ -211,7 +211,7 @@ export const UniverseGrid: React.FC<UniverseGridProps> = ({
             {/* Back button */}
             <button
               onClick={onBackToGrid}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#181818] border border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#1F1A0E] hover:border-[#D4AF37] transition-all cursor-pointer text-xs font-semibold shrink-0 shadow"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#FDF9F2] hover:border-[#D4AF37] transition-all cursor-pointer text-xs font-semibold shrink-0 shadow-sm"
               aria-label="Retour aux catégories"
             >
               <ChevronLeft className="w-4 h-4" />

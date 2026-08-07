@@ -47,7 +47,7 @@ export const AboutFounder: React.FC<AboutFounderProps> = ({ storeInfo }) => {
   const sectionSuffix = colonIdx !== -1 ? sectionTitle.slice(colonIdx + 1).trim() : '';
 
   return (
-    <section id="about" className="py-20 bg-[#080808] text-white relative border-b border-[#D4AF37]/20 overflow-hidden">
+    <section id="about" className="py-20 bg-[#F0EDE7] relative border-b border-[#D4AF37]/20 overflow-hidden">
       {/* Background Subtle Floating Glow */}
       <div className="absolute top-1/4 -left-20 w-80 h-80 bg-[#D4AF37]/10 rounded-full blur-[100px] pointer-events-none" />
       <div className="absolute bottom-10 right-0 w-96 h-96 bg-[#B8935F]/10 rounded-full blur-[120px] pointer-events-none" />
@@ -72,7 +72,7 @@ export const AboutFounder: React.FC<AboutFounderProps> = ({ storeInfo }) => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-3xl sm:text-5xl font-serif font-bold text-white tracking-tight"
+            className="text-3xl sm:text-5xl font-serif font-bold text-gray-900 tracking-tight"
           >
             L'Histoire &amp; La Direction
             <span className="block text-2xl sm:text-3xl font-serif italic text-transparent bg-clip-text bg-gradient-to-r from-[#F3E5AB] via-[#D4AF37] to-[#AA771C] mt-2">
@@ -90,7 +90,7 @@ export const AboutFounder: React.FC<AboutFounderProps> = ({ storeInfo }) => {
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
-              className="relative rounded-3xl overflow-hidden border-2 border-[#D4AF37]/50 p-2 bg-[#121212] shadow-[0_0_50px_rgba(212,175,55,0.25)]"
+              className="relative rounded-3xl overflow-hidden border-2 border-[#D4AF37]/50 p-2 bg-white shadow-[0_4px_40px_rgba(212,175,55,0.15)]"
             >
               <div className="aspect-[3/4] relative rounded-2xl overflow-hidden bg-black">
 
@@ -140,13 +140,13 @@ export const AboutFounder: React.FC<AboutFounderProps> = ({ storeInfo }) => {
               className="space-y-6 text-center"
             >
               <div className="text-center">
-                <h3 className="text-2xl font-serif font-bold text-white mb-2 text-center">
+                <h3 className="text-2xl font-serif font-bold text-gray-900 mb-2 text-center">
                   {sectionSuffix
                     ? <>{sectionPrefix} <span className="text-[#D4AF37]">{sectionSuffix}</span></>
                     : <span className="text-[#D4AF37]">{sectionTitle}</span>
                   }
                 </h3>
-                <p className="text-gray-300 font-sans text-sm sm:text-base leading-relaxed text-center max-w-xl mx-auto">
+                <p className="text-gray-700 font-sans text-sm sm:text-base leading-relaxed text-center max-w-xl mx-auto">
                   {paragraph}
                 </p>
               </div>
@@ -170,11 +170,11 @@ export const AboutFounder: React.FC<AboutFounderProps> = ({ storeInfo }) => {
                   <span>Engagements &amp; Informations du Catalogue Officiel</span>
                 </h4>
 
-                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm text-gray-300">
+                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm text-gray-700">
                   {commitments.map((c, idx) => (
-                    <li key={idx} className="flex items-start gap-2.5 bg-[#121212] p-3 rounded-xl border border-gray-800/80 hover:border-[#D4AF37]/30 transition-all">
+                    <li key={idx} className="flex items-start gap-2.5 bg-white p-3 rounded-xl border border-gray-200 hover:border-[#D4AF37]/30 transition-all">
                       <CommitmentIcon icon={c.icon} />
-                      <span><strong>{c.label}</strong> {c.text}</span>
+                      <span><strong className="text-gray-900">{c.label}</strong> {c.text}</span>
                     </li>
                   ))}
                 </ul>

@@ -50,17 +50,17 @@ export const OrderingRulesSection: React.FC<OrderingRulesSectionProps> = ({ stor
   }));
 
   return (
-    <section id="comment-commander" className="py-16 bg-[#080808] text-white relative border-b border-[#D4AF37]/20">
+    <section id="comment-commander" className="py-16 bg-[#F8F6F2] text-[#1A1A1A] relative border-b border-[#D4AF37]/20">
       <div className="max-w-7xl lg:max-w-[1400px] xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-12">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1A160C] border border-[#D4AF37]/40 text-[#D4AF37] text-xs font-semibold uppercase tracking-widest mb-3">
             <CheckCircle className="w-3.5 h-3.5" />
             <span>Comment Commander</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white tracking-tight">
+          <h2 className="text-3xl sm:text-4xl font-serif font-bold text-gray-900 tracking-tight">
             {storeInfo.pageTexts?.processus?.title || 'Le Processus ANONYM'}
           </h2>
-          <p className="text-sm text-gray-400 mt-2 font-sans">
+          <p className="text-sm text-gray-600 mt-2 font-sans">
             {storeInfo.pageTexts?.processus?.subtitle || 'De la sélection à la livraison, chaque étape est pensée pour votre satisfaction.'}
           </p>
         </div>
@@ -69,15 +69,15 @@ export const OrderingRulesSection: React.FC<OrderingRulesSectionProps> = ({ stor
           {rules.map((rule, idx) => (
             <div
               key={idx}
-              className="flex flex-col items-center text-center bg-[#0F0F0F] rounded-2xl border border-[#D4AF37]/20 p-6 hover:border-[#D4AF37]/50 hover:shadow-[0_0_20px_rgba(212,175,55,0.15)] transition-all duration-300 group"
+              className="flex flex-col items-center text-center bg-white rounded-2xl border border-[#D4AF37]/20 p-6 hover:border-[#D4AF37]/50 hover:shadow-[0_4px_25px_rgba(212,175,55,0.15)] transition-all duration-300 group shadow-sm"
             >
-              <div className="p-3.5 rounded-2xl bg-[#1A160C] border border-[#D4AF37]/40 text-[#D4AF37] mb-4 group-hover:scale-110 group-hover:bg-[#D4AF37] group-hover:text-black transition-all shadow-md">
+              <div className="p-3.5 rounded-2xl bg-[#FAF8F3] border border-[#D4AF37]/40 text-[#D4AF37] mb-4 group-hover:scale-110 group-hover:bg-[#D4AF37] group-hover:text-black transition-all shadow-sm">
                 <rule.icon className="w-6 h-6" />
               </div>
-              <h3 className="font-serif font-bold text-white text-base mb-2 group-hover:text-[#D4AF37] transition-colors">
+              <h3 className="font-serif font-bold text-gray-900 text-base mb-2 group-hover:text-[#D4AF37] transition-colors">
                 {rule.title}
               </h3>
-              <p className="text-xs text-gray-400 font-sans leading-relaxed">
+              <p className="text-xs text-gray-600 font-sans leading-relaxed">
                 {rule.description}
               </p>
             </div>

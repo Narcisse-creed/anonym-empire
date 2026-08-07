@@ -495,11 +495,11 @@ export default function App() {
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#050505] text-white font-sans antialiased overflow-x-hidden">
+    <div className="min-h-screen flex flex-col bg-[#F8F6F2] text-[#1A1A1A] font-sans antialiased overflow-x-hidden">
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <RoyalBackgroundAnimation />
-        <div className="absolute top-1/4 left-10 w-[500px] h-[500px] bg-[#D4AF37]/10 rounded-full blur-[140px] pointer-events-none" />
-        <div className="absolute bottom-1/3 right-10 w-[600px] h-[600px] bg-[#AA771C]/10 rounded-full blur-[160px] pointer-events-none" />
+        <div className="absolute top-1/4 left-10 w-[500px] h-[500px] bg-[#D4AF37]/5 rounded-full blur-[140px] pointer-events-none" />
+        <div className="absolute bottom-1/3 right-10 w-[600px] h-[600px] bg-[#AA771C]/5 rounded-full blur-[160px] pointer-events-none" />
       </div>
 
       <Navbar

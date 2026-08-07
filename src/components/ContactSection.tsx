@@ -22,7 +22,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ storeInfo }) => 
   };
 
   return (
-    <section id="contact" className="py-20 bg-[#050505] text-white relative border-b border-[#D4AF37]/20">
+    <section id="contact" className="py-20 bg-[#F8F6F2] text-[#1A1A1A] relative border-b border-[#D4AF37]/20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
@@ -31,10 +31,10 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ storeInfo }) => 
             <MessageCircle className="w-3.5 h-3.5" />
             <span>Prise de Contact Directe</span>
           </div>
-          <h2 className="text-3xl sm:text-5xl font-serif font-bold text-white tracking-tight">
+          <h2 className="text-3xl sm:text-5xl font-serif font-bold text-gray-900 tracking-tight">
              Contactez ANONYM
           </h2>
-          <p className="text-sm text-gray-400 mt-2 font-sans">
+          <p className="text-sm text-gray-600 mt-2 font-sans">
             Pour toute commande spéciale, partenariat, devis entreprise ou demande de renseignements.
           </p>
         </div>
@@ -43,19 +43,19 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ storeInfo }) => 
           
           {/* Left Column: Direct Coordinates Card */}
           <div className="lg:col-span-5 space-y-6">
-            <div className="bg-[#121212] rounded-3xl border border-[#D4AF37]/30 p-8 space-y-8 shadow-2xl">
+            <div className="bg-white rounded-3xl border border-[#D4AF37]/30 p-8 space-y-8 shadow-sm">
               <CrownLogo size="md" />
 
               <div className="space-y-6 text-sm">
                 
                 {/* Address */}
                 <div className="flex items-start gap-4">
-                  <div className="p-3 rounded-2xl bg-[#1D190D] border border-[#D4AF37]/40 text-[#D4AF37] shrink-0">
+                  <div className="p-3 rounded-2xl bg-[#FAF8F3] border border-[#D4AF37]/40 text-[#D4AF37] shrink-0">
                     <MapPin className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="font-serif font-bold text-white">Adresse Physique</h4>
-                    <p className="text-xs text-gray-300 mt-0.5">
+                    <h4 className="font-serif font-bold text-gray-900">Adresse Physique</h4>
+                    <p className="text-xs text-gray-600 mt-0.5">
                       {storeInfo.address}, {storeInfo.city}, {storeInfo.country}
                     </p>
                   </div>
@@ -63,15 +63,15 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ storeInfo }) => 
 
                 {/* Phone & WhatsApp */}
                 <div className="flex items-start gap-4">
-                  <div className="p-3 rounded-2xl bg-[#1D190D] border border-[#D4AF37]/40 text-[#D4AF37] shrink-0">
+                  <div className="p-3 rounded-2xl bg-[#FAF8F3] border border-[#D4AF37]/40 text-[#D4AF37] shrink-0">
                     <Phone className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="font-serif font-bold text-white">Téléphone & WhatsApp</h4>
-                    <p className="text-xs text-amber-200 font-mono mt-0.5">
+                    <h4 className="font-serif font-bold text-gray-900">Téléphone & WhatsApp</h4>
+                    <p className="text-xs text-[#8A6A20] font-mono mt-0.5">
                       {storeInfo.phone1} / {storeInfo.phone2}
                     </p>
-                    <span className="text-[11px] text-gray-400 block mt-1">
+                    <span className="text-[11px] text-gray-500 block mt-1">
                       Disponibilité : Lundi au Samedi 08h00 - 20h00
                     </span>
                   </div>
@@ -79,11 +79,11 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ storeInfo }) => 
 
                 {/* Email */}
                 <div className="flex items-start gap-4">
-                  <div className="p-3 rounded-2xl bg-[#1D190D] border border-[#D4AF37]/40 text-[#D4AF37] shrink-0">
+                  <div className="p-3 rounded-2xl bg-[#FAF8F3] border border-[#D4AF37]/40 text-[#D4AF37] shrink-0">
                     <Mail className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="font-serif font-bold text-white">Email Officiel</h4>
+                    <h4 className="font-serif font-bold text-gray-900">Email Officiel</h4>
                     <a
                       href={`mailto:${storeInfo.email}`}
                       className="text-xs text-[#D4AF37] hover:underline font-mono mt-0.5 block"
@@ -95,16 +95,16 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ storeInfo }) => 
 
                 {/* Social Networks */}
                 <div className="flex items-start gap-4">
-                  <div className="p-3 rounded-2xl bg-[#1D190D] border border-[#D4AF37]/40 text-[#D4AF37] shrink-0">
+                  <div className="p-3 rounded-2xl bg-[#FAF8F3] border border-[#D4AF37]/40 text-[#D4AF37] shrink-0">
                     <Facebook className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="font-serif font-bold text-white">Réseaux Sociaux</h4>
+                    <h4 className="font-serif font-bold text-gray-900">Réseaux Sociaux</h4>
                     <a
                       href={storeInfo.facebookUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs text-gray-300 hover:text-[#D4AF37] mt-0.5 block"
+                      className="text-xs text-gray-600 hover:text-[#D4AF37] mt-0.5 block"
                     >
                       Page Facebook : <strong>ANONYM</strong>
                     </a>
@@ -131,8 +131,8 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ storeInfo }) => 
 
           {/* Right Column: Contact Interactive Form */}
           <div className="lg:col-span-7">
-            <div className="bg-[#121212] rounded-3xl border border-[#D4AF37]/30 p-8 shadow-2xl space-y-6">
-              <h3 className="text-xl font-serif font-bold text-white flex items-center gap-2">
+            <div className="bg-white rounded-3xl border border-[#D4AF37]/30 p-8 shadow-sm space-y-6">
+              <h3 className="text-xl font-serif font-bold text-gray-900 flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-[#D4AF37]" />
                 <span>Envoyer un Message Instantané</span>
               </h3>
@@ -150,7 +150,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ storeInfo }) => 
                       value={senderName}
                       onChange={(e) => setSenderName(e.target.value)}
                       placeholder="Ex: Armelle Dossou"
-                      className="w-full bg-black/80 border border-gray-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
+                      className="w-full bg-gray-50 border border-gray-300 rounded-xl p-3 text-xs text-gray-900 focus:outline-none focus:border-[#D4AF37] placeholder:text-gray-400"
                     />
                   </div>
 
@@ -164,7 +164,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ storeInfo }) => 
                       value={senderPhone}
                       onChange={(e) => setSenderPhone(e.target.value.replace(/[^\d\s+\-()]/g, ''))}
                       placeholder="Ex: +229 97 00 00 00"
-                      className="w-full bg-black/80 border border-gray-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
+                      className="w-full bg-gray-50 border border-gray-300 rounded-xl p-3 text-xs text-gray-900 focus:outline-none focus:border-[#D4AF37] placeholder:text-gray-400"
                     />
                   </div>
                 </div>
@@ -176,7 +176,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ storeInfo }) => 
                   <select
                     value={senderSubject}
                     onChange={(e) => setSenderSubject(e.target.value)}
-                    className="w-full bg-black/80 border border-gray-800 rounded-xl p-3 text-xs text-gray-200 focus:outline-none focus:border-[#D4AF37]"
+                    className="w-full bg-gray-50 border border-gray-300 rounded-xl p-3 text-xs text-gray-900 focus:outline-none focus:border-[#D4AF37]"
                   >
                     <option value="Commande Bijoux Personnalisés">Commande Bijoux Personnalisés</option>
                     <option value="Coffrets Parfums ou Emballages">Coffrets Parfums ou Emballages</option>
@@ -197,7 +197,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ storeInfo }) => 
                     value={senderMessage}
                     onChange={(e) => setSenderMessage(e.target.value)}
                     placeholder="Décrivez les modèles souhaités, prénoms à graver, quantité..."
-                    className="w-full bg-black/80 border border-gray-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
+                    className="w-full bg-gray-50 border border-gray-300 rounded-xl p-3 text-xs text-gray-900 focus:outline-none focus:border-[#D4AF37] placeholder:text-gray-400"
                   />
                 </div>
 

@@ -86,7 +86,7 @@ const GoldenParticles: React.FC = () => {
     <canvas
       ref={canvasRef}
       className="absolute inset-0 w-full h-full pointer-events-none"
-      style={{ opacity: 0.65 }}
+      style={{ opacity: 0.3 }}
     />
   );
 };
@@ -98,32 +98,27 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ storeInfo }) => {
   return (
     <section
       id="hero"
-      className="relative text-white overflow-hidden py-8 sm:py-12 md:py-16 lg:py-20 xl:py-24 border-b border-[#D4AF37]/20 flex flex-col justify-center min-h-[45vh] lg:min-h-[52vh] xl:min-h-[56vh] w-full"
+      className="relative overflow-hidden py-8 sm:py-12 md:py-16 lg:py-20 xl:py-24 border-b border-[#D4AF37]/25 flex flex-col justify-center min-h-[45vh] lg:min-h-[52vh] xl:min-h-[56vh] w-full"
       style={{
-        background: `
-          radial-gradient(ellipse 120% 60% at 50% 0%, rgba(26,18,5,0.95) 0%, transparent 70%),
-          radial-gradient(ellipse 80% 50% at 80% 100%, rgba(60,35,5,0.6) 0%, transparent 60%),
-          radial-gradient(ellipse 60% 40% at 20% 80%, rgba(20,10,2,0.7) 0%, transparent 55%),
-          linear-gradient(170deg, #0A0800 0%, #0D0B05 30%, #070606 55%, #0B0908 80%, #050405 100%)
-        `,
+        background: `linear-gradient(160deg, #FFFFFF 0%, #FAF8F3 40%, #F5F1E8 100%)`,
       }}
     >
       {/* ── Animated golden particles ── */}
       <GoldenParticles />
 
-      {/* ── Animated ambient glow orbs ── */}
+      {/* ── Animated ambient glow orbs (subtle on light background) ── */}
       <motion.div
-        animate={{ scale: [1, 1.15, 1], opacity: [0.12, 0.22, 0.12] }}
+        animate={{ scale: [1, 1.15, 1], opacity: [0.06, 0.12, 0.06] }}
         transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
         className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[300px] bg-[#D4AF37] rounded-full blur-[130px] pointer-events-none"
       />
       <motion.div
-        animate={{ x: [0, 30, 0], opacity: [0.08, 0.16, 0.08] }}
+        animate={{ x: [0, 30, 0], opacity: [0.04, 0.08, 0.04] }}
         transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
         className="absolute bottom-10 right-0 w-96 h-96 bg-[#B8935F] rounded-full blur-[140px] pointer-events-none"
       />
       <motion.div
-        animate={{ x: [0, -20, 0], opacity: [0.06, 0.13, 0.06] }}
+        animate={{ x: [0, -20, 0], opacity: [0.03, 0.07, 0.03] }}
         transition={{ duration: 11, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
         className="absolute -bottom-10 left-0 w-80 h-80 bg-[#D4AF37] rounded-full blur-[120px] pointer-events-none"
       />
@@ -152,8 +147,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ storeInfo }) => {
           transition={{ duration: 0.6 }}
           className="flex justify-center mb-3"
         >
-          <div className="inline-flex items-center justify-center px-5 py-1.5 rounded-full bg-[#18150D]/80 border border-[#D4AF37]/40 shadow-[0_0_30px_rgba(212,175,55,0.25)] backdrop-blur-sm">
-            <span className="font-serif italic text-xs sm:text-sm text-[#F3E5AB] tracking-wide text-center">
+          <div className="inline-flex items-center justify-center px-5 py-1.5 rounded-full bg-white border border-[#D4AF37]/50 shadow-[0_2px_20px_rgba(212,175,55,0.15)] backdrop-blur-sm">
+            <span className="font-serif italic text-xs sm:text-sm text-[#7A6020] tracking-wide text-center">
               {storeInfo.pageTexts?.accueil?.badgeTop || 'Maison de Création & Personnalisation'}
             </span>
           </div>
@@ -168,15 +163,14 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ storeInfo }) => {
         >
           <div className="relative group">
             {/* Ambient Gold Aura Glow */}
-            <div className="absolute inset-0 rounded-full bg-[#D4AF37]/35 blur-lg pointer-events-none transform scale-125 group-hover:scale-135 transition-transform duration-500" />
+            <div className="absolute inset-0 rounded-full bg-[#D4AF37]/20 blur-lg pointer-events-none transform scale-125 group-hover:scale-135 transition-transform duration-500" />
             
             {/* Balanced Official Logo Image / Emblem */}
-            <div className="relative w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-full bg-gradient-to-br from-[#2A2213] via-[#16120B] to-[#050403] p-1 border-2 border-[#D4AF37] shadow-[0_0_25px_rgba(212,175,55,0.4)] group-hover:border-[#F3E5AB] group-hover:shadow-[0_0_35px_rgba(212,175,55,0.55)] transition-all duration-300 flex items-center justify-center overflow-hidden">
+            <div className="relative w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-full bg-white p-1 border-2 border-[#D4AF37] shadow-[0_0_20px_rgba(212,175,55,0.3)] group-hover:border-[#F3E5AB] group-hover:shadow-[0_0_30px_rgba(212,175,55,0.45)] transition-all duration-300 flex items-center justify-center overflow-hidden">
               <img
                 src="/images/logo-anonym-empire-transparent.png"
                 alt="ANONYM EMPIRE Logo"
-                className="w-full h-full object-contain object-center filter brightness-[1.35] contrast-[1.1] drop-shadow-[0_0_8px_rgba(212,175,55,0.7)] group-hover:scale-105 transition-transform duration-300"
-                style={{ mixBlendMode: 'screen' }}
+                className="w-full h-full object-contain object-center filter brightness-[1.0] contrast-[1.1] drop-shadow-[0_0_8px_rgba(212,175,55,0.5)] group-hover:scale-105 transition-transform duration-300"
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = '/images/logo-anonym-empire-transparent.png';
                 }}
@@ -221,19 +215,19 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ storeInfo }) => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.3 }}
-          className="text-2xl sm:text-3xl lg:text-4xl font-serif font-light italic text-center text-[#E8D5A3]/90 mb-8"
+          className="text-2xl sm:text-3xl lg:text-4xl font-serif font-light italic text-center text-[#6B5A2E] mb-8"
         >
           {storeInfo.pageTexts?.accueil?.heroSubtitle || '« L\'art de se démarquer »'}
         </motion.p>
 
-        {/* Quality badge — cascade step 4 */}
+        {/* Quality badge — cascade step 4 — intentionally kept dark for premium contrast */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.42 }}
           className="flex justify-center mb-8"
         >
-          <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-xl bg-[#0F0E08]/80 border border-[#D4AF37]/30 text-xs font-mono text-[#F3E5AB] backdrop-blur-sm shadow-[0_0_20px_rgba(212,175,55,0.15)]">
+          <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-xl bg-[#1A1A1A] border border-[#D4AF37]/40 text-xs font-mono text-[#F3E5AB] shadow-[0_4px_20px_rgba(0,0,0,0.15)]">
             <Sparkles className="w-3.5 h-3.5 text-[#D4AF37] fill-[#D4AF37] animate-pulse" />
             <span className="tracking-[0.2em] uppercase">
               {storeInfo.pageTexts?.accueil?.badgeQuality || 'Qualité · Confiance · Élégance'}
@@ -246,7 +240,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ storeInfo }) => {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.55 }}
-          className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-300/90 font-sans leading-relaxed max-w-2xl sm:max-w-3xl lg:max-w-4xl mx-auto text-center mb-8 sm:mb-10"
+          className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-700 font-sans leading-relaxed max-w-2xl sm:max-w-3xl lg:max-w-4xl mx-auto text-center mb-8 sm:mb-10"
         >
           {storeInfo.pageTexts?.accueil?.heroDescription ||
             'Créations d\'exception gravées sur-mesure : bijoux personnalisés en acier inoxydable garanti 1 an, parfums de luxe et coffrets d\'emballages royaux pour femmes, hommes et événements précieux.'}
@@ -281,14 +275,14 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ storeInfo }) => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.72 + i * 0.08 }}
-              whileHover={{ scale: 1.05, boxShadow: '0 0 25px rgba(212,175,55,0.3)' }}
-              className="text-center p-4 sm:p-5 rounded-2xl bg-[#0D0C07]/80 border border-[#D4AF37]/20 hover:border-[#D4AF37]/60 transition-all group backdrop-blur-sm cursor-default"
+              whileHover={{ scale: 1.05, boxShadow: '0 4px 30px rgba(212,175,55,0.2)' }}
+              className="text-center p-4 sm:p-5 rounded-2xl bg-white border border-[#D4AF37]/25 hover:border-[#D4AF37]/60 transition-all group shadow-sm cursor-default"
             >
               <Icon className="w-5 h-5 text-[#D4AF37] mx-auto mb-2 group-hover:scale-110 transition-transform" />
-              <div className="text-xl sm:text-3xl font-serif font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#F3E5AB] to-[#D4AF37]">
+              <div className="text-xl sm:text-3xl font-serif font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#AA771C] to-[#D4AF37]">
                 {value}
               </div>
-              <div className="text-[10px] sm:text-xs text-gray-400 mt-0.5 font-sans leading-tight">{label}</div>
+              <div className="text-[10px] sm:text-xs text-gray-600 mt-0.5 font-sans leading-tight">{label}</div>
             </motion.div>
           ))}
         </motion.div>

@@ -25,15 +25,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const allImages = [product.imageUrl, ...(product.images || [])].filter(Boolean);
 
   return (
-    <div className={`group bg-[#121212] rounded-2xl overflow-hidden border transition-all duration-300 flex flex-col justify-between shadow-xl ${
+    <div className={`group bg-white rounded-2xl overflow-hidden border transition-all duration-300 flex flex-col justify-between shadow-sm ${
       isEpuise
-        ? 'border-gray-800 opacity-70'
-        : 'border-[#D4AF37]/25 hover:border-[#D4AF37] hover:shadow-[0_0_25px_rgba(212,175,55,0.25)]'
+        ? 'border-gray-200 opacity-70'
+        : 'border-[#D4AF37]/20 hover:border-[#D4AF37] hover:shadow-[0_4px_30px_rgba(212,175,55,0.18)]'
     }`}>
 
       {/* Top Image Section */}
       <div
-        className={`relative aspect-square w-full overflow-hidden bg-black/80 ${!isEpuise ? 'cursor-pointer' : 'cursor-default'}`}
+        className={`relative aspect-square w-full overflow-hidden bg-gray-100 ${!isEpuise ? 'cursor-pointer' : 'cursor-default'}`}
         onClick={() => !isEpuise && onQuickView(product)}
       >
         <img
@@ -98,7 +98,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
         <div>
           {/* Gender & Guarantee */}
-          <div className="flex items-center justify-between text-[10px] text-amber-200/70 mb-1 font-sans">
+          <div className="flex items-center justify-between text-[10px] text-[#8A6A20] mb-1 font-sans">
             <span className="uppercase tracking-wider">
               {product.gender === 'femme' && '♀ Femme'}
               {product.gender === 'homme' && '♂ Homme'}
@@ -116,7 +116,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           {/* Title */}
           <h3
             onClick={() => !isEpuise && onQuickView(product)}
-            className={`text-sm font-serif font-bold text-white line-clamp-2 leading-snug ${
+            className={`text-sm font-serif font-bold text-gray-900 line-clamp-2 leading-snug ${
               !isEpuise ? 'group-hover:text-[#D4AF37] transition-colors cursor-pointer' : ''
             }`}
           >
@@ -124,7 +124,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </h3>
 
           {/* Description */}
-          <p className="text-[11px] text-gray-400 font-sans mt-1 line-clamp-2 leading-relaxed">
+          <p className="text-[11px] text-gray-500 font-sans mt-1 line-clamp-2 leading-relaxed">
             {product.description}
           </p>
         </div>
@@ -138,7 +138,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         />
 
         {/* Price & Actions */}
-        <div className="pt-2 border-t border-gray-800/80">
+        <div className="pt-2 border-t border-gray-200">
           <div className="flex items-baseline justify-between mb-2.5">
             <span className="text-[10px] text-gray-500">Prix :</span>
             <div className="text-right">
