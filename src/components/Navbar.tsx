@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CrownLogo } from './CrownLogo';
 import { StoreInfo, CategoryId } from '../types';
-import { ShoppingBag, MessageCircle, Menu, X, ShieldCheck, Key, Edit3 } from 'lucide-react';
+import { ShoppingCart, MessageCircle, Menu, X, ShieldCheck, Key, Edit3 } from 'lucide-react';
 import { NotificationBell } from './NotificationBell';
 import { useVisualEditor } from '../context/VisualEditorContext';
 
@@ -221,9 +221,10 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             onClick={onOpenCart}
             className="relative p-2.5 rounded-full bg-white hover:bg-gray-50 border border-[#D4AF37]/40 text-[#D4AF37] transition-all cursor-pointer shadow-sm group"
-            title="Mon Panier / Sélection"
+            title="Mon Panier"
+            aria-label="Ouvrir mon panier"
           >
-            <ShoppingBag className="w-5 h-5 group-hover:scale-110 transition-transform" />
+            <ShoppingCart className="w-5 h-5 group-hover:scale-110 transition-transform" />
             {cartCount > 0 && (
               <span className="absolute -top-1 -right-1 bg-gradient-to-r from-red-600 to-amber-600 text-white font-mono text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-black animate-pulse shadow-lg">
                 {cartCount}

@@ -1,7 +1,7 @@
 import React from 'react';
 import { StoreInfo } from '../types';
 import { buildWhatsAppLink } from '../utils/helpers';
-import { ShoppingBag, Sparkles, MessageCircle, Clock, Truck, ShieldCheck, CheckCircle } from 'lucide-react';
+import { ShoppingCart, Sparkles, MessageCircle, Clock, Truck, ShieldCheck, CheckCircle } from 'lucide-react';
 import { EditableText } from './editor/EditableText';
 
 interface OrderingRulesSectionProps {
@@ -13,7 +13,7 @@ export const OrderingRulesSection: React.FC<OrderingRulesSectionProps> = ({ stor
 
   const defaultRules = [
     {
-      icon: ShoppingBag,
+      icon: ShoppingCart,
       title: '1. Choisissez votre produit',
       description: 'Parcourez le catalogue ANONYM et sélectionnez le bijou, parfum, emballage ou accessoire de votre choix. Chaque pièce est unique et personnalisable.',
     },

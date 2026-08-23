@@ -1,7 +1,7 @@
 import React from 'react';
 import { Product } from '../types';
 import { formatPriceFCFA, generateSingleProductWhatsAppMsg, buildWhatsAppLink } from '../utils/helpers';
-import { Eye, MessageCircle, ShoppingBag, ShieldCheck } from 'lucide-react';
+import { Eye, MessageCircle, ShoppingCart, ShieldCheck } from 'lucide-react';
 import { AvailabilityBadge } from './AvailabilityBadge';
 
 interface ProductCardProps {
@@ -155,13 +155,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             <button
               onClick={() => !isEpuise && onAddToCart(product)}
               disabled={isEpuise}
+              title="Ajouter au panier"
               className={`inline-flex items-center justify-center gap-1.5 font-semibold text-[11px] py-2 px-2 rounded-xl transition-all ${
                 isEpuise
                   ? 'bg-gray-800 text-gray-600 cursor-not-allowed'
                   : 'bg-[#1A1A1A] hover:bg-[#282215] text-[#D4AF37] border border-[#D4AF37]/40 cursor-pointer'
               }`}
             >
-              <ShoppingBag className="w-3.5 h-3.5" />
+              <ShoppingCart className="w-3.5 h-3.5" />
               <span>Panier</span>
             </button>
 

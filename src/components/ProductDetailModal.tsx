@@ -8,7 +8,7 @@ import {
 import {
   X,
   MessageCircle,
-  ShoppingBag,
+  ShoppingCart,
   ShieldCheck,
   Check,
   Upload,
@@ -414,7 +414,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                   </>
                 ) : (
                   <>
-                    <ShoppingBag className="w-4 h-4" />
+                    <ShoppingCart className="w-4 h-4" />
                     <span>{isEpuise ? 'Épuisé' : 'Ajouter au Panier'}</span>
                   </>
                 )}
