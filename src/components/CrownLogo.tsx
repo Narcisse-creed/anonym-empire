@@ -32,13 +32,13 @@ export const CrownLogo: React.FC<CrownLogoProps> = ({
         {/* Ambient Gold Aura Glow */}
         <div className="absolute inset-0 rounded-full bg-[#D4AF37]/35 blur-md pointer-events-none transform scale-115" />
 
-        {/* Outer Golden Circle Container */}
-        <div className="relative w-full h-full rounded-full bg-gradient-to-br from-[#2A2213] via-[#16120B] to-[#050403] p-[2px] border-2 border-[#D4AF37] shadow-[0_0_20px_rgba(212,175,55,0.5)] hover:scale-105 transition-transform duration-300 flex items-center justify-center overflow-hidden">
+        {/* Outer Golden Circle Container — fond blanc pour faire ressortir le "A" bois */}
+        <div className="relative w-full h-full rounded-full bg-white p-[2px] border-2 border-[#D4AF37] shadow-[0_0_20px_rgba(212,175,55,0.5)] hover:scale-105 transition-transform duration-300 flex items-center justify-center overflow-hidden">
           <img
             src={logoPath}
             alt="Logo ANONYM EMPIRE — L'art de se démarquer"
-            className="w-full h-full object-contain object-center filter brightness-[1.4] contrast-[1.1] drop-shadow-[0_0_8px_rgba(212,175,55,0.6)]"
-            style={{ mixBlendMode: 'screen' }}
+            className="w-[115%] h-[115%] object-cover object-top drop-shadow-[0_2px_6px_rgba(212,175,55,0.4)]"
+            style={{ marginTop: '-5%' }}
             onError={(e) => {
               (e.target as HTMLImageElement).src = '/images/logo-anonym-empire-transparent.png';
             }}
@@ -50,7 +50,7 @@ export const CrownLogo: React.FC<CrownLogoProps> = ({
       {showText && (
         <div className="flex flex-col justify-center">
           <div className="flex items-center gap-1.5">
-            <span className={`font-serif tracking-[0.2em] font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#F3E5AB] via-[#D4AF37] to-[#AA771C] ${currentSize.text}`}>
+            <span className={`font-serif tracking-[0.2em] font-bold text-[#2C1A0E] ${currentSize.text}`}>
               ANONYM
             </span>
           </div>
