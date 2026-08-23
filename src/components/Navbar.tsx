@@ -37,6 +37,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<string>('hero');
   const longPressTimerRef = React.useRef<NodeJS.Timeout | null>(null);
+  const { isEditMode, toggleEditMode } = useVisualEditor();
 
   // Track scroll position to update active navbar section dynamically
   useEffect(() => {
