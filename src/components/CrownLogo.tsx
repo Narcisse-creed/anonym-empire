@@ -51,8 +51,8 @@ export const CrownLogo: React.FC<CrownLogoProps> = ({
         <div className="flex flex-col justify-center">
           <div className="flex items-center gap-1.5">
             <span className={`font-serif tracking-[0.2em] font-bold ${currentSize.text}`}>
-              <span className="anonym-bicolore-left">ANO</span>
-              <span className="anonym-bicolore-right">NYM</span>
+              <span className="anonym-part-a">ANO</span>
+              <span className="anonym-part-b">NYM</span>
             </span>
           </div>
           {showSubtitle && (

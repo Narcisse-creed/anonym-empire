@@ -203,7 +203,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ storeInfo }) => {
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1], delay: 0.45 }}
-          className="text-5xl sm:text-7xl md:text-8xl font-serif font-bold tracking-[0.16em] sm:tracking-[0.18em] uppercase leading-none mb-2 select-none"
+          className="anonym-logo text-5xl sm:text-7xl md:text-8xl font-serif font-bold tracking-[0.16em] sm:tracking-[0.18em] uppercase leading-none mb-2 select-none"
         >
           <EditableText
             path="accueil.heroTitle"
@@ -217,16 +217,10 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ storeInfo }) => {
               const part2 = text.slice(mid);
               return (
                 <span className="relative inline-block overflow-hidden py-1 px-1">
-                  <span
-                    className="anonym-bicolore-left inline-block transition-colors"
-                    style={{ animation: 'bicolorePartLeft 12s ease-in-out infinite' }}
-                  >
+                  <span className="anonym-part-a inline-block">
                     {part1}
                   </span>
-                  <span
-                    className="anonym-bicolore-right inline-block transition-colors"
-                    style={{ animation: 'bicolorePartRight 12s ease-in-out infinite' }}
-                  >
+                  <span className="anonym-part-b inline-block">
                     {part2}
                   </span>
                   {/* Shimmer sweep bar during color transition */}
@@ -235,8 +229,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ storeInfo }) => {
                     className="anonym-shimmer-sweep pointer-events-none absolute inset-0"
                     style={{
                       width: '45%',
-                      background: 'linear-gradient(105deg, transparent 0%, rgba(243,229,171,0) 25%, rgba(243,229,171,0.7) 50%, rgba(243,229,171,0) 75%, transparent 100%)',
-                      animation: 'shimmerSweepAcross 12s ease-in-out infinite',
+                      background: 'linear-gradient(105deg, transparent 0%, rgba(243,229,171,0) 25%, rgba(243,229,171,0.7) 50%, rgba(243,229,171,0.75) 75%, transparent 100%)',
                     }}
                   />
                 </span>

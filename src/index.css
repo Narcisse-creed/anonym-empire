@@ -73,99 +73,42 @@ html {
 }
 
 /* ── Animation Bicolore du Logo "ANONYM" ── */
-@keyframes bicolorePartLeft {
-  0%, 42% {
-    color: #8C5A2B;
-  }
-  46% {
-    color: #F3E5AB;
-    text-shadow: 0 0 16px rgba(243, 229, 171, 0.75);
-  }
-  52%, 82% {
-    color: #2A1810;
-    text-shadow: none;
-  }
-  86% {
-    color: #F3E5AB;
-    text-shadow: 0 0 14px rgba(243, 229, 171, 0.6);
-  }
-  92%, 100% {
-    color: #8C5A2B;
-    text-shadow: none;
-  }
+.anonym-logo .anonym-part-a,
+.anonym-logo .anonym-part-b,
+.anonym-part-a,
+.anonym-part-b {
+  transition: color 1.2s ease;
 }
 
-@keyframes bicolorePartRight {
-  0%, 42% {
-    color: #8C5A2B;
-  }
-  48% {
-    color: #F3E5AB;
-    text-shadow: 0 0 18px rgba(243, 229, 171, 0.85);
-  }
-  54%, 82% {
-    color: #D4AF37;
-    text-shadow: 0 2px 12px rgba(212, 175, 55, 0.28);
-  }
-  88% {
-    color: #F3E5AB;
-    text-shadow: 0 0 14px rgba(243, 229, 171, 0.6);
-  }
-  92%, 100% {
-    color: #8C5A2B;
-    text-shadow: none;
-  }
+.anonym-logo .anonym-part-a,
+.anonym-part-a {
+  animation: anonymPartA 9s ease-in-out infinite;
 }
 
-@keyframes shimmerSweepAcross {
-  0%, 41% {
-    transform: translateX(-150%) skewX(-20deg);
-    opacity: 0;
-  }
-  45% {
-    opacity: 0.95;
-  }
-  50% {
-    transform: translateX(200%) skewX(-20deg);
-    opacity: 0;
-  }
-  83% {
-    transform: translateX(-150%) skewX(-20deg);
-    opacity: 0;
-  }
-  87% {
-    opacity: 0.9;
-  }
-  92% {
-    transform: translateX(200%) skewX(-20deg);
-    opacity: 0;
-  }
-  100% {
-    transform: translateX(200%) skewX(-20deg);
-    opacity: 0;
-  }
+.anonym-logo .anonym-part-b,
+.anonym-part-b {
+  animation: anonymPartB 9s ease-in-out infinite;
 }
 
-.anonym-bicolore-left {
-  animation: bicolorePartLeft 12s ease-in-out infinite;
+@keyframes anonymPartA {
+  0%, 55%   { color: #8C5A2B; }
+  70%, 90%  { color: #2A1810; }
+  100%      { color: #8C5A2B; }
 }
 
-.anonym-bicolore-right {
-  animation: bicolorePartRight 12s ease-in-out infinite;
-}
-
-.anonym-shimmer-sweep {
-  animation: shimmerSweepAcross 12s ease-in-out infinite;
+@keyframes anonymPartB {
+  0%, 55%   { color: #8C5A2B; }
+  70%, 90%  { color: #D4AF37; }
+  100%      { color: #8C5A2B; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .anonym-bicolore-left,
-  .anonym-bicolore-right {
+  .anonym-logo .anonym-part-a,
+  .anonym-logo .anonym-part-b,
+  .anonym-part-a,
+  .anonym-part-b {
     animation: none !important;
     color: #8C5A2B !important;
-  }
-  .anonym-shimmer-sweep {
-    display: none !important;
   }
 }
 
