@@ -18,6 +18,10 @@ import { Footer } from './components/Footer';
 import { SelectionBasketDrawer } from './components/SelectionBasketDrawer';
 import { AdminPortalModal } from './components/AdminPortalModal';
 import { RoyalBackgroundAnimation } from './components/RoyalBackgroundAnimation';
+import { VisualEditorProvider } from './context/VisualEditorContext';
+import { VisualEditorToolbar } from './components/editor/VisualEditorToolbar';
+import { CustomDynamicSection } from './components/editor/CustomDynamicSection';
+import { AddSectionButton } from './components/editor/AddSectionButton';
 import {
   loadProducts,
   saveProducts,
@@ -495,168 +499,198 @@ export default function App() {
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8F6F2] text-[#1A1A1A] font-sans antialiased overflow-x-hidden">
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <RoyalBackgroundAnimation />
-        <div className="absolute top-1/4 left-10 w-[500px] h-[500px] bg-[#D4AF37]/5 rounded-full blur-[140px] pointer-events-none" />
-        <div className="absolute bottom-1/3 right-10 w-[600px] h-[600px] bg-[#AA771C]/5 rounded-full blur-[160px] pointer-events-none" />
-      </div>
+    <VisualEditorProvider storeInfo={storeInfo} onUpdateStoreInfo={handleUpdateStoreInfo}>
+      <div className="min-h-screen flex flex-col bg-[#F8F6F2] text-[#1A1A1A] font-sans antialiased overflow-x-hidden">
+        <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+          <RoyalBackgroundAnimation />
+          <div className="absolute top-1/4 left-10 w-[500px] h-[500px] bg-[#D4AF37]/5 rounded-full blur-[140px] pointer-events-none" />
+          <div className="absolute bottom-1/3 right-10 w-[600px] h-[600px] bg-[#AA771C]/5 rounded-full blur-[160px] pointer-events-none" />
+        </div>
 
-      <Navbar
-        storeInfo={storeInfo}
-        cartCount={cartCount}
-        notifications={notifications}
-        onOpenCart={() => setIsCartOpen(true)}
-        onOpenAdmin={() => setIsAdminOpen(true)}
-        isAdminLoggedIn={isAdminLoggedIn}
-        activeCategory={activeCategory}
-        showGrid={showGrid}
-        onSelectCategory={handleSelectCategory}
-        onBackToGrid={handleBackToGrid}
-        onGoToHomeHero={handleGoToHomeHero}
-        onNavigateSection={handleNavigateSection}
-      />
+        {/* Visual Editor Floating Toolbar */}
+        <VisualEditorToolbar onOpenAdmin={() => setIsAdminOpen(true)} />
 
-      <main className="relative z-10 flex-1 flex flex-col w-full">
-        {/* ── HERO (always visible) ── */}
-        <HeroSection
+        <Navbar
           storeInfo={storeInfo}
-          onExploreCatalog={handleExploreCatalog}
-          onOpenCustomizer={handleOpenCustomizer}
-        />
-
-        {/* ── UNIVERSE GRID / NAV (always visible, sticky) ── */}
-        <UniverseGrid
+          cartCount={cartCount}
+          notifications={notifications}
+          onOpenCart={() => setIsCartOpen(true)}
+          onOpenAdmin={() => setIsAdminOpen(true)}
+          isAdminLoggedIn={isAdminLoggedIn}
           activeCategory={activeCategory}
           showGrid={showGrid}
           onSelectCategory={handleSelectCategory}
           onBackToGrid={handleBackToGrid}
-          storeInfo={storeInfo}
+          onGoToHomeHero={handleGoToHomeHero}
+          onNavigateSection={handleNavigateSection}
         />
 
-        {/* ── CONTENT AREA : ONLY displayed when a card or page is active (!showGrid) ── */}
-        {!showGrid && (
-          <div id="content-area" className="flex-1 w-full">
-            {/* Product Catalog for Bijoux, Emballages, Parfums, Accessoires */}
-            {['bijoux', 'emballages', 'parfums', 'accessoires'].includes(activeCategory) && (
-              <div id="catalogue">
-                <ProductCatalog
-                  products={products}
-                  collections={collections}
-                  selectedCategory={activeCategory as CategoryId}
-                  onSelectCategory={handleSelectCategory}
-                  whatsappNumber={storeInfo.whatsappNumber}
-                  onQuickView={(product) => {
-                    setSelectedProduct(product);
-                    handleTrackProductView(product.id);
-                  }}
-                  onAddToCart={handleAddToCart}
-                  subCategoriesLvl1={subCategoriesLvl1}
-                  subCategoriesLvl2={subCategoriesLvl2}
-                />
-              </div>
-            )}
+        <main className="relative z-10 flex-1 flex flex-col w-full">
+          {/* ── HERO (always visible) ── */}
+          <HeroSection
+            storeInfo={storeInfo}
+            onExploreCatalog={handleExploreCatalog}
+            onOpenCustomizer={handleOpenCustomizer}
+          />
 
-            {/* À propos card content — ONLY shown when user clicks 'À PROPOS' card */}
-            {activeCategory === 'accueil' && (
-              <div id="about-sections">
-                <AboutFounder storeInfo={storeInfo} />
-                <RealisationsGallery realisations={realisations} />
-                <OrderingRulesSection storeInfo={storeInfo} />
-                <QuoteRequestSection storeInfo={storeInfo} onAddQuoteRequest={handleAddQuoteRequest} />
-                <ReviewsSection storeInfo={storeInfo} reviews={reviews} onAddReview={handleAddReview} />
-              </div>
-            )}
+          {/* ── UNIVERSE GRID / NAV (always visible, sticky) ── */}
+          <UniverseGrid
+            activeCategory={activeCategory}
+            showGrid={showGrid}
+            onSelectCategory={handleSelectCategory}
+            onBackToGrid={handleBackToGrid}
+            storeInfo={storeInfo}
+          />
 
-            {/* Dedicated Contact Page — ONLY shown when user clicks "CONTACT" in header */}
-            {activeCategory === 'contact' && (
-              <div id="contact-page">
-                <ContactSection storeInfo={storeInfo} />
-              </div>
-            )}
-          </div>
+          {/* ── CONTENT AREA : ONLY displayed when a card or page is active (!showGrid) ── */}
+          {!showGrid && (
+            <div id="content-area" className="flex-1 w-full">
+              {/* Product Catalog for Bijoux, Emballages, Parfums, Accessoires */}
+              {['bijoux', 'emballages', 'parfums', 'accessoires'].includes(activeCategory) && (
+                <div id="catalogue">
+                  <ProductCatalog
+                    products={products}
+                    collections={collections}
+                    selectedCategory={activeCategory as CategoryId}
+                    onSelectCategory={handleSelectCategory}
+                    whatsappNumber={storeInfo.whatsappNumber}
+                    onQuickView={(product) => {
+                      setSelectedProduct(product);
+                      handleTrackProductView(product.id);
+                    }}
+                    onAddToCart={handleAddToCart}
+                    subCategoriesLvl1={subCategoriesLvl1}
+                    subCategoriesLvl2={subCategoriesLvl2}
+                  />
+
+                  {/* Dynamic sections for this catalog category */}
+                  {(storeInfo.customSections || [])
+                    .filter((s) => s.pageId === activeCategory)
+                    .map((s, idx) => (
+                      <CustomDynamicSection key={s.id} section={s} index={idx} />
+                    ))}
+                  <AddSectionButton pageId={activeCategory as any} />
+                </div>
+              )}
+
+              {/* À propos card content — ONLY shown when user clicks 'À PROPOS' card */}
+              {activeCategory === 'accueil' && (
+                <div id="about-sections">
+                  <AboutFounder storeInfo={storeInfo} />
+                  
+                  {/* Dynamic custom sections added for Accueil / À Propos */}
+                  {(storeInfo.customSections || [])
+                    .filter((s) => s.pageId === 'accueil')
+                    .map((s, idx) => (
+                      <CustomDynamicSection key={s.id} section={s} index={idx} />
+                    ))}
+                  <AddSectionButton pageId="accueil" />
+
+                  <RealisationsGallery realisations={realisations} />
+                  <OrderingRulesSection storeInfo={storeInfo} />
+                  <QuoteRequestSection storeInfo={storeInfo} onAddQuoteRequest={handleAddQuoteRequest} />
+                  <ReviewsSection storeInfo={storeInfo} reviews={reviews} onAddReview={handleAddReview} />
+                </div>
+              )}
+
+              {/* Dedicated Contact Page — ONLY shown when user clicks "CONTACT" in header */}
+              {activeCategory === 'contact' && (
+                <div id="contact-page">
+                  <ContactSection storeInfo={storeInfo} />
+
+                  {/* Dynamic custom sections added for Contact */}
+                  {(storeInfo.customSections || [])
+                    .filter((s) => s.pageId === 'contact')
+                    .map((s, idx) => (
+                      <CustomDynamicSection key={s.id} section={s} index={idx} />
+                    ))}
+                  <AddSectionButton pageId="contact" />
+                </div>
+              )}
+            </div>
+          )}
+        </main>
+
+        <Footer storeInfo={storeInfo} onOpenAdmin={() => setIsAdminOpen(true)} />
+
+        {selectedProduct && (
+          <ProductDetailModal
+            product={selectedProduct}
+            onClose={() => setSelectedProduct(null)}
+            whatsappNumber={storeInfo.whatsappNumber}
+            onAddToCart={(product, engravingText, metalFinish, selectedColor, customText) => {
+              handleAddToCart(product, engravingText, metalFinish, selectedColor, customText);
+              setSelectedProduct(null);
+            }}
+            onCreateOrder={handleCreateOrder}
+          />
         )}
-      </main>
 
-      <Footer storeInfo={storeInfo} onOpenAdmin={() => setIsAdminOpen(true)} />
-
-      {selectedProduct && (
-        <ProductDetailModal
-          product={selectedProduct}
-          onClose={() => setSelectedProduct(null)}
-          whatsappNumber={storeInfo.whatsappNumber}
-          onAddToCart={(product, engravingText, metalFinish, selectedColor, customText) => {
-            handleAddToCart(product, engravingText, metalFinish, selectedColor, customText);
-            setSelectedProduct(null);
-          }}
+        <SelectionBasketDrawer
+          isOpen={isCartOpen}
+          onClose={() => setIsCartOpen(false)}
+          cartItems={cartItems}
+          storeInfo={storeInfo}
+          onUpdateQuantity={handleUpdateQuantity}
+          onRemoveItem={handleRemoveItem}
+          onClearCart={handleClearCart}
           onCreateOrder={handleCreateOrder}
         />
-      )}
 
-      <SelectionBasketDrawer
-        isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
-        cartItems={cartItems}
-        storeInfo={storeInfo}
-        onUpdateQuantity={handleUpdateQuantity}
-        onRemoveItem={handleRemoveItem}
-        onClearCart={handleClearCart}
-        onCreateOrder={handleCreateOrder}
-      />
-
-      <AdminOuterErrorBoundary onClose={() => setIsAdminOpen(false)}>
-        <AdminPortalModal
-          isOpen={isAdminOpen}
-          onClose={() => setIsAdminOpen(false)}
-          isAdminLoggedIn={isAdminLoggedIn}
-          onLogin={handleAdminLogin}
-          onLogout={handleAdminLogout}
-          products={products}
-          onAddProduct={handleAddProduct}
-          onUpdateProduct={handleUpdateProduct}
-          onDeleteProduct={handleDeleteProduct}
-          onResetProducts={handleResetProducts}
-          storeInfo={storeInfo}
-          onUpdateStoreInfo={handleUpdateStoreInfo}
-          onChangeAdminPassword={handleChangeAdminPassword}
-          collections={collections}
-          reviews={reviews}
-          notifications={notifications}
-          quoteRequests={quoteRequests}
-          orders={orders}
-          analytics={analytics}
-          realisations={realisations}
-          onAddRealisationCollection={handleAddRealisationCollection}
-          onUpdateRealisationCollection={handleUpdateRealisationCollection}
-          onDeleteRealisationCollection={handleDeleteRealisationCollection}
-          onReorderRealisationCollections={handleReorderRealisationCollections}
-          onAddCollection={handleAddCollection}
-          onUpdateCollection={handleUpdateCollection}
-          onDeleteCollection={handleDeleteCollection}
-          onReorderCollections={handleReorderCollections}
-          onUpdateReview={handleUpdateReview}
-          onDeleteReview={handleDeleteReview}
-          onUpdateQuoteRequestStatus={handleUpdateQuoteRequestStatus}
-          onDeleteQuoteRequest={handleDeleteQuoteRequest}
-          onAddNotification={handleAddNotification}
-          onMarkNotificationRead={handleMarkNotificationRead}
-          onAddOrder={handleAddOrder}
-          onUpdateOrderStatus={handleUpdateOrderStatus}
-          onDeleteOrder={handleDeleteOrder}
-          onTrackProductView={handleTrackProductView}
-          onUpdateAnalytics={setAnalytics}
-          subCategoriesLvl1={subCategoriesLvl1}
-          subCategoriesLvl2={subCategoriesLvl2}
-          onAddSubCatLvl1={handleAddSubCatLvl1}
-          onUpdateSubCatLvl1={handleUpdateSubCatLvl1}
-          onReorderSubCatsLvl1={handleReorderSubCatsLvl1}
-          onDeleteSubCatLvl1={handleDeleteSubCatLvl1}
-          onAddSubCatLvl2={handleAddSubCatLvl2}
-          onUpdateSubCatLvl2={handleUpdateSubCatLvl2}
-          onReorderSubCatsLvl2={handleReorderSubCatsLvl2}
-          onDeleteSubCatLvl2={handleDeleteSubCatLvl2}
-        />
-      </AdminOuterErrorBoundary>
-    </div>
+        <AdminOuterErrorBoundary onClose={() => setIsAdminOpen(false)}>
+          <AdminPortalModal
+            isOpen={isAdminOpen}
+            onClose={() => setIsAdminOpen(false)}
+            isAdminLoggedIn={isAdminLoggedIn}
+            onLogin={handleAdminLogin}
+            onLogout={handleAdminLogout}
+            products={products}
+            onAddProduct={handleAddProduct}
+            onUpdateProduct={handleUpdateProduct}
+            onDeleteProduct={handleDeleteProduct}
+            onResetProducts={handleResetProducts}
+            storeInfo={storeInfo}
+            onUpdateStoreInfo={handleUpdateStoreInfo}
+            onChangeAdminPassword={handleChangeAdminPassword}
+            collections={collections}
+            reviews={reviews}
+            notifications={notifications}
+            quoteRequests={quoteRequests}
+            orders={orders}
+            analytics={analytics}
+            realisations={realisations}
+            onAddRealisationCollection={handleAddRealisationCollection}
+            onUpdateRealisationCollection={handleUpdateRealisationCollection}
+            onDeleteRealisationCollection={handleDeleteRealisationCollection}
+            onReorderRealisationCollections={handleReorderRealisationCollections}
+            onAddCollection={handleAddCollection}
+            onUpdateCollection={handleUpdateCollection}
+            onDeleteCollection={handleDeleteCollection}
+            onReorderCollections={handleReorderCollections}
+            onUpdateReview={handleUpdateReview}
+            onDeleteReview={handleDeleteReview}
+            onUpdateQuoteRequestStatus={handleUpdateQuoteRequestStatus}
+            onDeleteQuoteRequest={handleDeleteQuoteRequest}
+            onAddNotification={handleAddNotification}
+            onMarkNotificationRead={handleMarkNotificationRead}
+            onAddOrder={handleAddOrder}
+            onUpdateOrderStatus={handleUpdateOrderStatus}
+            onDeleteOrder={handleDeleteOrder}
+            onTrackProductView={handleTrackProductView}
+            onUpdateAnalytics={setAnalytics}
+            subCategoriesLvl1={subCategoriesLvl1}
+            subCategoriesLvl2={subCategoriesLvl2}
+            onAddSubCatLvl1={handleAddSubCatLvl1}
+            onUpdateSubCatLvl1={handleUpdateSubCatLvl1}
+            onReorderSubCatsLvl1={handleReorderSubCatsLvl1}
+            onDeleteSubCatLvl1={handleDeleteSubCatLvl1}
+            onAddSubCatLvl2={handleAddSubCatLvl2}
+            onUpdateSubCatLvl2={handleUpdateSubCatLvl2}
+            onReorderSubCatsLvl2={handleReorderSubCatsLvl2}
+            onDeleteSubCatLvl2={handleDeleteSubCatLvl2}
+          />
+        </AdminOuterErrorBoundary>
+      </div>
+    </VisualEditorProvider>
   );
 }

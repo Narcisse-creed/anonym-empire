@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { CrownLogo } from './CrownLogo';
 import { StoreInfo, CategoryId } from '../types';
-import { ShoppingBag, MessageCircle, Menu, X, ShieldCheck, Key } from 'lucide-react';
+import { ShoppingBag, MessageCircle, Menu, X, ShieldCheck, Key, Edit3 } from 'lucide-react';
 import { NotificationBell } from './NotificationBell';
+import { useVisualEditor } from '../context/VisualEditorContext';
 
 interface NavbarProps {
   storeInfo: StoreInfo;
@@ -228,6 +229,22 @@ export const Navbar: React.FC<NavbarProps> = ({
               </span>
             )}
           </button>
+
+          {/* Edit Site Mode Button (for logged-in admin) */}
+          {isAdminLoggedIn && (
+            <button
+              onClick={toggleEditMode}
+              className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold tracking-tight transition-all cursor-pointer shadow-md ${
+                isEditMode
+                  ? 'bg-[#D4AF37] text-black border-[#D4AF37] shadow-[0_0_15px_rgba(212,175,55,0.5)] font-bold'
+                  : 'bg-[#141414] hover:bg-black text-[#D4AF37] border-[#D4AF37]/50 hover:border-[#D4AF37]'
+              }`}
+              title={isEditMode ? "Quitter le mode édition" : "Activer le mode édition en direct"}
+            >
+              <Edit3 className="w-3.5 h-3.5" />
+              <span>{isEditMode ? 'Édition Active' : 'Modifier le site'}</span>
+            </button>
+          )}
 
           {/* Admin indicator */}
           {isAdminLoggedIn && (

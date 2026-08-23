@@ -3,6 +3,7 @@ import { StoreInfo } from '../types';
 import { CrownLogo } from './CrownLogo';
 import { MapPin, Phone, Mail, Facebook, MessageCircle, Send, Sparkles } from 'lucide-react';
 import { buildWhatsAppLink } from '../utils/helpers';
+import { EditableText } from './editor/EditableText';
 
 interface ContactSectionProps {
   storeInfo: StoreInfo;
@@ -56,7 +57,12 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ storeInfo }) => 
                   <div>
                     <h4 className="font-serif font-bold text-gray-900">Adresse Physique</h4>
                     <p className="text-xs text-gray-600 mt-0.5">
-                      {storeInfo.address}, {storeInfo.city}, {storeInfo.country}
+                      <EditableText
+                        path="address"
+                        value={storeInfo.address}
+                        defaultValue="Zogbadjè"
+                        label="Adresse"
+                      />, {storeInfo.city}, {storeInfo.country}
                     </p>
                   </div>
                 </div>

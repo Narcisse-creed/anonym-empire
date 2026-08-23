@@ -3,6 +3,8 @@ import { motion } from 'motion/react';
 import { StoreInfo, FounderCommitment } from '../types';
 import { CrownLogo } from './CrownLogo';
 import { Sparkles, CheckCircle2, Clock, Award, Shield, PhoneCall } from 'lucide-react';
+import { EditableText } from './editor/EditableText';
+import { EditableImage } from './editor/EditableImage';
 
 interface AboutFounderProps {
   storeInfo: StoreInfo;
@@ -39,12 +41,6 @@ export const AboutFounder: React.FC<AboutFounderProps> = ({ storeInfo }) => {
   const sectionTitle = fs.sectionTitle || 'La Fondatrice : Lizie Fifamè ALLATIN';
   const paragraph    = fs.paragraph    || "Basée à Abomey-Calavi (Zogbadjè, Bénin), ANONYM est une maison béninoise d'excellence dédiée aux bijoux personnalisés, la parfumerie et la conception de coffrets de prestige. Nous traduisons vos émotions, prénoms et dates mémorables en œuvres durables.";
   const commitments  = (fs.commitments && fs.commitments.length > 0) ? fs.commitments : DEFAULT_COMMITMENTS;
-
-  // Split sectionTitle to colour the founder name in gold
-  // Expected format: "La Fondatrice : Lizie Fifamè ALLATIN"
-  const colonIdx = sectionTitle.indexOf(':');
-  const sectionPrefix = colonIdx !== -1 ? sectionTitle.slice(0, colonIdx + 1) : sectionTitle;
-  const sectionSuffix = colonIdx !== -1 ? sectionTitle.slice(colonIdx + 1).trim() : '';
 
   return (
     <section id="about" className="py-20 bg-[#F0EDE7] relative border-b border-[#D4AF37]/20 overflow-hidden">
@@ -83,7 +79,7 @@ export const AboutFounder: React.FC<AboutFounderProps> = ({ storeInfo }) => {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
 
-          {/* Left Column: Single Founder Photo (no carousel) */}
+          {/* Left Column: Single Founder Photo with Direct Inline Replacement */}
           <div className="lg:col-span-5 relative">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
@@ -94,16 +90,14 @@ export const AboutFounder: React.FC<AboutFounderProps> = ({ storeInfo }) => {
             >
               <div className="aspect-[3/4] relative rounded-2xl overflow-hidden bg-black">
 
-                {/* Single fixed photo */}
-                <img
+                {/* Editable Founder Photo */}
+                <EditableImage
+                  path="founderSection.photoUrl"
                   src={photoUrl}
+                  defaultSrc={FALLBACK_PHOTO}
                   alt={name}
-                  referrerPolicy="no-referrer"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src =
-                      'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?q=80&w=1200&auto=format&fit=crop';
-                  }}
-                  className="absolute inset-0 w-full h-full object-cover object-top filter saturate-[1.05]"
+                  className="w-full h-full object-cover object-top filter saturate-[1.05]"
+                  label="Photo de la Fondatrice"
                 />
 
                 {/* Dark Vignette */}
@@ -111,20 +105,41 @@ export const AboutFounder: React.FC<AboutFounderProps> = ({ storeInfo }) => {
 
                 {/* Badge */}
                 <div className="absolute top-4 left-4 z-20 px-3 py-1 rounded-full bg-black/80 backdrop-blur-md border border-[#D4AF37]/40 text-[#D4AF37] text-xs font-mono font-bold">
-                  {badge}
+                  <EditableText
+                    path="founderSection.badge"
+                    value={badge}
+                    defaultValue="Directrice Générale & CEO"
+                    label="Badge Rôle"
+                  />
                 </div>
 
                 {/* Bottom Info Overlay */}
                 <div className="absolute bottom-4 left-4 right-4 z-20 p-4 rounded-2xl bg-black/85 backdrop-blur-md border border-[#D4AF37]/40 text-center space-y-1 shadow-xl">
                   <span className="font-serif font-bold text-base sm:text-lg text-[#F3E5AB] block">
-                    {name}
+                    <EditableText
+                      path="founderSection.name"
+                      value={name}
+                      defaultValue="Lizie Fifamè ALLATIN"
+                      label="Nom de la Fondatrice"
+                    />
                   </span>
                   <span className="text-xs font-sans text-amber-200/90 block">
-                    {title}
+                    <EditableText
+                      path="founderSection.title"
+                      value={title}
+                      defaultValue="Fondatrice & Directrice Générale — ANONYM"
+                      label="Titre & Fonction"
+                    />
                   </span>
-                  <p className="text-[11px] text-gray-300 font-sans italic line-clamp-2 pt-1 border-t border-gray-800/80 mt-1">
-                    « {quote} »
-                  </p>
+                  <div className="text-[11px] text-gray-300 font-sans italic line-clamp-3 pt-1 border-t border-gray-800/80 mt-1">
+                    <EditableText
+                      path="founderSection.quote"
+                      value={quote}
+                      defaultValue="Inspirée par l'excellence et le prestige royal..."
+                      multiline={true}
+                      label="Citation Fondatrice"
+                    />
+                  </div>
                 </div>
               </div>
             </motion.div>
@@ -141,14 +156,22 @@ export const AboutFounder: React.FC<AboutFounderProps> = ({ storeInfo }) => {
             >
               <div className="text-center">
                 <h3 className="text-2xl font-serif font-bold text-gray-900 mb-2 text-center">
-                  {sectionSuffix
-                    ? <>{sectionPrefix} <span className="text-[#D4AF37]">{sectionSuffix}</span></>
-                    : <span className="text-[#D4AF37]">{sectionTitle}</span>
-                  }
+                  <EditableText
+                    path="founderSection.sectionTitle"
+                    value={sectionTitle}
+                    defaultValue="La Fondatrice : Lizie Fifamè ALLATIN"
+                    label="Titre de la section À Propos"
+                  />
                 </h3>
-                <p className="text-gray-700 font-sans text-sm sm:text-base leading-relaxed text-center max-w-xl mx-auto">
-                  {paragraph}
-                </p>
+                <div className="text-gray-700 font-sans text-sm sm:text-base leading-relaxed text-center max-w-xl mx-auto">
+                  <EditableText
+                    path="founderSection.paragraph"
+                    value={paragraph}
+                    defaultValue="Basée à Abomey-Calavi (Zogbadjè, Bénin), ANONYM est une maison béninoise d'excellence dédiée aux bijoux personnalisés..."
+                    multiline={true}
+                    label="Biographie / Présentation"
+                  />
+                </div>
               </div>
 
               {/* Brand Values Banner */}
@@ -174,7 +197,22 @@ export const AboutFounder: React.FC<AboutFounderProps> = ({ storeInfo }) => {
                   {commitments.map((c, idx) => (
                     <li key={idx} className="flex items-start gap-2.5 bg-white p-3 rounded-xl border border-gray-200 hover:border-[#D4AF37]/30 transition-all">
                       <CommitmentIcon icon={c.icon} />
-                      <span><strong className="text-gray-900">{c.label}</strong> {c.text}</span>
+                      <span>
+                        <strong className="text-gray-900">
+                          <EditableText
+                            path={`founderSection.commitments.${idx}.label`}
+                            value={c.label}
+                            defaultValue={c.label}
+                            label={`Engagement #${idx + 1} Titre`}
+                          />
+                        </strong>{' '}
+                        <EditableText
+                          path={`founderSection.commitments.${idx}.text`}
+                          value={c.text}
+                          defaultValue={c.text}
+                          label={`Engagement #${idx + 1} Texte`}
+                        />
+                      </span>
                     </li>
                   ))}
                 </ul>

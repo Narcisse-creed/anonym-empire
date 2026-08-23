@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { StoreInfo } from '../types';
 import { ShieldCheck, Gem, Star } from 'lucide-react';
+import { EditableText } from './editor/EditableText';
 
 interface HeroSectionProps {
   storeInfo: StoreInfo;
@@ -124,7 +125,12 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ storeInfo }) => {
           transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1], delay: 0.45 }}
           className="text-5xl sm:text-7xl md:text-8xl font-serif font-bold tracking-[0.16em] sm:tracking-[0.18em] text-[#1A0F0A] uppercase leading-none mb-2"
         >
-          {storeInfo.pageTexts?.accueil?.heroTitle || 'ANONYM'}
+          <EditableText
+            path="accueil.heroTitle"
+            value={storeInfo.pageTexts?.accueil?.heroTitle}
+            defaultValue="ANONYM"
+            label="Grand Titre Hero"
+          />
         </motion.h1>
 
         {/* SOULIGNEMENT DORÉ — Animation 4 (se dessine gauche → droite) */}
@@ -177,21 +183,31 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ storeInfo }) => {
         >
           <div className="inline-block border border-[#8C7A6B]/45 rounded-full px-6 py-1.5 sm:px-8 sm:py-2 bg-white/80 shadow-sm">
             <span className="font-serif italic text-base sm:text-lg md:text-xl text-[#2C2018] tracking-wide">
-              {storeInfo.pageTexts?.accueil?.heroSubtitle || "L'art de se démarquer"}
+              <EditableText
+                path="accueil.heroSubtitle"
+                value={storeInfo.pageTexts?.accueil?.heroSubtitle}
+                defaultValue="L'art de se démarquer"
+                label="Sous-titre / Slogan"
+              />
             </span>
           </div>
         </motion.div>
 
         {/* Description */}
-        <motion.p
+        <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.65, ease: 'easeOut', delay: 1.45 }}
           className="text-sm sm:text-base text-gray-600 font-sans leading-relaxed max-w-2xl sm:max-w-3xl mx-auto text-center mb-8"
         >
-          {storeInfo.pageTexts?.accueil?.heroDescription ||
-            "ANONYM est une marque de personnalisation sur mesure pour particuliers et professionnels. Notre mission : permettre à chaque client de se sentir unique et particulier à travers des produits et services de personnalisation d'exception — bijoux, emballages, parfums et accessoires."}
-        </motion.p>
+          <EditableText
+            path="accueil.heroDescription"
+            value={storeInfo.pageTexts?.accueil?.heroDescription}
+            defaultValue="ANONYM est une marque de personnalisation sur mesure pour particuliers et professionnels. Notre mission : permettre à chaque client de se sentir unique et particulier à travers des produits et services de personnalisation d'exception — bijoux, emballages, parfums et accessoires."
+            multiline={true}
+            label="Description Marque"
+          />
+        </motion.div>
 
         {/* 3 cartes d'engagements */}
         <motion.div
@@ -201,10 +217,22 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ storeInfo }) => {
           className="grid grid-cols-3 gap-3 sm:gap-6 max-w-2xl sm:max-w-3xl w-full mx-auto"
         >
           {[
-            { value: storeInfo.pageTexts?.accueil?.stat1Value || '211+', label: storeInfo.pageTexts?.accueil?.stat1Label || 'Modèles de Bijoux',   icon: Gem },
-            { value: storeInfo.pageTexts?.accueil?.stat2Value || '1 An', label: storeInfo.pageTexts?.accueil?.stat2Label || 'Garantie Inox 316L', icon: ShieldCheck },
-            { value: storeInfo.pageTexts?.accueil?.stat3Value || '100%', label: storeInfo.pageTexts?.accueil?.stat3Label || 'Sur-Mesure',          icon: Star },
-          ].map(({ value, label, icon: Icon }, i) => (
+            {
+              pathVal: 'accueil.stat1Value', val: storeInfo.pageTexts?.accueil?.stat1Value, defVal: '211+',
+              pathLbl: 'accueil.stat1Label', lbl: storeInfo.pageTexts?.accueil?.stat1Label, defLbl: 'Modèles de Bijoux',
+              icon: Gem
+            },
+            {
+              pathVal: 'accueil.stat2Value', val: storeInfo.pageTexts?.accueil?.stat2Value, defVal: '1 An',
+              pathLbl: 'accueil.stat2Label', lbl: storeInfo.pageTexts?.accueil?.stat2Label, defLbl: 'Garantie Inox 316L',
+              icon: ShieldCheck
+            },
+            {
+              pathVal: 'accueil.stat3Value', val: storeInfo.pageTexts?.accueil?.stat3Value, defVal: '100%',
+              pathLbl: 'accueil.stat3Label', lbl: storeInfo.pageTexts?.accueil?.stat3Label, defLbl: 'Sur-Mesure',
+              icon: Star
+            },
+          ].map(({ pathVal, val, defVal, pathLbl, lbl, defLbl, icon: Icon }, i) => (
             <motion.div
               key={i}
               whileHover={{ scale: 1.04, y: -2 }}
@@ -212,8 +240,12 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ storeInfo }) => {
               className="text-center p-3.5 sm:p-5 rounded-2xl bg-white border border-[#D4AF37]/30 shadow-sm cursor-default"
             >
               <Icon className="w-5 h-5 text-[#8C6D23] mx-auto mb-1.5" />
-              <div className="text-lg sm:text-2xl font-serif font-bold text-[#1A0F0A]">{value}</div>
-              <div className="text-[10px] sm:text-xs text-gray-500 mt-0.5 font-sans leading-tight">{label}</div>
+              <div className="text-lg sm:text-2xl font-serif font-bold text-[#1A0F0A]">
+                <EditableText path={pathVal} value={val} defaultValue={defVal} label={`Stat #${i + 1} Valeur`} />
+              </div>
+              <div className="text-[10px] sm:text-xs text-gray-500 mt-0.5 font-sans leading-tight">
+                <EditableText path={pathLbl} value={lbl} defaultValue={defLbl} label={`Stat #${i + 1} Libellé`} />
+              </div>
             </motion.div>
           ))}
         </motion.div>

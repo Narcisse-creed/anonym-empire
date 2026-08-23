@@ -228,6 +228,19 @@ export interface FilterOptions {
   availability: AvailabilityStatus | 'all';
 }
 
+export interface CustomSection {
+  id: string;
+  pageId: 'accueil' | 'bijoux' | 'parfums' | 'emballages' | 'accessoires' | 'contact';
+  type: 'text' | 'image' | 'text-image';
+  title?: string;
+  subtitle?: string;
+  content?: string;
+  imageUrl?: string;
+  imagePosition?: 'left' | 'right';
+  badge?: string;
+  order: number;
+}
+
 export interface StoreInfo {
   name: string;
   fullName: string;
@@ -246,6 +259,7 @@ export interface StoreInfo {
   ifu: string;
   bankAccountInfo: string;
   pageTexts?: PageTexts;
+  customSections?: CustomSection[];
   founderSection?: {
     photoUrl?: string;
     name?: string;

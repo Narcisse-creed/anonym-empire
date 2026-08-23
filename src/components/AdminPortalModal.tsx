@@ -2,8 +2,9 @@ import React, { useState, useMemo } from 'react';
 import { Product, StoreInfo, CategoryId, SubCategory, GenderCategory, Collection, Review, QuoteRequest, Order, AnalyticsData, SubCategoryLevel1, SubCategoryLevel2, RealisationCollection, RealisationPhoto, AvailabilityStatus } from '../types';
 import { UNIVERSE_CATEGORIES } from '../data/categories';
 import { loadProducts, saveProducts, loadStoreInfo, saveStoreInfo, loadCollections, saveCollections, loadReviews, saveReviews, loadQuoteRequests, saveQuoteRequests, loadNotifications, saveNotifications, loadOrders, saveOrders, loadAnalytics, saveAnalytics, formatPriceFCFA } from '../utils/helpers';
-import { X, Lock, Key, Plus, Edit2, Trash2, RotateCcw, Save, ShieldCheck, Download, Upload, ChevronUp, ChevronDown, Filter, Star, FileText, BarChart3, MessageSquare, Clock, CheckCircle, XCircle, Package, Settings, Layout, Eye, EyeOff, Search, ArrowUpDown, ArrowUp, ArrowDown, Image as ImageIcon, Users, TrendingUp, Sparkles, ShoppingBag } from 'lucide-react';
+import { X, Lock, Key, Plus, Edit2, Edit3, Trash2, RotateCcw, Save, ShieldCheck, Download, Upload, ChevronUp, ChevronDown, Filter, Star, FileText, BarChart3, MessageSquare, Clock, CheckCircle, XCircle, Package, Settings, Layout, Eye, EyeOff, Search, ArrowUpDown, ArrowUp, ArrowDown, Image as ImageIcon, Users, TrendingUp, Sparkles, ShoppingBag } from 'lucide-react';
 import { ImageUploader } from './ImageUploader';
+import { useVisualEditor } from '../context/VisualEditorContext';
 
 interface AdminPortalModalProps {
   isOpen: boolean;
@@ -170,6 +171,8 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
   const [adminTab, setAdminTab] = useState<
     'list' | 'add' | 'edit' | 'settings' | 'collections' | 'subcategories' | 'textes' | 'commandes' | 'devis' | 'avis' | 'analytics' | 'realisations'
   >('list');
+
+  const { setIsEditMode } = useVisualEditor();
 
   // Login Form State
   const [passwordInput, setPasswordInput] = useState('');
@@ -603,6 +606,10 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
   const [formData, setFormData] = useState<Omit<Product, 'id'>>(defaultFormState);
   const [storeFormData, setStoreFormData] = useState<StoreInfo>(storeInfo);
 
+  React.useEffect(() => {
+    setStoreFormData(storeInfo);
+  }, [storeInfo]);
+
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const success = onLogin(passwordInput);
@@ -861,6 +868,35 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
             /* Admin Logged-In Panel */
             <div className="space-y-6">
               
+              {/* Visual Inline Editor CTA Banner */}
+              <div className="p-3.5 bg-gradient-to-r from-[#17140B] via-[#221C11] to-[#17140B] border-2 border-[#D4AF37] rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 shadow-lg">
+                <div className="flex items-center gap-2.5 text-center sm:text-left">
+                  <div className="p-2 rounded-xl bg-[#D4AF37] text-black shrink-0">
+                    <Edit3 className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-serif font-bold text-xs sm:text-sm text-[#F3E5AB]">
+                      Nouveau : Éditeur Visuel en Direct (Mode Odoo)
+                    </h4>
+                    <p className="text-[11px] text-amber-200/80">
+                      Modifiez les textes, photos et sections directement sur vos pages publiques en un clic !
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    setIsEditMode(true);
+                  }}
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#AA771C] hover:from-[#F3E5AB] hover:to-[#D4AF37] text-black font-serif font-bold text-xs uppercase tracking-wider transition-all shadow-md hover:scale-105 cursor-pointer shrink-0 flex items-center gap-2"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span>🎨 Modifier le site en direct</span>
+                </button>
+              </div>
+
               {/* Tab Selector Bar */}
               <div className="flex items-center justify-between border-b border-gray-200 pb-4 overflow-x-auto gap-2">
                 <div className="flex items-center gap-2">

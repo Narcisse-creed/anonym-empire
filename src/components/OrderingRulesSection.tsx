@@ -2,6 +2,7 @@ import React from 'react';
 import { StoreInfo } from '../types';
 import { buildWhatsAppLink } from '../utils/helpers';
 import { ShoppingBag, Sparkles, MessageCircle, Clock, Truck, ShieldCheck, CheckCircle } from 'lucide-react';
+import { EditableText } from './editor/EditableText';
 
 interface OrderingRulesSectionProps {
   storeInfo: StoreInfo;
@@ -58,11 +59,21 @@ export const OrderingRulesSection: React.FC<OrderingRulesSectionProps> = ({ stor
             <span>Comment Commander</span>
           </div>
           <h2 className="text-3xl sm:text-4xl font-serif font-bold text-gray-900 tracking-tight">
-            {storeInfo.pageTexts?.processus?.title || 'Le Processus ANONYM'}
+            <EditableText
+              path="processus.title"
+              value={storeInfo.pageTexts?.processus?.title}
+              defaultValue="Le Processus ANONYM"
+              label="Titre Processus"
+            />
           </h2>
-          <p className="text-sm text-gray-600 mt-2 font-sans">
-            {storeInfo.pageTexts?.processus?.subtitle || 'De la sélection à la livraison, chaque étape est pensée pour votre satisfaction.'}
-          </p>
+          <div className="text-sm text-gray-600 mt-2 font-sans">
+            <EditableText
+              path="processus.subtitle"
+              value={storeInfo.pageTexts?.processus?.subtitle}
+              defaultValue="De la sélection à la livraison, chaque étape est pensée pour votre satisfaction."
+              label="Sous-titre Processus"
+            />
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -75,11 +86,22 @@ export const OrderingRulesSection: React.FC<OrderingRulesSectionProps> = ({ stor
                 <rule.icon className="w-6 h-6" />
               </div>
               <h3 className="font-serif font-bold text-gray-900 text-base mb-2 group-hover:text-[#D4AF37] transition-colors">
-                {rule.title}
+                <EditableText
+                  path={`processus.rules.${idx}.title`}
+                  value={customRules[idx]?.title}
+                  defaultValue={defaultRules[idx].title}
+                  label={`Étape #${idx + 1} Titre`}
+                />
               </h3>
-              <p className="text-xs text-gray-600 font-sans leading-relaxed">
-                {rule.description}
-              </p>
+              <div className="text-xs text-gray-600 font-sans leading-relaxed">
+                <EditableText
+                  path={`processus.rules.${idx}.description`}
+                  value={customRules[idx]?.description}
+                  defaultValue={defaultRules[idx].description}
+                  multiline={true}
+                  label={`Étape #${idx + 1} Description`}
+                />
+              </div>
             </div>
           ))}
         </div>
