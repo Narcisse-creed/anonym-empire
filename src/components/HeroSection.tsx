@@ -15,30 +15,92 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ storeInfo }) => {
       id="hero"
       className="relative overflow-hidden py-10 sm:py-14 md:py-18 flex flex-col justify-center min-h-[45vh] lg:min-h-[52vh] w-full bg-white"
     >
-      {/* ── Subtle background ambient warm glow ── */}
-      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-50/40 via-white to-white" />
+      {/* ── CSS Keyframes for subtle animations ── */}
+      <style>{`
+        @keyframes floatUp {
+          0%   { transform: translateY(0px) translateX(0px); opacity: 0; }
+          15%  { opacity: 1; }
+          85%  { opacity: 0.6; }
+          100% { transform: translateY(-120px) translateX(12px); opacity: 0; }
+        }
+        @keyframes floatUp2 {
+          0%   { transform: translateY(0px) translateX(0px); opacity: 0; }
+          20%  { opacity: 0.8; }
+          80%  { opacity: 0.4; }
+          100% { transform: translateY(-100px) translateX(-10px); opacity: 0; }
+        }
+        @keyframes shimmerLine {
+          0%   { background-position: -200% center; }
+          100% { background-position: 200% center; }
+        }
+        @keyframes gentlePulse {
+          0%, 100% { opacity: 0.25; transform: scale(1); }
+          50%       { opacity: 0.45; transform: scale(1.06); }
+        }
+      `}</style>
+
+      {/* ── Animated warm radial glow (very subtle) ── */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'radial-gradient(ellipse 70% 50% at 50% 0%, rgba(212,175,55,0.10) 0%, rgba(255,248,230,0.18) 40%, transparent 70%)',
+          animation: 'gentlePulse 8s ease-in-out infinite',
+        }}
+      />
+
+      {/* ── Floating golden light particles ── */}
+      {[
+        { left: '18%', bottom: '38%', delay: '0s',   dur: '9s',  size: 4, anim: 'floatUp' },
+        { left: '72%', bottom: '42%', delay: '2.5s', dur: '11s', size: 3, anim: 'floatUp2' },
+        { left: '38%', bottom: '30%', delay: '5s',   dur: '10s', size: 5, anim: 'floatUp' },
+        { left: '60%', bottom: '35%', delay: '1.2s', dur: '13s', size: 3, anim: 'floatUp2' },
+        { left: '85%', bottom: '55%', delay: '4s',   dur: '9s',  size: 4, anim: 'floatUp' },
+        { left: '12%', bottom: '50%', delay: '6.5s', dur: '12s', size: 3, anim: 'floatUp2' },
+      ].map((p, i) => (
+        <div
+          key={i}
+          className="absolute pointer-events-none rounded-full"
+          style={{
+            left: p.left,
+            bottom: p.bottom,
+            width: `${p.size}px`,
+            height: `${p.size}px`,
+            background: 'radial-gradient(circle, rgba(212,175,55,0.85) 0%, rgba(212,175,55,0) 100%)',
+            animation: `${p.anim} ${p.dur} ${p.delay} ease-in-out infinite`,
+          }}
+        />
+      ))}
 
       {/* ── Content Container ── */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 relative z-10 flex flex-col items-center text-center">
 
-        {/* 1. Grand Logo 3D Wood "A" Emblem — Autonome, grand, sans cercle ni badge */}
+        {/* 1. Grand Logo 3D Wood "A" Emblem */}
         <motion.div
           initial={{ opacity: 0, y: -15, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          className="mb-4 sm:mb-6"
+          className="mb-4 sm:mb-6 relative"
         >
+          {/* Halo doré très doux derrière le logo */}
+          <div
+            className="absolute inset-0 rounded-full pointer-events-none"
+            style={{
+              background: 'radial-gradient(circle, rgba(212,175,55,0.12) 0%, transparent 70%)',
+              transform: 'scale(1.3)',
+              animation: 'gentlePulse 6s ease-in-out infinite',
+            }}
+          />
           <img
             src="/images/logo-3d-wood-a.png"
             alt="ANONYM 3D Wood Emblem"
-            className="w-48 sm:w-64 md:w-80 lg:w-96 h-auto object-contain mx-auto drop-shadow-[0_12px_28px_rgba(0,0,0,0.12)]"
+            className="w-48 sm:w-64 md:w-80 lg:w-96 h-auto object-contain mx-auto drop-shadow-[0_12px_28px_rgba(0,0,0,0.12)] relative z-10"
             onError={(e) => {
               (e.target as HTMLImageElement).src = '/images/logo-anonym-empire-transparent.png';
             }}
           />
         </motion.div>
 
-        {/* 2. "ANONYM" — Police serif élégante, couleur sombre (brun foncé/noir), pas de dégradé doré */}
+        {/* 2. "ANONYM" */}
         <motion.h1
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
@@ -48,19 +110,33 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ storeInfo }) => {
           {storeInfo.pageTexts?.accueil?.heroTitle || 'ANONYM'}
         </motion.h1>
 
-        {/* 3. Ligne de séparation fine avec losange ornemental */}
+        {/* 3. Ligne de séparation avec shimmer doré */}
         <motion.div
           initial={{ opacity: 0, scaleX: 0 }}
           animate={{ opacity: 1, scaleX: 1 }}
           transition={{ duration: 0.8, delay: 0.25 }}
           className="flex items-center justify-center gap-3 w-56 sm:w-80 md:w-96 mx-auto my-2"
         >
-          <div className="h-[1px] flex-1 bg-[#2C2018]/30" />
-          <div className="w-1.5 h-1.5 rotate-45 bg-[#2C2018]/80" />
-          <div className="h-[1px] flex-1 bg-[#2C2018]/30" />
+          <div
+            className="h-[1px] flex-1"
+            style={{
+              background: 'linear-gradient(90deg, transparent, rgba(212,175,55,0.6), rgba(44,32,24,0.4), rgba(212,175,55,0.6), transparent)',
+              backgroundSize: '200% 100%',
+              animation: 'shimmerLine 4s linear infinite',
+            }}
+          />
+          <div className="w-1.5 h-1.5 rotate-45 bg-[#D4AF37]/80" />
+          <div
+            className="h-[1px] flex-1"
+            style={{
+              background: 'linear-gradient(90deg, transparent, rgba(212,175,55,0.6), rgba(44,32,24,0.4), rgba(212,175,55,0.6), transparent)',
+              backgroundSize: '200% 100%',
+              animation: 'shimmerLine 4s linear infinite reverse',
+            }}
+          />
         </motion.div>
 
-        {/* 4. Slogan "QUALITÉ · CONFIANCE · ÉLÉGANCE" — Texte sombre simple, sans badge */}
+        {/* 4. Slogan */}
         <motion.p
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -70,7 +146,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ storeInfo }) => {
           QUALITÉ &bull; CONFIANCE &bull; ÉLÉGANCE
         </motion.p>
 
-        {/* 5. "L'art de se démarquer" — En italique, dans un encadré à bordure fine arrondie */}
+        {/* 5. "L'art de se démarquer" */}
         <motion.div
           initial={{ opacity: 0, y: 10, scale: 0.96 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -84,7 +160,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ storeInfo }) => {
           </div>
         </motion.div>
 
-        {/* 6. Description de la marque */}
+        {/* 6. Description */}
         <motion.p
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -95,7 +171,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ storeInfo }) => {
             "ANONYM est une marque de personnalisation sur mesure pour particuliers et professionnels. Notre mission : permettre à chaque client de se sentir unique et particulier à travers des produits et services de personnalisation d'exception — bijoux, emballages, parfums et accessoires."}
         </motion.p>
 
-        {/* 7. Key figures (3 cartes d'engagements) */}
+        {/* 7. Key figures */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

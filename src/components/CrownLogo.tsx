@@ -23,7 +23,8 @@ export const CrownLogo: React.FC<CrownLogoProps> = ({
   };
 
   const currentSize = sizeMap[size];
-  const logoPath = '/images/logo-anonym-empire-transparent.png';
+  // logo-3d-wood-a.png = uniquement le symbole "A" en bois, fond blanc, sans aucun texte
+  const logoPath = '/images/logo-3d-wood-a.png';
 
   return (
     <div className={`inline-flex items-center gap-3 select-none ${className}`}>
@@ -32,15 +33,14 @@ export const CrownLogo: React.FC<CrownLogoProps> = ({
         {/* Ambient Gold Aura Glow */}
         <div className="absolute inset-0 rounded-full bg-[#D4AF37]/35 blur-md pointer-events-none transform scale-115" />
 
-        {/* Outer Golden Circle Container — fond blanc pour faire ressortir le "A" bois */}
-        <div className="relative w-full h-full rounded-full bg-white p-[2px] border-2 border-[#D4AF37] shadow-[0_0_20px_rgba(212,175,55,0.5)] hover:scale-105 transition-transform duration-300 flex items-center justify-center overflow-hidden">
+        {/* Outer Golden Circle Container — fond blanc, image "A" seul sans texte */}
+        <div className="relative w-full h-full rounded-full bg-white p-[3px] border-2 border-[#D4AF37] shadow-[0_0_18px_rgba(212,175,55,0.45)] hover:scale-105 transition-transform duration-300 flex items-center justify-center overflow-hidden">
           <img
             src={logoPath}
-            alt="Logo ANONYM EMPIRE — L'art de se démarquer"
-            className="w-[115%] h-[115%] object-cover object-top drop-shadow-[0_2px_6px_rgba(212,175,55,0.4)]"
-            style={{ marginTop: '-5%' }}
+            alt="ANONYM — Symbole A bois sculpté"
+            className="w-[90%] h-[90%] object-contain"
             onError={(e) => {
-              (e.target as HTMLImageElement).src = '/images/logo-anonym-empire-transparent.png';
+              (e.target as HTMLImageElement).src = '/images/logo-3d-wood-a.png';
             }}
           />
         </div>
