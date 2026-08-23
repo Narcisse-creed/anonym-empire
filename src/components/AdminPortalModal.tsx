@@ -826,7 +826,7 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                   Espace Privé
                 </h3>
                 <p className="text-xs text-gray-600">
-                  Veuillez saisir votre mot de passe pour gérer les bijoux, ajouter des photos ou modifier les tarifs.
+                  Veuillez saisir votre mot de passe.
                 </p>
               </div>
 
