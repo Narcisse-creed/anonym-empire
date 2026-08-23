@@ -216,22 +216,13 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ storeInfo }) => {
               const part1 = text.slice(0, mid);
               const part2 = text.slice(mid);
               return (
-                <span className="relative inline-block overflow-hidden py-1 px-1">
+                <span className="inline-block">
                   <span className="anonym-part-a inline-block">
                     {part1}
                   </span>
                   <span className="anonym-part-b inline-block">
                     {part2}
                   </span>
-                  {/* Shimmer sweep bar during color transition */}
-                  <span
-                    aria-hidden="true"
-                    className="anonym-shimmer-sweep pointer-events-none absolute inset-0"
-                    style={{
-                      width: '45%',
-                      background: 'linear-gradient(105deg, transparent 0%, rgba(243,229,171,0) 25%, rgba(243,229,171,0.7) 50%, rgba(243,229,171,0.75) 75%, transparent 100%)',
-                    }}
-                  />
                 </span>
               );
             }}

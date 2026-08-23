@@ -78,28 +78,30 @@ html {
 .anonym-part-a,
 .anonym-part-b {
   transition: color 1.2s ease;
+  display: inline-block;
+  /* Uniquement color est animée — aucun clip-path, mask, ou width */
 }
 
 .anonym-logo .anonym-part-a,
 .anonym-part-a {
-  animation: anonymPartA 9s ease-in-out infinite;
+  animation: anonymPartA 12s ease-in-out infinite;
 }
 
 .anonym-logo .anonym-part-b,
 .anonym-part-b {
-  animation: anonymPartB 9s ease-in-out infinite;
+  animation: anonymPartB 12s ease-in-out infinite;
 }
 
 @keyframes anonymPartA {
-  0%, 55%   { color: #8C5A2B; }
-  70%, 90%  { color: #2A1810; }
-  100%      { color: #8C5A2B; }
+  0%, 45%  { color: #8C5A2B; } /* repos ~5,4s — couleur brun chocolat fixe */
+  60%, 85% { color: #2A1810; } /* état bicolore — brun ébène profond */
+  100%     { color: #8C5A2B; }
 }
 
 @keyframes anonymPartB {
-  0%, 55%   { color: #8C5A2B; }
-  70%, 90%  { color: #D4AF37; }
-  100%      { color: #8C5A2B; }
+  0%, 45%  { color: #8C5A2B; } /* repos ~5,4s — couleur brun chocolat fixe */
+  60%, 85% { color: #D4AF37; } /* état bicolore — or royal */
+  100%     { color: #8C5A2B; }
 }
 
 @media (prefers-reduced-motion: reduce) {
