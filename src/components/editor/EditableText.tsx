@@ -24,6 +24,7 @@ interface EditableTextProps {
   style?: React.CSSProperties;
   multiline?: boolean;
   label?: string;
+  renderDisplay?: (currentValue: string) => React.ReactNode;
 }
 
 const COLOR_PRESETS = [
@@ -61,6 +62,7 @@ export const EditableText: React.FC<EditableTextProps> = ({
   style = {},
   multiline = false,
   label,
+  renderDisplay,
 }) => {
   const { isEditMode, activeEditPath, setActiveEditPath, updateTextByPath } = useVisualEditor();
   const currentValue = value !== undefined && value !== null && value !== '' ? value : defaultValue;
@@ -269,6 +271,13 @@ export const EditableText: React.FC<EditableTextProps> = ({
 
   // Normal Visitor Mode or Non-editing Mode
   if (!isEditMode) {
+    if (renderDisplay) {
+      return (
+        <Component className={className} style={style}>
+          {renderDisplay(currentValue)}
+        </Component>
+      );
+    }
     return (
       <Component
         className={className}
@@ -520,7 +529,11 @@ export const EditableText: React.FC<EditableTextProps> = ({
       style={style}
       title="Cliquer pour modifier ce texte"
     >
-      <Component dangerouslySetInnerHTML={{ __html: currentValue }} />
+      {renderDisplay ? (
+        <Component className="inline-block">{renderDisplay(currentValue)}</Component>
+      ) : (
+        <Component dangerouslySetInnerHTML={{ __html: currentValue }} />
+      )}
 
       {/* Floating mini pencil icon on hover */}
       <span className="opacity-0 group-hover:opacity-100 absolute -top-3 -right-3 z-30 bg-[#D4AF37] text-black p-1 rounded-full shadow-lg transition-opacity duration-150 pointer-events-none scale-90">

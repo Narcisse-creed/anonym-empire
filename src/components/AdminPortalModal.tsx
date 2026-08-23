@@ -617,7 +617,7 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
       setPasswordInput('');
       setLoginError('');
     } else {
-      setLoginError('Mot de passe incorrect. (Mot de passe par défaut : anonyme2026)');
+      setLoginError('Mot de passe incorrect. Veuillez réessayer.');
     }
   };
 
@@ -859,10 +859,6 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                   Se Connecter à l'Administration
                 </button>
               </form>
-
-              <p className="text-[11px] text-gray-500 italic">
-                Mot de passe par défaut configuré : <strong className="text-amber-700">anonyme2026</strong>
-              </p>
             </div>
           ) : (
             /* Admin Logged-In Panel */

@@ -48,6 +48,86 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ storeInfo }) => {
           0%, 100% { opacity: 0.18; transform: scale(1.25); }
           50%       { opacity: 0.30; transform: scale(1.36); }
         }
+        @keyframes bicolorePartLeft {
+          0%, 42% {
+            color: #8C5A2B;
+          }
+          46% {
+            color: #F3E5AB;
+            text-shadow: 0 0 16px rgba(243, 229, 171, 0.75);
+          }
+          52%, 82% {
+            color: #2A1810;
+            text-shadow: none;
+          }
+          86% {
+            color: #F3E5AB;
+            text-shadow: 0 0 14px rgba(243, 229, 171, 0.6);
+          }
+          92%, 100% {
+            color: #8C5A2B;
+            text-shadow: none;
+          }
+        }
+        @keyframes bicolorePartRight {
+          0%, 42% {
+            color: #8C5A2B;
+          }
+          48% {
+            color: #F3E5AB;
+            text-shadow: 0 0 18px rgba(243, 229, 171, 0.85);
+          }
+          54%, 82% {
+            color: #D4AF37;
+            text-shadow: 0 2px 12px rgba(212, 175, 55, 0.28);
+          }
+          88% {
+            color: #F3E5AB;
+            text-shadow: 0 0 14px rgba(243, 229, 171, 0.6);
+          }
+          92%, 100% {
+            color: #8C5A2B;
+            text-shadow: none;
+          }
+        }
+        @keyframes shimmerSweepAcross {
+          0%, 41% {
+            transform: translateX(-150%) skewX(-20deg);
+            opacity: 0;
+          }
+          45% {
+            opacity: 0.95;
+          }
+          50% {
+            transform: translateX(200%) skewX(-20deg);
+            opacity: 0;
+          }
+          83% {
+            transform: translateX(-150%) skewX(-20deg);
+            opacity: 0;
+          }
+          87% {
+            opacity: 0.9;
+          }
+          92% {
+            transform: translateX(200%) skewX(-20deg);
+            opacity: 0;
+          }
+          100% {
+            transform: translateX(200%) skewX(-20deg);
+            opacity: 0;
+          }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .anonym-bicolore-left,
+          .anonym-bicolore-right {
+            animation: none !important;
+            color: #8C5A2B !important;
+          }
+          .anonym-shimmer-sweep {
+            display: none !important;
+          }
+        }
       `}</style>
 
       {/* Halo ambiant warm */}
@@ -118,18 +198,50 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ storeInfo }) => {
           </div>
         </motion.div>
 
-        {/* ANONYM — Animation 1 cascade (délai 0.45s après logo) */}
+        {/* ANONYM — Animation 1 cascade + Cycle Bicolore */}
         <motion.h1
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1], delay: 0.45 }}
-          className="text-5xl sm:text-7xl md:text-8xl font-serif font-bold tracking-[0.16em] sm:tracking-[0.18em] text-[#1A0F0A] uppercase leading-none mb-2"
+          className="text-5xl sm:text-7xl md:text-8xl font-serif font-bold tracking-[0.16em] sm:tracking-[0.18em] uppercase leading-none mb-2 select-none"
         >
           <EditableText
             path="accueil.heroTitle"
             value={storeInfo.pageTexts?.accueil?.heroTitle}
             defaultValue="ANONYM"
             label="Grand Titre Hero"
+            renderDisplay={(val) => {
+              const text = val || 'ANONYM';
+              const mid = Math.ceil(text.length / 2);
+              const part1 = text.slice(0, mid);
+              const part2 = text.slice(mid);
+              return (
+                <span className="relative inline-block overflow-hidden py-1 px-1">
+                  <span
+                    className="anonym-bicolore-left inline-block transition-colors"
+                    style={{ animation: 'bicolorePartLeft 12s ease-in-out infinite' }}
+                  >
+                    {part1}
+                  </span>
+                  <span
+                    className="anonym-bicolore-right inline-block transition-colors"
+                    style={{ animation: 'bicolorePartRight 12s ease-in-out infinite' }}
+                  >
+                    {part2}
+                  </span>
+                  {/* Shimmer sweep bar during color transition */}
+                  <span
+                    aria-hidden="true"
+                    className="anonym-shimmer-sweep pointer-events-none absolute inset-0"
+                    style={{
+                      width: '45%',
+                      background: 'linear-gradient(105deg, transparent 0%, rgba(243,229,171,0) 25%, rgba(243,229,171,0.7) 50%, rgba(243,229,171,0) 75%, transparent 100%)',
+                      animation: 'shimmerSweepAcross 12s ease-in-out infinite',
+                    }}
+                  />
+                </span>
+              );
+            }}
           />
         </motion.h1>
 
