@@ -564,11 +564,12 @@ export default function App() {
                   />
 
                   {/* Dynamic sections for this catalog category */}
-                  {(storeInfo.customSections || [])
-                    .filter((s) => s.pageId === activeCategory)
-                    .map((s, idx) => (
-                      <CustomDynamicSection key={s.id} section={s} index={idx} />
-                    ))}
+                  {(() => {
+                    const filtered = (storeInfo.customSections || []).filter((s) => s.pageId === activeCategory);
+                    return filtered.map((s, idx) => (
+                      <CustomDynamicSection key={s.id} section={s} index={idx} totalSections={filtered.length} />
+                    ));
+                  })()}
                   <AddSectionButton pageId={activeCategory as any} />
                 </div>
               )}
@@ -579,11 +580,12 @@ export default function App() {
                   <AboutFounder storeInfo={storeInfo} />
                   
                   {/* Dynamic custom sections added for Accueil / À Propos */}
-                  {(storeInfo.customSections || [])
-                    .filter((s) => s.pageId === 'accueil')
-                    .map((s, idx) => (
-                      <CustomDynamicSection key={s.id} section={s} index={idx} />
-                    ))}
+                  {(() => {
+                    const filtered = (storeInfo.customSections || []).filter((s) => s.pageId === 'accueil');
+                    return filtered.map((s, idx) => (
+                      <CustomDynamicSection key={s.id} section={s} index={idx} totalSections={filtered.length} />
+                    ));
+                  })()}
                   <AddSectionButton pageId="accueil" />
 
                   <RealisationsGallery realisations={realisations} storeInfo={storeInfo} />
@@ -599,11 +601,12 @@ export default function App() {
                   <ContactSection storeInfo={storeInfo} />
 
                   {/* Dynamic custom sections added for Contact */}
-                  {(storeInfo.customSections || [])
-                    .filter((s) => s.pageId === 'contact')
-                    .map((s, idx) => (
-                      <CustomDynamicSection key={s.id} section={s} index={idx} />
-                    ))}
+                  {(() => {
+                    const filtered = (storeInfo.customSections || []).filter((s) => s.pageId === 'contact');
+                    return filtered.map((s, idx) => (
+                      <CustomDynamicSection key={s.id} section={s} index={idx} totalSections={filtered.length} />
+                    ));
+                  })()}
                   <AddSectionButton pageId="contact" />
                 </div>
               )}

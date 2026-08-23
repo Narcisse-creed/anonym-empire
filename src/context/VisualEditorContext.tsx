@@ -12,6 +12,7 @@ interface VisualEditorContextType {
   addCustomSection: (pageId: CustomSection['pageId'], type: CustomSection['type'], data?: Partial<CustomSection>) => void;
   updateCustomSection: (sectionId: string, data: Partial<CustomSection>) => void;
   deleteCustomSection: (sectionId: string) => void;
+  moveCustomSection: (sectionId: string, direction: 'up' | 'down') => void;
   reorderCustomSections: (sections: CustomSection[]) => void;
   storeInfo: StoreInfo;
 }
@@ -98,15 +99,20 @@ export const VisualEditorProvider: React.FC<VisualEditorProviderProps> = ({
         id: `section_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
         pageId,
         type,
-        title: data.title || (type === 'image' ? 'Galerie Photo' : 'Nouveau Titre de Section'),
-        subtitle: data.subtitle || "Sous-titre personnalisable",
+        title: data.title || (type === 'image' ? 'Galerie Photo' : type === 'narrative' ? 'NOTRE HISTOIRE' : type === 'image-duo' ? 'Duo de Créations' : 'Nouveau Titre de Section'),
+        subtitle: data.subtitle || (type === 'narrative' ? 'Une vision d’art et d’éthique' : 'Sous-titre personnalisable'),
         content:
           data.content ||
-          "Cliquez sur ce texte pour modifier le contenu de votre nouvelle section personnalisée. Vous pouvez mettre en forme les textes et ajouter des images en toute simplicité.",
+          (type === 'narrative'
+            ? "Rédigez ici le récit de votre maison, vos valeurs et votre démarche artisanale. Ce format long permet d'insérer plusieurs paragraphes d'histoire avec mise en valeur des termes clés en gras et en italique."
+            : "Cliquez sur ce texte pour modifier le contenu de votre nouvelle section personnalisée. Vous pouvez mettre en forme les textes et ajouter des images en toute simplicité."),
         imageUrl: data.imageUrl || (type !== 'text' ? '/images/lizie-black-outfit.jpg' : undefined),
+        imageUrl2: data.imageUrl2 || (type === 'image-duo' ? '/images/lizie-white-suit.jpg' : undefined),
         imagePosition: data.imagePosition || 'right',
-        badge: data.badge || 'Nouveau',
+        badge: data.badge || (type === 'narrative' ? 'La Maison' : 'Nouveau'),
         order: currentSections.length + 1,
+        bgColor: data.bgColor || '#FFFFFF',
+        fontFamily: data.fontFamily || 'serif',
       };
 
       const updated = {
@@ -142,6 +148,32 @@ export const VisualEditorProvider: React.FC<VisualEditorProviderProps> = ({
     [storeInfo, onUpdateStoreInfo]
   );
 
+  const moveCustomSection = useCallback(
+    (sectionId: string, direction: 'up' | 'down') => {
+      const currentSections = [...(storeInfo.customSections || [])];
+      const index = currentSections.findIndex((s) => s.id === sectionId);
+      if (index === -1) return;
+
+      const targetIndex = direction === 'up' ? index - 1 : index + 1;
+      if (targetIndex < 0 || targetIndex >= currentSections.length) return;
+
+      const temp = currentSections[index];
+      currentSections[index] = currentSections[targetIndex];
+      currentSections[targetIndex] = temp;
+
+      // Update orders
+      currentSections.forEach((s, idx) => {
+        s.order = idx + 1;
+      });
+
+      onUpdateStoreInfo({
+        ...storeInfo,
+        customSections: currentSections,
+      });
+    },
+    [storeInfo, onUpdateStoreInfo]
+  );
+
   const reorderCustomSections = useCallback(
     (sections: CustomSection[]) => {
       onUpdateStoreInfo({
@@ -165,6 +197,7 @@ export const VisualEditorProvider: React.FC<VisualEditorProviderProps> = ({
         addCustomSection,
         updateCustomSection,
         deleteCustomSection,
+        moveCustomSection,
         reorderCustomSections,
         storeInfo,
       }}

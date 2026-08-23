@@ -231,14 +231,17 @@ export interface FilterOptions {
 export interface CustomSection {
   id: string;
   pageId: 'accueil' | 'bijoux' | 'parfums' | 'emballages' | 'accessoires' | 'contact';
-  type: 'text' | 'image' | 'text-image';
+  type: 'text' | 'image' | 'text-image' | 'narrative' | 'image-duo';
   title?: string;
   subtitle?: string;
   content?: string;
   imageUrl?: string;
+  imageUrl2?: string;      // 2e image pour les duos côte à côte
   imagePosition?: 'left' | 'right';
   badge?: string;
   order: number;
+  bgColor?: string;        // fond de section (hex ou 'white')
+  fontFamily?: 'serif' | 'sans' | 'elegant'; // choix de police restreint
 }
 
 export interface StoreInfo {
