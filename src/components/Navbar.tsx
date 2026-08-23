@@ -208,9 +208,9 @@ export const Navbar: React.FC<NavbarProps> = ({
             )}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="hidden sm:inline-flex items-center gap-1.5 bg-[#0F291E] hover:bg-[#143D2C] text-emerald-400 border border-emerald-500/40 text-xs font-semibold px-3.5 py-2 rounded-full transition-all shadow-md"
+            className="hidden sm:inline-flex items-center gap-1.5 bg-[#161616] hover:bg-[#222222] text-[#D4AF37] border border-[#D4AF37]/40 hover:border-[#D4AF37] text-xs font-semibold px-3.5 py-2 rounded-full transition-all shadow-md cursor-pointer group"
           >
-            <MessageCircle className="w-4 h-4 text-emerald-400" />
+            <MessageCircle className="w-4 h-4 text-[#D4AF37] group-hover:scale-110 transition-transform" />
             <span>WhatsApp</span>
           </a>
 

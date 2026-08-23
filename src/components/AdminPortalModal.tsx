@@ -785,11 +785,13 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
             </div>
             <div>
               <h2 className="text-lg font-serif font-bold text-[#1A0F0A]">
-                Espace d'Administration Privé — ANONYM
+                ANONYM
               </h2>
-              <span className="text-xs text-amber-700/70 font-sans">
-                Réservé à la propriétaire (Gestion du Catalogue)
-              </span>
+              {isAdminLoggedIn && (
+                <span className="text-xs text-amber-700/70 font-sans">
+                  Réservé à la propriétaire (Gestion du Catalogue)
+                </span>
+              )}
             </div>
           </div>
 
@@ -822,8 +824,8 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
               </div>
 
               <div>
-                <h3 className="text-2xl font-serif font-bold text-[#1A0F0A] mb-2">
-                  Espace Privé
+                <h3 className="text-2xl font-serif font-bold text-[#1A0F0A] mb-2 tracking-wide">
+                  ANONYM
                 </h3>
                 <p className="text-xs text-gray-600">
                   Veuillez saisir votre mot de passe.
@@ -836,7 +838,7 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                     type={showLoginPassword ? 'text' : 'password'}
                     value={passwordInput}
                     onChange={(e) => setPasswordInput(e.target.value)}
-                    placeholder="Entrez votre mot de passe gérant"
+                    placeholder="Entrez votre mot de passe"
                     className="w-full bg-white border border-[#D4AF37]/50 rounded-xl px-4 py-3 text-sm text-center text-[#1A0F0A] focus:outline-none focus:border-[#D4AF37] pr-12"
                   />
                   <button
@@ -856,7 +858,7 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                   type="submit"
                   className="w-full bg-gradient-to-r from-[#D4AF37] to-[#AA771C] text-black font-bold text-xs uppercase tracking-wider py-3.5 rounded-xl shadow-lg hover:bg-[#F3E5AB] transition-all cursor-pointer"
                 >
-                  Se Connecter à l'Administration
+                  SE CONNECTER
                 </button>
               </form>
             </div>

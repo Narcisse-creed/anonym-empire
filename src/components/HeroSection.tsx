@@ -260,25 +260,15 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ storeInfo }) => {
           />
         </motion.div>
 
-        {/* Slogan */}
-        <motion.p
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: 'easeOut', delay: 1.15 }}
-          className="text-xs sm:text-sm md:text-base font-sans font-semibold tracking-[0.28em] sm:tracking-[0.32em] uppercase text-[#2C2018]/80 mt-1 mb-5"
-        >
-          QUALITÉ &bull; CONFIANCE &bull; ÉLÉGANCE
-        </motion.p>
-
-        {/* Encadré tagline */}
+        {/* Encadré tagline "L'art de se démarquer" */}
         <motion.div
           initial={{ opacity: 0, y: 12, scale: 0.97 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.65, ease: 'easeOut', delay: 1.3 }}
-          className="mb-8"
+          transition={{ duration: 0.65, ease: 'easeOut', delay: 1.15 }}
+          className="mt-3 mb-8"
         >
-          <div className="inline-block border border-[#8C7A6B]/45 rounded-full px-6 py-1.5 sm:px-8 sm:py-2 bg-white/80 shadow-sm">
-            <span className="font-serif italic text-base sm:text-lg md:text-xl text-[#2C2018] tracking-wide">
+          <div className="inline-block border border-[#8C7A6B]/45 rounded-full px-7 py-2 sm:px-10 sm:py-2.5 bg-white/90 shadow-sm">
+            <span className="font-serif italic text-lg sm:text-xl md:text-2xl text-[#2C2018] tracking-wide">
               <EditableText
                 path="accueil.heroSubtitle"
                 value={storeInfo.pageTexts?.accueil?.heroSubtitle}
