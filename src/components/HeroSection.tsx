@@ -15,184 +15,205 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ storeInfo }) => {
       id="hero"
       className="relative overflow-hidden py-10 sm:py-14 md:py-18 flex flex-col justify-center min-h-[45vh] lg:min-h-[52vh] w-full bg-white"
     >
-      {/* ── CSS Keyframes for subtle animations ── */}
+      {/* CSS Keyframes — GPU-friendly (transform + opacity only) */}
       <style>{`
-        @keyframes floatUp {
+        @keyframes floatLogo {
+          0%, 100% { transform: translateY(0px); }
+          50%       { transform: translateY(-7px); }
+        }
+        @keyframes shineSweep {
+          0%   { transform: translateX(-130%) skewX(-15deg); opacity: 0; }
+          8%   { opacity: 1; }
+          92%  { opacity: 1; }
+          100% { transform: translateX(230%) skewX(-15deg); opacity: 0; }
+        }
+        @keyframes drawUnderline {
+          from { transform: scaleX(0); }
+          to   { transform: scaleX(1); }
+        }
+        @keyframes floatPart {
+          0%   { transform: translateY(0px); opacity: 0; }
+          15%  { opacity: 0.8; }
+          85%  { opacity: 0.35; }
+          100% { transform: translateY(-110px); opacity: 0; }
+        }
+        @keyframes floatPart2 {
           0%   { transform: translateY(0px) translateX(0px); opacity: 0; }
-          15%  { opacity: 1; }
-          85%  { opacity: 0.6; }
-          100% { transform: translateY(-120px) translateX(12px); opacity: 0; }
+          20%  { opacity: 0.7; }
+          80%  { opacity: 0.3; }
+          100% { transform: translateY(-95px) translateX(-8px); opacity: 0; }
         }
-        @keyframes floatUp2 {
-          0%   { transform: translateY(0px) translateX(0px); opacity: 0; }
-          20%  { opacity: 0.8; }
-          80%  { opacity: 0.4; }
-          100% { transform: translateY(-100px) translateX(-10px); opacity: 0; }
-        }
-        @keyframes shimmerLine {
-          0%   { background-position: -200% center; }
-          100% { background-position: 200% center; }
-        }
-        @keyframes gentlePulse {
-          0%, 100% { opacity: 0.25; transform: scale(1); }
-          50%       { opacity: 0.45; transform: scale(1.06); }
+        @keyframes haloBreath {
+          0%, 100% { opacity: 0.18; transform: scale(1.25); }
+          50%       { opacity: 0.30; transform: scale(1.36); }
         }
       `}</style>
 
-      {/* ── Animated warm radial glow (very subtle) ── */}
+      {/* Halo ambiant warm */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: 'radial-gradient(ellipse 70% 50% at 50% 0%, rgba(212,175,55,0.10) 0%, rgba(255,248,230,0.18) 40%, transparent 70%)',
-          animation: 'gentlePulse 8s ease-in-out infinite',
+          background: 'radial-gradient(ellipse 65% 55% at 50% 5%, rgba(212,175,55,0.09) 0%, rgba(255,249,235,0.13) 45%, transparent 70%)',
+          animation: 'haloBreath 9s ease-in-out infinite',
         }}
       />
 
-      {/* ── Floating golden light particles ── */}
+      {/* Particules dorées flottantes */}
       {[
-        { left: '18%', bottom: '38%', delay: '0s',   dur: '9s',  size: 4, anim: 'floatUp' },
-        { left: '72%', bottom: '42%', delay: '2.5s', dur: '11s', size: 3, anim: 'floatUp2' },
-        { left: '38%', bottom: '30%', delay: '5s',   dur: '10s', size: 5, anim: 'floatUp' },
-        { left: '60%', bottom: '35%', delay: '1.2s', dur: '13s', size: 3, anim: 'floatUp2' },
-        { left: '85%', bottom: '55%', delay: '4s',   dur: '9s',  size: 4, anim: 'floatUp' },
-        { left: '12%', bottom: '50%', delay: '6.5s', dur: '12s', size: 3, anim: 'floatUp2' },
+        { left: '14%', bottom: '32%', delay: '0s',   dur: '10s', size: 3.5, anim: 'floatPart'  },
+        { left: '76%', bottom: '40%', delay: '3s',   dur: '12s', size: 2.5, anim: 'floatPart2' },
+        { left: '34%', bottom: '25%', delay: '6s',   dur: '11s', size: 4,   anim: 'floatPart'  },
+        { left: '62%', bottom: '30%', delay: '1.5s', dur: '14s', size: 2.5, anim: 'floatPart2' },
+        { left: '88%', bottom: '50%', delay: '4.5s', dur: '10s', size: 3,   anim: 'floatPart'  },
+        { left: '8%',  bottom: '48%', delay: '7s',   dur: '13s', size: 2.5, anim: 'floatPart2' },
       ].map((p, i) => (
         <div
           key={i}
           className="absolute pointer-events-none rounded-full"
           style={{
-            left: p.left,
-            bottom: p.bottom,
-            width: `${p.size}px`,
-            height: `${p.size}px`,
-            background: 'radial-gradient(circle, rgba(212,175,55,0.85) 0%, rgba(212,175,55,0) 100%)',
+            left: p.left, bottom: p.bottom,
+            width: `${p.size}px`, height: `${p.size}px`,
+            background: 'radial-gradient(circle, rgba(212,175,55,0.9) 0%, transparent 100%)',
             animation: `${p.anim} ${p.dur} ${p.delay} ease-in-out infinite`,
           }}
         />
       ))}
 
-      {/* ── Content Container ── */}
+      {/* Contenu principal */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 relative z-10 flex flex-col items-center text-center">
 
-        {/* 1. Grand Logo 3D Wood "A" Emblem */}
+        {/* LOGO — Animation 1 (entrée) + Animation 3 (flottement) + Animation 2 (reflet) */}
         <motion.div
-          initial={{ opacity: 0, y: -15, scale: 0.95 }}
+          initial={{ opacity: 0, y: 24, scale: 0.93 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 1.0, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
           className="mb-4 sm:mb-6 relative"
         >
-          {/* Halo doré très doux derrière le logo */}
+          {/* Halo doré derrière le A */}
           <div
-            className="absolute inset-0 rounded-full pointer-events-none"
-            style={{
-              background: 'radial-gradient(circle, rgba(212,175,55,0.12) 0%, transparent 70%)',
-              transform: 'scale(1.3)',
-              animation: 'gentlePulse 6s ease-in-out infinite',
-            }}
+            className="absolute inset-0 pointer-events-none rounded-full"
+            style={{ animation: 'haloBreath 7s ease-in-out infinite' }}
           />
-          <img
-            src="/images/logo-3d-wood-a.png"
-            alt="ANONYM 3D Wood Emblem"
-            className="w-48 sm:w-64 md:w-80 lg:w-96 h-auto object-contain mx-auto drop-shadow-[0_12px_28px_rgba(0,0,0,0.12)] relative z-10"
-            onError={(e) => {
-              (e.target as HTMLImageElement).src = '/images/logo-anonym-empire-transparent.png';
-            }}
-          />
+          {/* Flottement doux — Animation 3 */}
+          <div style={{ animation: 'floatLogo 5s ease-in-out infinite' }} className="relative inline-block">
+            <img
+              src="/images/logo-3d-wood-a.png"
+              alt="ANONYM 3D Wood Emblem"
+              className="w-48 sm:w-64 md:w-80 lg:w-96 h-auto object-contain mx-auto drop-shadow-[0_14px_30px_rgba(0,0,0,0.13)] select-none"
+              draggable={false}
+              onError={(e) => { (e.target as HTMLImageElement).src = '/images/logo-anonym-empire-transparent.png'; }}
+            />
+            {/* Reflet lumineux diagonal — Animation 2 */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+              <div
+                style={{
+                  position: 'absolute', top: '-20%', left: '0',
+                  width: '35%', height: '140%',
+                  background: 'linear-gradient(105deg, transparent 0%, rgba(255,255,255,0) 30%, rgba(255,255,255,0.52) 50%, rgba(255,255,255,0) 70%, transparent 100%)',
+                  animation: 'shineSweep 6s 1.8s ease-in-out infinite',
+                }}
+              />
+            </div>
+          </div>
         </motion.div>
 
-        {/* 2. "ANONYM" */}
+        {/* ANONYM — Animation 1 cascade (délai 0.45s après logo) */}
         <motion.h1
-          initial={{ opacity: 0, y: 15 }}
+          initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.15 }}
-          className="text-5xl sm:text-7xl md:text-8xl font-serif font-bold tracking-[0.16em] sm:tracking-[0.18em] text-[#1A0F0A] uppercase leading-none mb-3"
+          transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1], delay: 0.45 }}
+          className="text-5xl sm:text-7xl md:text-8xl font-serif font-bold tracking-[0.16em] sm:tracking-[0.18em] text-[#1A0F0A] uppercase leading-none mb-2"
         >
           {storeInfo.pageTexts?.accueil?.heroTitle || 'ANONYM'}
         </motion.h1>
 
-        {/* 3. Ligne de séparation avec shimmer doré */}
+        {/* SOULIGNEMENT DORÉ — Animation 4 (se dessine gauche → droite) */}
         <motion.div
-          initial={{ opacity: 0, scaleX: 0 }}
-          animate={{ opacity: 1, scaleX: 1 }}
-          transition={{ duration: 0.8, delay: 0.25 }}
-          className="flex items-center justify-center gap-3 w-56 sm:w-80 md:w-96 mx-auto my-2"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.9, duration: 0.3 }}
+          className="flex items-center justify-center gap-3 w-56 sm:w-80 md:w-96 mx-auto my-3"
         >
           <div
-            className="h-[1px] flex-1"
+            className="h-[1.5px] flex-1"
             style={{
-              background: 'linear-gradient(90deg, transparent, rgba(212,175,55,0.6), rgba(44,32,24,0.4), rgba(212,175,55,0.6), transparent)',
-              backgroundSize: '200% 100%',
-              animation: 'shimmerLine 4s linear infinite',
+              background: 'linear-gradient(to left, rgba(212,175,55,0.85), rgba(212,175,55,0.2), transparent)',
+              animation: 'drawUnderline 0.85s 1.0s cubic-bezier(0.4,0,0.2,1) both',
+              transformOrigin: 'right center',
             }}
           />
-          <div className="w-1.5 h-1.5 rotate-45 bg-[#D4AF37]/80" />
+          <motion.div
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 1.1, duration: 0.3, type: 'spring', stiffness: 320 }}
+            className="w-1.5 h-1.5 rotate-45 shrink-0 bg-[#D4AF37]"
+          />
           <div
-            className="h-[1px] flex-1"
+            className="h-[1.5px] flex-1"
             style={{
-              background: 'linear-gradient(90deg, transparent, rgba(212,175,55,0.6), rgba(44,32,24,0.4), rgba(212,175,55,0.6), transparent)',
-              backgroundSize: '200% 100%',
-              animation: 'shimmerLine 4s linear infinite reverse',
+              background: 'linear-gradient(to right, rgba(212,175,55,0.85), rgba(212,175,55,0.2), transparent)',
+              animation: 'drawUnderline 0.85s 1.0s cubic-bezier(0.4,0,0.2,1) both',
+              transformOrigin: 'left center',
             }}
           />
         </motion.div>
 
-        {/* 4. Slogan */}
+        {/* Slogan */}
         <motion.p
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.35 }}
-          className="text-xs sm:text-sm md:text-base font-sans font-semibold tracking-[0.25em] sm:tracking-[0.3em] uppercase text-[#2C2018] mt-1 mb-5"
+          transition={{ duration: 0.7, ease: 'easeOut', delay: 1.15 }}
+          className="text-xs sm:text-sm md:text-base font-sans font-semibold tracking-[0.28em] sm:tracking-[0.32em] uppercase text-[#2C2018]/80 mt-1 mb-5"
         >
           QUALITÉ &bull; CONFIANCE &bull; ÉLÉGANCE
         </motion.p>
 
-        {/* 5. "L'art de se démarquer" */}
+        {/* Encadré tagline */}
         <motion.div
-          initial={{ opacity: 0, y: 10, scale: 0.96 }}
+          initial={{ opacity: 0, y: 12, scale: 0.97 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.6, delay: 0.45 }}
+          transition={{ duration: 0.65, ease: 'easeOut', delay: 1.3 }}
           className="mb-8"
         >
-          <div className="inline-block border border-[#8C7A6B]/50 rounded-full px-6 py-1.5 sm:px-8 sm:py-2 bg-white/70 shadow-xs">
+          <div className="inline-block border border-[#8C7A6B]/45 rounded-full px-6 py-1.5 sm:px-8 sm:py-2 bg-white/80 shadow-sm">
             <span className="font-serif italic text-base sm:text-lg md:text-xl text-[#2C2018] tracking-wide">
               {storeInfo.pageTexts?.accueil?.heroSubtitle || "L'art de se démarquer"}
             </span>
           </div>
         </motion.div>
 
-        {/* 6. Description */}
+        {/* Description */}
         <motion.p
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.55 }}
-          className="text-sm sm:text-base text-gray-700 font-sans leading-relaxed max-w-2xl sm:max-w-3xl mx-auto text-center mb-8"
+          transition={{ duration: 0.65, ease: 'easeOut', delay: 1.45 }}
+          className="text-sm sm:text-base text-gray-600 font-sans leading-relaxed max-w-2xl sm:max-w-3xl mx-auto text-center mb-8"
         >
           {storeInfo.pageTexts?.accueil?.heroDescription ||
             "ANONYM est une marque de personnalisation sur mesure pour particuliers et professionnels. Notre mission : permettre à chaque client de se sentir unique et particulier à travers des produits et services de personnalisation d'exception — bijoux, emballages, parfums et accessoires."}
         </motion.p>
 
-        {/* 7. Key figures */}
+        {/* 3 cartes d'engagements */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 22 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.65 }}
+          transition={{ duration: 0.75, ease: 'easeOut', delay: 1.6 }}
           className="grid grid-cols-3 gap-3 sm:gap-6 max-w-2xl sm:max-w-3xl w-full mx-auto"
         >
           {[
-            { value: storeInfo.pageTexts?.accueil?.stat1Value || '211+', label: storeInfo.pageTexts?.accueil?.stat1Label || 'Modèles de Bijoux', icon: Gem },
+            { value: storeInfo.pageTexts?.accueil?.stat1Value || '211+', label: storeInfo.pageTexts?.accueil?.stat1Label || 'Modèles de Bijoux',   icon: Gem },
             { value: storeInfo.pageTexts?.accueil?.stat2Value || '1 An', label: storeInfo.pageTexts?.accueil?.stat2Label || 'Garantie Inox 316L', icon: ShieldCheck },
-            { value: storeInfo.pageTexts?.accueil?.stat3Value || '100%', label: storeInfo.pageTexts?.accueil?.stat3Label || 'Sur-Mesure', icon: Star },
+            { value: storeInfo.pageTexts?.accueil?.stat3Value || '100%', label: storeInfo.pageTexts?.accueil?.stat3Label || 'Sur-Mesure',          icon: Star },
           ].map(({ value, label, icon: Icon }, i) => (
             <motion.div
               key={i}
-              whileHover={{ scale: 1.03 }}
-              className="text-center p-3.5 sm:p-5 rounded-2xl bg-white border border-[#D4AF37]/30 shadow-xs cursor-default"
+              whileHover={{ scale: 1.04, y: -2 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+              className="text-center p-3.5 sm:p-5 rounded-2xl bg-white border border-[#D4AF37]/30 shadow-sm cursor-default"
             >
               <Icon className="w-5 h-5 text-[#8C6D23] mx-auto mb-1.5" />
-              <div className="text-lg sm:text-2xl font-serif font-bold text-[#1A0F0A]">
-                {value}
-              </div>
-              <div className="text-[10px] sm:text-xs text-gray-600 mt-0.5 font-sans leading-tight">{label}</div>
+              <div className="text-lg sm:text-2xl font-serif font-bold text-[#1A0F0A]">{value}</div>
+              <div className="text-[10px] sm:text-xs text-gray-500 mt-0.5 font-sans leading-tight">{label}</div>
             </motion.div>
           ))}
         </motion.div>
