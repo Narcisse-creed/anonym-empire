@@ -47,7 +47,7 @@ export const STORE_INFO: StoreInfo = {
       description: "ANONYM propose des emballages personnalisés destinés aux entreprises qui souhaitent affirmer leur identité et se distinguer. Restaurants, cosmétiques, événements — chaque emballage est conçu pour refléter votre image et valoriser vos produits.",
     },
     parfums: {
-      title: 'Parfums ANONYM',
+      title: 'ANONYM',
       description: "ANONYM crée un univers olfactif destiné aux personnes qui souhaitent posséder une identité olfactive qui leur est propre. Une senteur reconnaissable, une signature que votre entourage associera à votre présence.",
       invitationDescription: "ANONYM INVITATION est la porte d'entrée vers l'univers olfactif de la marque. Une fragrance d'exception pour découvrir la qualité ANONYM et expérimenter l'expérience avant d'envisager une démarche plus personnalisée. Peut également s'offrir comme un message symbolique : « Tu es unique et tu mérites une fragrance qui te ressemble. »",
       storyTitle: "L'essence d'un nom",
