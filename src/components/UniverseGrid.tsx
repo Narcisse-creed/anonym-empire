@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { UNIVERSE_CATEGORIES } from '../data/categories';
 import { StoreInfo, CategoryId } from '../types';
 import { Home, Gem, Sparkles, Package, ShoppingBag, ChevronLeft, ShieldCheck, Award, Truck } from 'lucide-react';
+import { EditableText } from './editor/EditableText';
 
 interface UniverseGridProps {
   activeCategory: CategoryId | 'accueil' | 'contact';
@@ -138,17 +139,27 @@ export const UniverseGrid: React.FC<UniverseGridProps> = ({
                       </div>
 
                       {/* Title */}
-                      <h3 className="text-sm sm:text-base lg:text-lg font-serif font-bold text-white tracking-widest uppercase group-hover:text-[#D4AF37] transition-colors leading-tight">
-                        {item.title}
-                      </h3>
+                      <EditableText
+                        path={`pageTexts.universe.${item.id}.title`}
+                        value={storeInfo?.pageTexts?.[item.id]?.title}
+                        defaultValue={item.title}
+                        as="h3"
+                        className="text-sm sm:text-base lg:text-lg font-serif font-bold text-white tracking-widest uppercase group-hover:text-[#D4AF37] transition-colors leading-tight"
+                        label={`Titre Carte ${item.id}`}
+                      />
 
                       {/* Gold separator */}
                       <div className="w-8 lg:w-10 h-[1.5px] bg-[#D4AF37]/50 group-hover:w-14 transition-all duration-300 rounded-full" />
 
                       {/* Description */}
-                      <p className="text-[10px] sm:text-xs lg:text-sm text-gray-400 font-sans line-clamp-2 leading-relaxed max-w-[150px] sm:max-w-none">
-                        {(storeInfo?.pageTexts?.[item.id]?.description) || media.desc}
-                      </p>
+                      <EditableText
+                        path={`pageTexts.universe.${item.id}.description`}
+                        value={storeInfo?.pageTexts?.[item.id]?.description}
+                        defaultValue={media.desc}
+                        as="p"
+                        className="text-[10px] sm:text-xs lg:text-sm text-gray-400 font-sans line-clamp-2 leading-relaxed max-w-[150px] sm:max-w-none"
+                        label={`Description Carte ${item.id}`}
+                      />
 
                       {/* CTA */}
                       <span className="text-[9px] sm:text-[10px] lg:text-xs font-mono text-[#F3E5AB] font-bold uppercase flex items-center gap-1 group-hover:translate-x-1 transition-transform pt-0.5">
@@ -172,8 +183,22 @@ export const UniverseGrid: React.FC<UniverseGridProps> = ({
                   <ShieldCheck className="w-6 h-6 lg:w-7 lg:h-7" />
                 </div>
                 <div>
-                  <h4 className="text-xs sm:text-sm lg:text-base font-semibold text-gray-900">Garantie 1 An Inaltérable</h4>
-                  <p className="text-[11px] sm:text-xs lg:text-sm text-gray-600">Acier Inoxydable 316L résistant eau &amp; parfum</p>
+                  <EditableText
+                    path="pageTexts.trustBadges.badge1Title"
+                    value={storeInfo?.pageTexts?.trustBadges?.badge1Title}
+                    defaultValue="Garantie 1 An Inaltérable"
+                    as="h4"
+                    className="text-xs sm:text-sm lg:text-base font-semibold text-gray-900"
+                    label="Garantie 1 - Titre"
+                  />
+                  <EditableText
+                    path="pageTexts.trustBadges.badge1Desc"
+                    value={storeInfo?.pageTexts?.trustBadges?.badge1Desc}
+                    defaultValue="Acier Inoxydable 316L résistant eau & parfum"
+                    as="p"
+                    className="text-[11px] sm:text-xs lg:text-sm text-gray-600"
+                    label="Garantie 1 - Description"
+                  />
                 </div>
               </div>
 
@@ -182,8 +207,22 @@ export const UniverseGrid: React.FC<UniverseGridProps> = ({
                   <Award className="w-6 h-6 lg:w-7 lg:h-7" />
                 </div>
                 <div>
-                  <h4 className="text-xs sm:text-sm lg:text-base font-semibold text-gray-900">Gravure Laser Millimétrée</h4>
-                  <p className="text-[11px] sm:text-xs lg:text-sm text-gray-600">Prénoms, dates, symboles &amp; photos sur-mesure</p>
+                  <EditableText
+                    path="pageTexts.trustBadges.badge2Title"
+                    value={storeInfo?.pageTexts?.trustBadges?.badge2Title}
+                    defaultValue="Gravure Laser Millimétrée"
+                    as="h4"
+                    className="text-xs sm:text-sm lg:text-base font-semibold text-gray-900"
+                    label="Garantie 2 - Titre"
+                  />
+                  <EditableText
+                    path="pageTexts.trustBadges.badge2Desc"
+                    value={storeInfo?.pageTexts?.trustBadges?.badge2Desc}
+                    defaultValue="Prénoms, dates, symboles & photos sur-mesure"
+                    as="p"
+                    className="text-[11px] sm:text-xs lg:text-sm text-gray-600"
+                    label="Garantie 2 - Description"
+                  />
                 </div>
               </div>
 
@@ -192,8 +231,22 @@ export const UniverseGrid: React.FC<UniverseGridProps> = ({
                   <Truck className="w-6 h-6" />
                 </div>
                 <div>
-                  <h4 className="text-xs sm:text-sm font-semibold text-gray-900">Éxpédition Tout le Bénin</h4>
-                  <p className="text-[11px] sm:text-xs text-gray-600">Livraison Cotonou, Calavi, Parakou &amp; sous-région</p>
+                  <EditableText
+                    path="pageTexts.trustBadges.badge3Title"
+                    value={storeInfo?.pageTexts?.trustBadges?.badge3Title}
+                    defaultValue="Expédition Tout le Bénin"
+                    as="h4"
+                    className="text-xs sm:text-sm font-semibold text-gray-900"
+                    label="Garantie 3 - Titre"
+                  />
+                  <EditableText
+                    path="pageTexts.trustBadges.badge3Desc"
+                    value={storeInfo?.pageTexts?.trustBadges?.badge3Desc}
+                    defaultValue="Livraison Cotonou, Calavi, Parakou & sous-région"
+                    as="p"
+                    className="text-[11px] sm:text-xs text-gray-600"
+                    label="Garantie 3 - Description"
+                  />
                 </div>
               </div>
             </motion.div>

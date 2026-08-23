@@ -1,10 +1,12 @@
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { RealisationCollection, RealisationPhoto } from '../types';
+import { RealisationCollection, RealisationPhoto, StoreInfo } from '../types';
 import { X, ChevronLeft, ChevronRight, ImageIcon, Sparkles, Eye } from 'lucide-react';
+import { EditableText } from './editor/EditableText';
 
 interface RealisationsGalleryProps {
   realisations: RealisationCollection[];
+  storeInfo?: StoreInfo;
 }
 
 // ─── Lightbox ──────────────────────────────────────────────────────────────
@@ -96,7 +98,7 @@ const Lightbox: React.FC<{
 
 // ─── MAIN COMPONENT ────────────────────────────────────────────────────────
 
-export const RealisationsGallery: React.FC<RealisationsGalleryProps> = ({ realisations }) => {
+export const RealisationsGallery: React.FC<RealisationsGalleryProps> = ({ realisations, storeInfo }) => {
   const visibleCollections = realisations
     .filter((c) => c.visible)
     .sort((a, b) => a.order - b.order);
@@ -169,15 +171,10 @@ export const RealisationsGallery: React.FC<RealisationsGalleryProps> = ({ realis
           >
             <div className="inline-flex items-center gap-2 bg-[#D4AF37]/10 border border-[#D4AF37]/30 rounded-full px-4 py-1.5 text-[#D4AF37] text-xs font-semibold tracking-widest uppercase mb-4">
               <Sparkles className="w-3.5 h-3.5" />
-              Nos Réalisations
+              <EditableText path="pageTexts.realisations.badgeLabel" value={storeInfo?.pageTexts?.realisations?.badgeLabel} defaultValue="Nos Réalisations" as="span" label="Badge Réalisations" />
             </div>
-            <h2 className="text-3xl sm:text-4xl font-serif font-bold text-gray-900 tracking-tight mb-3">
-              Créations Passées
-            </h2>
-            <p className="text-sm text-gray-600 max-w-xl mx-auto leading-relaxed">
-              Découvrez quelques-unes de nos réalisations — des créations uniques livrées à nos clientes, 
-              témoignant du soin et du savoir-faire qui anime chaque pièce ANONYM.
-            </p>
+            <EditableText path="pageTexts.realisations.title" value={storeInfo?.pageTexts?.realisations?.title} defaultValue="Créations Passées" as="h2" className="text-3xl sm:text-4xl font-serif font-bold text-gray-900 tracking-tight mb-3" label="Titre Réalisations" />
+            <EditableText path="pageTexts.realisations.subtitle" value={storeInfo?.pageTexts?.realisations?.subtitle} defaultValue="Découvrez quelques-unes de nos réalisations — des créations uniques livrées à nos clientes, témoignant du soin et du savoir-faire qui anime chaque pièce ANONYM." as="p" className="text-sm text-gray-600 max-w-xl mx-auto leading-relaxed" multiline label="Sous-titre Réalisations" />
           </motion.div>
 
           {/* Collection tabs */}

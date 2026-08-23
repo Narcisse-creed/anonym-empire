@@ -225,12 +225,12 @@ export const AboutFounder: React.FC<AboutFounderProps> = ({ storeInfo }) => {
                     <PhoneCall className="w-5 h-5" />
                   </div>
                   <div>
-                    <span className="text-xs text-gray-400 block">Paiements &amp; Transferts de Validation :</span>
+                    <EditableText path="pageTexts.about.paymentLabel" value={storeInfo.pageTexts?.about?.paymentLabel} defaultValue="Paiements & Transferts de Validation :" as="span" className="text-xs text-gray-400 block" label="Label Paiements" />
                     <span className="font-mono font-bold text-amber-200 text-sm">
-                      {storeInfo.phone1} / {storeInfo.phone2}
+                      <EditableText path="phone1" value={storeInfo.phone1} defaultValue="+229 01 97 00 00" as="span" label="Téléphone 1" /> / <EditableText path="phone2" value={storeInfo.phone2} defaultValue="+229 01 96 00 00" as="span" label="Téléphone 2" />
                     </span>
                     <div className="text-[10px] text-gray-400 font-mono mt-0.5">
-                      RCCM: {storeInfo.rccm} | IFU: {storeInfo.ifu}
+                      RCCM: <EditableText path="rccm" value={storeInfo.rccm} defaultValue="RB/ABC/..." as="span" label="RCCM" /> | IFU: <EditableText path="ifu" value={storeInfo.ifu} defaultValue="020..." as="span" label="IFU" />
                     </div>
                   </div>
                 </div>

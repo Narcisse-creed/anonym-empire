@@ -3,6 +3,7 @@ import { QuoteRequest, StoreInfo } from '../types';
 import { loadQuoteRequests, saveQuoteRequests, buildWhatsAppLink } from '../utils/helpers';
 import { FileText, Send, ShieldCheck, Sparkles, Download, Upload, MessageCircle } from 'lucide-react';
 import { ImageUploader } from './ImageUploader';
+import { EditableText } from './editor/EditableText';
 
 interface QuoteRequestSectionProps {
   storeInfo: StoreInfo;
@@ -86,14 +87,10 @@ export const QuoteRequestSection: React.FC<QuoteRequestSectionProps> = ({ storeI
         <div className="text-center max-w-2xl mx-auto mb-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1A160C] border border-[#D4AF37]/40 text-[#D4AF37] text-xs font-semibold uppercase tracking-widest mb-3">
             <FileText className="w-3.5 h-3.5" />
-            <span>Sur Mesure / Demande de Devis</span>
+            <EditableText path="pageTexts.devis.badgeLabel" value={storeInfo.pageTexts?.devis?.badgeLabel} defaultValue="Sur Mesure / Demande de Devis" as="span" label="Badge Devis" />
           </div>
-          <h2 className="text-3xl sm:text-4xl font-serif font-bold text-gray-900 tracking-tight">
-            {storeInfo.pageTexts?.devis?.title || 'Demande de Devis Personnalisé'}
-          </h2>
-          <p className="text-sm text-gray-600 mt-2 font-sans">
-            {storeInfo.pageTexts?.devis?.subtitle || 'Décrivez votre projet et un conseiller ANONYM vous contactera sous peu.'}
-          </p>
+          <EditableText path="pageTexts.devis.title" value={storeInfo.pageTexts?.devis?.title} defaultValue="Demande de Devis Personnalisé" as="h2" className="text-3xl sm:text-4xl font-serif font-bold text-gray-900 tracking-tight" label="Titre Devis" />
+          <EditableText path="pageTexts.devis.subtitle" value={storeInfo.pageTexts?.devis?.subtitle} defaultValue="Décrivez votre projet et un conseiller ANONYM vous contactera sous peu." as="p" className="text-sm text-gray-600 mt-2 font-sans" multiline label="Sous-titre Devis" />
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white rounded-3xl border border-[#D4AF37]/30 p-6 sm:p-8 space-y-6 shadow-sm">

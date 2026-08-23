@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Collection, Product } from '../types';
 import { formatPriceFCFA } from '../utils/helpers';
 import { Sparkles, ChevronLeft, ChevronRight, Grid3X3, Tag } from 'lucide-react';
+import { EditableText } from './editor/EditableText';
 
 interface CollectionsSectionProps {
   collections: Collection[];
@@ -9,6 +10,7 @@ interface CollectionsSectionProps {
   selectedCategory: string;
   onSelectCollection: (collectionIds: string[]) => void;
   onNavigateCatalog: () => void;
+  storeInfo?: import('../types').StoreInfo;
 }
 
 export const CollectionsSection: React.FC<CollectionsSectionProps> = ({
@@ -17,6 +19,7 @@ export const CollectionsSection: React.FC<CollectionsSectionProps> = ({
   selectedCategory,
   onSelectCollection,
   onNavigateCatalog,
+  storeInfo,
 }) => {
   const [scrollX, setScrollX] = useState(0);
 
@@ -48,11 +51,8 @@ export const CollectionsSection: React.FC<CollectionsSectionProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-10">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-serif font-bold text-white tracking-tight flex items-center gap-2">
-              <Grid3X3 className="w-6 h-6 text-[#D4AF37]" />
-              Collections
-            </h2>
-            <p className="text-xs text-gray-400 mt-1">Parcourez nos collections thématiques</p>
+            <EditableText path="pageTexts.collections.title" value={storeInfo?.pageTexts?.collections?.title} defaultValue="Collections" as="h2" className="text-2xl sm:text-3xl font-serif font-bold text-white tracking-tight flex items-center gap-2" label="Titre Collections" />
+            <EditableText path="pageTexts.collections.subtitle" value={storeInfo?.pageTexts?.collections?.subtitle} defaultValue="Parcourez nos collections thématiques" as="p" className="text-xs text-gray-400 mt-1" label="Sous-titre Collections" />
           </div>
           <div className="flex items-center gap-2">
             <button

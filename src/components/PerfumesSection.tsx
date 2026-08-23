@@ -3,6 +3,7 @@ import { StoreInfo, Product } from '../types';
 import { formatPriceFCFA } from '../utils/helpers';
 import { buildWhatsAppLink } from '../utils/helpers';
 import { Sparkles, MessageCircle, ArrowRight, Droplets, Crown } from 'lucide-react';
+import { EditableText } from './editor/EditableText';
 
 interface PerfumesSectionProps {
   storeInfo: StoreInfo;
@@ -41,14 +42,10 @@ export const PerfumesSection: React.FC<PerfumesSectionProps> = ({
         <div className="text-center max-w-3xl mx-auto mb-16">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#1A0D1E] border border-[#D4AF37]/40 text-[#D4AF37] text-xs font-semibold uppercase tracking-widest mb-3">
             <Droplets className="w-3.5 h-3.5" />
-            <span>Parfums d'Exception</span>
+            <EditableText path="pageTexts.parfums.badgeLabel" value={storeInfo.pageTexts?.parfums?.badgeLabel} defaultValue="Parfums d'Exception" as="span" label="Badge Parfums" />
           </div>
-          <h2 className="text-3xl sm:text-5xl font-serif font-bold text-white tracking-tight">
-            {storeInfo.pageTexts?.parfums?.title || 'Parfums ANONYM'}
-          </h2>
-          <p className="text-sm text-gray-300 mt-4 font-sans leading-relaxed max-w-2xl mx-auto">
-            {storeInfo.pageTexts?.parfums?.description || "ANONYM crée un univers olfactif destiné aux personnes qui souhaitent posséder une identité olfactive qui leur est propre. Une senteur reconnaissable, une signature que votre entourage associera à votre présence."}
-          </p>
+          <EditableText path="pageTexts.parfums.title" value={storeInfo.pageTexts?.parfums?.title} defaultValue="Parfums ANONYM" as="h2" className="text-3xl sm:text-5xl font-serif font-bold text-white tracking-tight" label="Titre Parfums" />
+          <EditableText path="pageTexts.parfums.description" value={storeInfo.pageTexts?.parfums?.description} defaultValue="ANONYM crée un univers olfactif destiné aux personnes qui souhaitent posséder une identité olfactive qui leur est propre. Une senteur reconnaissable, une signature que votre entourage associera à votre présence." as="p" className="text-sm text-gray-300 mt-4 font-sans leading-relaxed max-w-2xl mx-auto" multiline label="Description Parfums" />
         </div>
 
         {/* ANONYM INVITATION Hero Product Card */}
@@ -99,12 +96,8 @@ export const PerfumesSection: React.FC<PerfumesSectionProps> = ({
 
         {/* CTA Banner */}
         <div className="text-center py-10 bg-[#0F0A14] rounded-2xl border border-[#D4AF37]/20">
-          <h3 className="text-2xl font-serif font-bold text-[#F3E5AB] mb-3">
-            Découvrez votre identité olfactive
-          </h3>
-          <p className="text-sm text-gray-400 mb-6 max-w-lg mx-auto">
-            Une fragrance unique qui vous ressemble. Personnalisez votre signature olfactive avec ANONYM.
-          </p>
+          <EditableText path="pageTexts.parfums.ctaTitle" value={storeInfo.pageTexts?.parfums?.ctaTitle} defaultValue="Découvrez votre identité olfactive" as="h3" className="text-2xl font-serif font-bold text-[#F3E5AB] mb-3" label="Titre CTA Parfums" />
+          <EditableText path="pageTexts.parfums.ctaSubtitle" value={storeInfo.pageTexts?.parfums?.ctaSubtitle} defaultValue="Une fragrance unique qui vous ressemble. Personnalisez votre signature olfactive avec ANONYM." as="p" className="text-sm text-gray-400 mb-6 max-w-lg mx-auto" multiline label="Sous-titre CTA Parfums" />
           <button
             onClick={onOpenCustomizer}
             className="inline-flex items-center gap-2 bg-[#D4AF37] hover:bg-[#F3E5AB] text-black font-bold text-xs uppercase tracking-wider px-8 py-4 rounded-full shadow-[0_0_25px_rgba(212,175,55,0.4)] transition-all transform hover:-translate-y-1 cursor-pointer"

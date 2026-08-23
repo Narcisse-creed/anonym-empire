@@ -586,7 +586,7 @@ export default function App() {
                     ))}
                   <AddSectionButton pageId="accueil" />
 
-                  <RealisationsGallery realisations={realisations} />
+                  <RealisationsGallery realisations={realisations} storeInfo={storeInfo} />
                   <OrderingRulesSection storeInfo={storeInfo} />
                   <QuoteRequestSection storeInfo={storeInfo} onAddQuoteRequest={handleAddQuoteRequest} />
                   <ReviewsSection storeInfo={storeInfo} reviews={reviews} onAddReview={handleAddReview} />

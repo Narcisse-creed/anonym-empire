@@ -30,14 +30,10 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ storeInfo }) => 
         <div className="text-center max-w-2xl mx-auto mb-16">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#18150D] border border-[#D4AF37]/40 text-[#D4AF37] text-xs font-semibold uppercase tracking-widest mb-3">
             <MessageCircle className="w-3.5 h-3.5" />
-            <span>Prise de Contact Directe</span>
+            <EditableText path="pageTexts.contact.badgeLabel" value={storeInfo.pageTexts?.contact?.badgeLabel} defaultValue="Prise de Contact Directe" as="span" label="Badge Contact" />
           </div>
-          <h2 className="text-3xl sm:text-5xl font-serif font-bold text-gray-900 tracking-tight">
-             Contactez ANONYM
-          </h2>
-          <p className="text-sm text-gray-600 mt-2 font-sans">
-            Pour toute commande spéciale, partenariat, devis entreprise ou demande de renseignements.
-          </p>
+          <EditableText path="pageTexts.contact.title" value={storeInfo.pageTexts?.contact?.title} defaultValue="Contactez ANONYM" as="h2" className="text-3xl sm:text-5xl font-serif font-bold text-gray-900 tracking-tight" label="Titre Contact" />
+          <EditableText path="pageTexts.contact.subtitle" value={storeInfo.pageTexts?.contact?.subtitle} defaultValue="Pour toute commande spéciale, partenariat, devis entreprise ou demande de renseignements." as="p" className="text-sm text-gray-600 mt-2 font-sans" multiline label="Sous-titre Contact" />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
@@ -55,14 +51,9 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ storeInfo }) => 
                     <MapPin className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="font-serif font-bold text-gray-900">Adresse Physique</h4>
+                    <EditableText path="pageTexts.contact.addressLabel" value={storeInfo.pageTexts?.contact?.addressLabel} defaultValue="Adresse Physique" as="h4" className="font-serif font-bold text-gray-900" label="Titre Adresse" />
                     <p className="text-xs text-gray-600 mt-0.5">
-                      <EditableText
-                        path="address"
-                        value={storeInfo.address}
-                        defaultValue="Zogbadjè"
-                        label="Adresse"
-                      />, {storeInfo.city}, {storeInfo.country}
+                      <EditableText path="address" value={storeInfo.address} defaultValue="Zogbadjè" label="Adresse" />, <EditableText path="city" value={storeInfo.city} defaultValue="Cotonou" as="span" label="Ville" />, <EditableText path="country" value={storeInfo.country} defaultValue="Bénin" as="span" label="Pays" />
                     </p>
                   </div>
                 </div>
@@ -73,13 +64,11 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ storeInfo }) => 
                     <Phone className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="font-serif font-bold text-gray-900">Téléphone & WhatsApp</h4>
+                    <EditableText path="pageTexts.contact.phoneLabel" value={storeInfo.pageTexts?.contact?.phoneLabel} defaultValue="Téléphone & WhatsApp" as="h4" className="font-serif font-bold text-gray-900" label="Titre Téléphone" />
                     <p className="text-xs text-[#8A6A20] font-mono mt-0.5">
-                      {storeInfo.phone1} / {storeInfo.phone2}
+                      <EditableText path="phone1" value={storeInfo.phone1} defaultValue="+229 01 97 00 00" as="span" label="Téléphone 1" /> / <EditableText path="phone2" value={storeInfo.phone2} defaultValue="+229 01 96 00 00" as="span" label="Téléphone 2" />
                     </p>
-                    <span className="text-[11px] text-gray-500 block mt-1">
-                      Disponibilité : Lundi au Samedi 08h00 - 20h00
-                    </span>
+                    <EditableText path="pageTexts.contact.hours" value={storeInfo.pageTexts?.contact?.hours} defaultValue="Disponibilité : Lundi au Samedi 08h00 - 20h00" as="span" className="text-[11px] text-gray-500 block mt-1" label="Horaires" />
                   </div>
                 </div>
 
@@ -140,7 +129,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ storeInfo }) => 
             <div className="bg-white rounded-3xl border border-[#D4AF37]/30 p-8 shadow-sm space-y-6">
               <h3 className="text-xl font-serif font-bold text-gray-900 flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-[#D4AF37]" />
-                <span>Envoyer un Message Instantané</span>
+                <EditableText path="pageTexts.contact.formTitle" value={storeInfo.pageTexts?.contact?.formTitle} defaultValue="Envoyer un Message Instantané" as="span" label="Titre Formulaire" />
               </h3>
 
               <form onSubmit={handleFormSubmit} className="space-y-4">

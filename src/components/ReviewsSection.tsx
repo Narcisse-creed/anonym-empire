@@ -3,6 +3,7 @@ import { Review, StoreInfo } from '../types';
 import { loadReviews, saveReviews } from '../utils/helpers';
 import { Star, MessageCircle, Upload, Send, X } from 'lucide-react';
 import { ImageUploader } from './ImageUploader';
+import { EditableText } from './editor/EditableText';
 
 interface ReviewsSectionProps {
   storeInfo: StoreInfo;
@@ -69,9 +70,9 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({
         <div className="text-center max-w-3xl mx-auto mb-12">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1A160C] border border-[#D4AF37]/40 text-[#D4AF37] text-xs font-semibold uppercase tracking-widest mb-3">
             <MessageCircle className="w-3.5 h-3.5" />
-            <span>Avis Clients</span>
+            <EditableText path="pageTexts.reviews.badgeLabel" value={storeInfo.pageTexts?.reviews?.badgeLabel} defaultValue="Avis Clients" as="span" label="Badge Avis" />
           </div>
-          <h2 className="text-3xl sm:text-4xl font-serif font-bold text-gray-900 tracking-tight">Ce que nos clients disent</h2>
+          <EditableText path="pageTexts.reviews.title" value={storeInfo.pageTexts?.reviews?.title} defaultValue="Ce que nos clients disent" as="h2" className="text-3xl sm:text-4xl font-serif font-bold text-gray-900 tracking-tight" label="Titre Avis" />
         </div>
 
         {submitSuccess && (
