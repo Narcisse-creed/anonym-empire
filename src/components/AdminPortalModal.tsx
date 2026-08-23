@@ -3104,7 +3104,7 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
 
                   {/* 4. CARTES D'UNIVERS & PAGES DE CATÉGORIES */}
                   <div className="border border-gray-200 rounded-xl p-4 bg-white/40 space-y-3">
-                    <h4 className="text-xs font-bold text-[#F3E5AB] uppercase tracking-wider">4. Cartes des Univers & Pages de Catégories (Bijoux, Emballages, Parfums, Accessoires)</h4>
+                    <h4 className="text-xs font-bold text-[#D4AF37] uppercase tracking-wider">4. Cartes des Univers & Pages de Catégories (Bijoux, Emballages, Parfums, Accessoires)</h4>
                     {(['bijoux', 'emballages', 'parfums', 'accessoires'] as const).map((cat) => (
                       <div key={cat} className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-2.5 bg-white border border-gray-200 rounded-lg">
                         <div>
@@ -3145,6 +3145,149 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                         </div>
                       </div>
                     ))}
+                  </div>
+
+                  {/* 4bis. PAGE PARFUMS — BLOC DESCRIPTION & HISTOIRE */}
+                  <div className="border border-gray-200 rounded-xl p-4 bg-white/40 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-bold text-[#D4AF37] uppercase tracking-wider">
+                        ✨ Page Parfums — Bloc Histoire & Description (L'essence d'un nom)
+                      </h4>
+                      <label className="flex items-center gap-2 cursor-pointer text-xs text-gray-700">
+                        <input
+                          type="checkbox"
+                          checked={storeFormData.pageTexts?.parfums?.storyVisible !== false}
+                          onChange={(e) =>
+                            setStoreFormData({
+                              ...storeFormData,
+                              pageTexts: {
+                                ...storeFormData.pageTexts,
+                                parfums: {
+                                  ...storeFormData.pageTexts?.parfums,
+                                  storyVisible: e.target.checked,
+                                },
+                              },
+                            })
+                          }
+                          className="rounded text-[#D4AF37] focus:ring-[#D4AF37]"
+                        />
+                        <span>Afficher sur la page Parfums</span>
+                      </label>
+                    </div>
+
+                    <div className="space-y-2.5 p-3 bg-white border border-gray-200 rounded-xl">
+                      <div>
+                        <label className="text-[11px] text-[#D4AF37] font-semibold block mb-1">Titre du Récit</label>
+                        <input
+                          type="text"
+                          value={storeFormData.pageTexts?.parfums?.storyTitle || ''}
+                          placeholder="L'essence d'un nom"
+                          onChange={(e) =>
+                            setStoreFormData({
+                              ...storeFormData,
+                              pageTexts: {
+                                ...storeFormData.pageTexts,
+                                parfums: {
+                                  ...storeFormData.pageTexts?.parfums,
+                                  storyTitle: e.target.value,
+                                },
+                              },
+                            })
+                          }
+                          className="w-full bg-white border border-gray-200 rounded p-2 text-xs text-[#1A0F0A]"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[11px] text-gray-600 block mb-1">Paragraphe 1 (Histoire & Philosophie)</label>
+                          <textarea
+                            rows={3}
+                            value={storeFormData.pageTexts?.parfums?.storyText1 || ''}
+                            placeholder="ANONYM n'est pas qu'un parfum..."
+                            onChange={(e) =>
+                              setStoreFormData({
+                                ...storeFormData,
+                                pageTexts: {
+                                  ...storeFormData.pageTexts,
+                                  parfums: {
+                                    ...storeFormData.pageTexts?.parfums,
+                                    storyText1: e.target.value,
+                                  },
+                                },
+                              })
+                            }
+                            className="w-full bg-white border border-gray-200 rounded p-2 text-xs text-[#1A0F0A]"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[11px] text-gray-600 block mb-1">Paragraphe 2 (Signature & Raffinement)</label>
+                          <textarea
+                            rows={3}
+                            value={storeFormData.pageTexts?.parfums?.storyText2 || ''}
+                            placeholder="Nous avons voulu créer un univers..."
+                            onChange={(e) =>
+                              setStoreFormData({
+                                ...storeFormData,
+                                pageTexts: {
+                                  ...storeFormData.pageTexts,
+                                  parfums: {
+                                    ...storeFormData.pageTexts?.parfums,
+                                    storyText2: e.target.value,
+                                  },
+                                },
+                              })
+                            }
+                            className="w-full bg-white border border-gray-200 rounded p-2 text-xs text-[#1A0F0A]"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[11px] text-gray-600 block mb-1">Photo 1 (URL ou Upload)</label>
+                          <input
+                            type="text"
+                            value={storeFormData.pageTexts?.parfums?.storyImageUrl1 || ''}
+                            placeholder="https://..."
+                            onChange={(e) =>
+                              setStoreFormData({
+                                ...storeFormData,
+                                pageTexts: {
+                                  ...storeFormData.pageTexts,
+                                  parfums: {
+                                    ...storeFormData.pageTexts?.parfums,
+                                    storyImageUrl1: e.target.value,
+                                  },
+                                },
+                              })
+                            }
+                            className="w-full bg-white border border-gray-200 rounded p-2 text-xs text-[#1A0F0A]"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[11px] text-gray-600 block mb-1">Photo 2 (URL ou Upload)</label>
+                          <input
+                            type="text"
+                            value={storeFormData.pageTexts?.parfums?.storyImageUrl2 || ''}
+                            placeholder="https://..."
+                            onChange={(e) =>
+                              setStoreFormData({
+                                ...storeFormData,
+                                pageTexts: {
+                                  ...storeFormData.pageTexts,
+                                  parfums: {
+                                    ...storeFormData.pageTexts?.parfums,
+                                    storyImageUrl2: e.target.value,
+                                  },
+                                },
+                              })
+                            }
+                            className="w-full bg-white border border-gray-200 rounded p-2 text-xs text-[#1A0F0A]"
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
                   {/* 5. DEMANDE DE DEVIS & FOOTER */}

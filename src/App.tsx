@@ -561,6 +561,7 @@ export default function App() {
                     onAddToCart={handleAddToCart}
                     subCategoriesLvl1={subCategoriesLvl1}
                     subCategoriesLvl2={subCategoriesLvl2}
+                    storeInfo={storeInfo}
                   />
 
                   {/* Dynamic sections for this catalog category */}

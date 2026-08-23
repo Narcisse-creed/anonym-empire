@@ -50,6 +50,12 @@ export const STORE_INFO: StoreInfo = {
       title: 'Parfums ANONYM',
       description: "ANONYM crée un univers olfactif destiné aux personnes qui souhaitent posséder une identité olfactive qui leur est propre. Une senteur reconnaissable, une signature que votre entourage associera à votre présence.",
       invitationDescription: "ANONYM INVITATION est la porte d'entrée vers l'univers olfactif de la marque. Une fragrance d'exception pour découvrir la qualité ANONYM et expérimenter l'expérience avant d'envisager une démarche plus personnalisée. Peut également s'offrir comme un message symbolique : « Tu es unique et tu mérites une fragrance qui te ressemble. »",
+      storyTitle: "L'essence d'un nom",
+      storyText1: "ANONYM n'est pas qu'un parfum, c'est une signature discrète. Le nom lui-même porte cette philosophie : rester en retrait, laisser le sillage parler à votre place. Chaque référence est pensée comme une empreinte olfactive unique, façonnée avec la même exigence que nos bijoux et accessoires — qualité, confiance, élégance.",
+      storyText2: "Nous avons voulu créer un univers où le parfum devient un objet précieux, presque secret, révélé uniquement à ceux qui prennent le temps de le découvrir. Chaque flacon raconte une histoire différente, mais garde toujours cette signature commune : l'anonymat comme forme ultime de raffinement.",
+      storyImageUrl1: 'https://images.unsplash.com/photo-1541643600914-78b084683601?q=80&w=800&auto=format&fit=crop',
+      storyImageUrl2: 'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?q=80&w=800&auto=format&fit=crop',
+      storyVisible: true,
     },
     accessoires: {
       title: 'Accessoires Personnalisables',

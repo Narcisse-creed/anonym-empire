@@ -176,6 +176,15 @@ export interface PageTexts {
     title?: string;
     description?: string;
     invitationDescription?: string;
+    badgeLabel?: string;
+    ctaTitle?: string;
+    ctaSubtitle?: string;
+    storyTitle?: string;
+    storyText1?: string;
+    storyText2?: string;
+    storyImageUrl1?: string;
+    storyImageUrl2?: string;
+    storyVisible?: boolean;
   };
   accessoires?: {
     title?: string;

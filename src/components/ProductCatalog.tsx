@@ -1,8 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { motion } from 'motion/react';
-import { Product, CategoryId, Collection, SubCategoryLevel1, SubCategoryLevel2 } from '../types';
+import { Product, CategoryId, Collection, SubCategoryLevel1, SubCategoryLevel2, StoreInfo } from '../types';
 import { formatPriceFCFA, buildWhatsAppLink, generateSingleProductWhatsAppMsg } from '../utils/helpers';
-import { Search, ArrowLeft, MessageCircle, ShieldCheck, Sparkles, ShoppingBag } from 'lucide-react';
+import { Search, ArrowLeft, MessageCircle, ShieldCheck, Sparkles, ShoppingBag, Trash2, Plus, Droplets } from 'lucide-react';
+import { EditableText } from './editor/EditableText';
+import { EditableImage } from './editor/EditableImage';
+import { useVisualEditor } from '../context/VisualEditorContext';
 
 interface ProductCatalogProps {
   products: Product[];
@@ -14,6 +17,7 @@ interface ProductCatalogProps {
   onAddToCart: (product: Product) => void;
   subCategoriesLvl1?: SubCategoryLevel1[];
   subCategoriesLvl2?: SubCategoryLevel2[];
+  storeInfo?: StoreInfo;
 }
 
 // ─── DATA ─────────────────────────────────────────────────────────────────────
@@ -223,7 +227,10 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
   onQuickView,
   subCategoriesLvl1 = [],
   subCategoriesLvl2 = [],
+  storeInfo,
 }) => {
+  const { isEditMode, updateTextByPath, addCustomSection } = useVisualEditor();
+
   // Bijoux navigation
   const [bijouxCible, setBijouxCible] = useState<string | null>(null);
   const [bijouxType,  setBijouxType]  = useState<string | null>(null);
@@ -1148,6 +1155,8 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
   if (selectedCategory === 'parfums') {
     const adminParfumsCollections = collections.filter((c) => c.category === 'parfums' && c.visible !== false);
     const totalParfumsCount = products.filter((p) => p.category === 'parfums').length;
+    const isStoryVisible = storeInfo?.pageTexts?.parfums?.storyVisible !== false;
+
     return (
       <section id="catalogue" className="py-16 bg-[#F8F6F2] text-[#1A1A1A] min-h-0">
         <motion.div
@@ -1156,10 +1165,129 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
           transition={{ duration: 0.5 }}
           className="max-w-7xl lg:max-w-[1400px] xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8"
         >
+          {/* Header */}
           <div className="text-center mb-10">
             <h2 className="text-3xl sm:text-4xl font-serif font-bold text-gray-900 tracking-tight mb-2">ANONYM</h2>
             <p className="text-xs text-gray-600 italic">L'univers olfactif ANONYM — Sélectionnez une référence.</p>
           </div>
+
+          {/* ── NOUVEAU BLOC : Description / Histoire "L'essence d'un nom" ── */}
+          {isStoryVisible && (
+            <div className="bg-white rounded-3xl border border-[#D4AF37]/35 p-6 sm:p-10 shadow-sm mb-12 relative overflow-hidden">
+              {/* Gold accent line */}
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent" />
+
+              {/* In Edit Mode: section controls */}
+              {isEditMode && (
+                <div className="flex items-center justify-between gap-2 p-2.5 mb-6 bg-[#141414] border border-[#D4AF37] rounded-xl text-white text-xs">
+                  <span className="text-[#F3E5AB] font-serif font-semibold">Section Histoire & Récit Parfums</span>
+                  <button
+                    onClick={() => {
+                      if (window.confirm('Voulez-vous vraiment supprimer/masquer ce bloc Histoire sur la page Parfums ?')) {
+                        updateTextByPath('pageTexts.parfums.storyVisible', 'false');
+                      }
+                    }}
+                    className="px-2.5 py-1 bg-rose-900/80 hover:bg-rose-800 text-rose-200 rounded-lg text-xs flex items-center gap-1 cursor-pointer transition-colors"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Supprimer la section</span>
+                  </button>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                {/* Text content (7 cols) */}
+                <div className="lg:col-span-7 space-y-4">
+                  <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#FAF7F2] border border-[#D4AF37]/40 text-[#8C5A2B] text-xs font-semibold uppercase tracking-wider">
+                    <Droplets className="w-3.5 h-3.5 text-[#D4AF37]" />
+                    <span>L'Univers du Parfum</span>
+                  </div>
+
+                  <h3 className="text-2xl sm:text-3xl font-serif font-bold text-[#1A0F0A] tracking-tight">
+                    <EditableText
+                      path="pageTexts.parfums.storyTitle"
+                      value={storeInfo?.pageTexts?.parfums?.storyTitle}
+                      defaultValue="L'essence d'un nom"
+                      label="Titre Histoire Parfums"
+                    />
+                  </h3>
+
+                  <div className="space-y-3.5 text-sm sm:text-base text-gray-700 font-sans leading-relaxed">
+                    <div>
+                      <EditableText
+                        path="pageTexts.parfums.storyText1"
+                        value={storeInfo?.pageTexts?.parfums?.storyText1}
+                        defaultValue="ANONYM n'est pas qu'un parfum, c'est une signature discrète. Le nom lui-même porte cette philosophie : rester en retrait, laisser le sillage parler à votre place. Chaque référence est pensée comme une empreinte olfactive unique, façonnée avec la même exigence que nos bijoux et accessoires — qualité, confiance, élégance."
+                        multiline={true}
+                        label="Paragraphe 1 — Histoire Parfums"
+                      />
+                    </div>
+                    <div>
+                      <EditableText
+                        path="pageTexts.parfums.storyText2"
+                        value={storeInfo?.pageTexts?.parfums?.storyText2}
+                        defaultValue="Nous avons voulu créer un univers où le parfum devient un objet précieux, presque secret, révélé uniquement à ceux qui prennent le temps de le découvrir. Chaque flacon raconte une histoire différente, mais garde toujours cette signature commune : l'anonymat comme forme ultime de raffinement."
+                        multiline={true}
+                        label="Paragraphe 2 — Histoire Parfums"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Images (5 cols) : duo layout with upload */}
+                <div className="lg:col-span-5 grid grid-cols-2 gap-3.5 sm:gap-4">
+                  <div className="relative aspect-[3/4] rounded-2xl overflow-hidden shadow-md border border-[#D4AF37]/30 bg-gray-50 group">
+                    <EditableImage
+                      path="pageTexts.parfums.storyImageUrl1"
+                      src={storeInfo?.pageTexts?.parfums?.storyImageUrl1}
+                      defaultSrc="https://images.unsplash.com/photo-1541643600914-78b084683601?q=80&w=800&auto=format&fit=crop"
+                      alt="Parfum ANONYM Flacon d'Exception"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      label="Image Flacon 1"
+                    />
+                  </div>
+                  <div className="relative aspect-[3/4] rounded-2xl overflow-hidden shadow-md border border-[#D4AF37]/30 bg-gray-50 group mt-4 sm:mt-6">
+                    <EditableImage
+                      path="pageTexts.parfums.storyImageUrl2"
+                      src={storeInfo?.pageTexts?.parfums?.storyImageUrl2}
+                      defaultSrc="https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?q=80&w=800&auto=format&fit=crop"
+                      alt="Ambiance Olfactive ANONYM"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      label="Image Flacon 2"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* If story is hidden and in edit mode, show button to restore it */}
+          {!isStoryVisible && isEditMode && (
+            <div className="text-center p-4 mb-8 bg-amber-50 border border-[#D4AF37] rounded-2xl">
+              <p className="text-xs text-gray-700 mb-2">Le bloc Histoire Parfums est actuellement masqué.</p>
+              <button
+                onClick={() => updateTextByPath('pageTexts.parfums.storyVisible', 'true')}
+                className="px-4 py-2 bg-[#D4AF37] text-black font-bold text-xs rounded-xl shadow cursor-pointer"
+              >
+                + Réactiver le bloc Histoire Parfums
+              </button>
+            </div>
+          )}
+
+          {/* In Edit Mode: button to add more dynamic sections on this Parfums page */}
+          {isEditMode && (
+            <div className="flex justify-center mb-8">
+              <button
+                onClick={() => addCustomSection('parfums', 'narrative')}
+                className="px-4 py-2 bg-[#161616] hover:bg-black text-[#D4AF37] border border-[#D4AF37]/50 rounded-xl text-xs font-semibold flex items-center gap-2 cursor-pointer shadow-md transition-all"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Ajouter une autre section sur Parfums</span>
+              </button>
+            </div>
+          )}
+
+          {/* Navigation Buttons List */}
           <div className="space-y-3">
             <NavBtn
               label={`✨ TOUS LES PARFUMS ANONYM (${totalParfumsCount})`}
