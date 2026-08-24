@@ -115,9 +115,9 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ storeInfo }) => 
                 )}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full inline-flex items-center justify-center gap-3 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white font-bold text-xs uppercase tracking-wider py-4 rounded-2xl shadow-xl transition-all"
+                className="w-full inline-flex items-center justify-center gap-3 bg-[#161616] hover:bg-[#222222] text-[#D4AF37] border border-[#D4AF37]/40 hover:border-[#D4AF37] font-bold text-xs uppercase tracking-wider py-4 rounded-2xl shadow-xl transition-all cursor-pointer group"
               >
-                <MessageCircle className="w-5 h-5 fill-white text-emerald-600" />
+                <MessageCircle className="w-5 h-5 text-[#D4AF37] group-hover:scale-110 transition-transform" />
                 <span>Ouvrir une Discussion WhatsApp</span>
               </a>
 
