@@ -2,6 +2,15 @@ import { UniverseCategory } from '../types';
 
 export const UNIVERSE_CATEGORIES: UniverseCategory[] = [
   {
+    id: 'parfums',
+    title: 'ANONYM',
+    subtitle: 'Identité olfactive & ANONYM INVITATION',
+    description: "L'univers olfactif ANONYM. Une fragrance qui vous est propre, reconnaissable, qui définit votre présence. Découvrez ANONYM INVITATION, la porte d'entrée vers cet univers d'exception.",
+    iconName: 'Sparkles',
+    image: '/images/parfums-anonym-card.png',
+    itemCount: 6,
+  },
+  {
     id: 'bijoux',
     title: 'Bijoux',
     subtitle: 'Colliers, bracelets, bagues & manchettes',
@@ -18,15 +27,6 @@ export const UNIVERSE_CATEGORIES: UniverseCategory[] = [
     iconName: 'Package',
     image: '/images/emballages-card.jpg',
     itemCount: 8,
-  },
-  {
-    id: 'parfums',
-    title: 'ANONYM',
-    subtitle: 'Identité olfactive & ANONYM INVITATION',
-    description: "L'univers olfactif ANONYM. Une fragrance qui vous est propre, reconnaissable, qui définit votre présence. Découvrez ANONYM INVITATION, la porte d'entrée vers cet univers d'exception.",
-    iconName: 'Sparkles',
-    image: '/images/parfums-anonym-card.png',
-    itemCount: 6,
   },
   {
     id: 'accessoires',

@@ -19,6 +19,11 @@ const CARD_MEDIA: Record<string, { image: string; desc: string; itemCount?: numb
     image: '/images/lizie-white-suit.jpg',
     desc: 'Maison de Création & Direction',
   },
+  parfums: {
+    image: '/images/parfums-anonym-card.png',
+    desc: "L'univers olfactif ANONYM INVITATION",
+    itemCount: 6,
+  },
   bijoux: {
     image: '/images/bijoux-card.jpg',
     desc: 'Colliers, bracelets, bagues & manchettes personnalisés',
@@ -28,11 +33,6 @@ const CARD_MEDIA: Record<string, { image: string; desc: string; itemCount?: numb
     image: '/images/emballages-card.jpg',
     desc: 'Coffrets, boîtes & packaging professionnel de prestige',
     itemCount: 8,
-  },
-  parfums: {
-    image: '/images/parfums-anonym-card.png',
-    desc: "L'univers olfactif ANONYM INVITATION",
-    itemCount: 6,
   },
   accessoires: {
     image: '/images/accessoires-card.png',
