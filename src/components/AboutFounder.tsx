@@ -219,17 +219,17 @@ export const AboutFounder: React.FC<AboutFounderProps> = ({ storeInfo }) => {
               </div>
 
               {/* Legal Registrations & Official Payment Box */}
-              <div className="p-4 rounded-2xl bg-gradient-to-r from-[#17140B] via-[#121212] to-[#0A0A0A] border border-[#D4AF37]/40 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
+              <div className="p-4 rounded-2xl bg-white border border-[#D4AF37]/40 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
                 <div className="flex items-center gap-3">
                   <div className="p-3 rounded-full bg-[#D4AF37]/20 text-[#D4AF37] shrink-0">
                     <PhoneCall className="w-5 h-5" />
                   </div>
                   <div>
-                    <EditableText path="pageTexts.about.paymentLabel" value={storeInfo.pageTexts?.about?.paymentLabel} defaultValue="Paiements & Transferts de Validation :" as="span" className="text-xs text-gray-400 block" label="Label Paiements" />
-                    <span className="font-mono font-bold text-amber-200 text-sm">
+                    <EditableText path="pageTexts.about.paymentLabel" value={storeInfo.pageTexts?.about?.paymentLabel} defaultValue="Paiements & Transferts de Validation :" as="span" className="text-xs text-gray-500 block" label="Label Paiements" />
+                    <span className="font-mono font-bold text-[#1A0F0A] text-sm">
                       <EditableText path="phone1" value={storeInfo.phone1} defaultValue="+229 01 97 00 00" as="span" label="Téléphone 1" /> / <EditableText path="phone2" value={storeInfo.phone2} defaultValue="+229 01 96 00 00" as="span" label="Téléphone 2" />
                     </span>
-                    <div className="text-[10px] text-gray-400 font-mono mt-0.5">
+                    <div className="text-[10px] text-gray-500 font-mono mt-0.5">
                       RCCM: <EditableText path="rccm" value={storeInfo.rccm} defaultValue="RB/ABC/..." as="span" label="RCCM" /> | IFU: <EditableText path="ifu" value={storeInfo.ifu} defaultValue="020..." as="span" label="IFU" />
                     </div>
                   </div>

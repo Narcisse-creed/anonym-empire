@@ -30,8 +30,8 @@ export const CrownLogo: React.FC<CrownLogoProps> = ({
     <div className={`inline-flex items-center gap-3 select-none ${className}`}>
       {/* Official 3D Wood Sculpted "A" Monogram Emblem (§40b) */}
       <div className={`relative flex items-center justify-center shrink-0 ${currentSize.icon}`}>
-        {/* Ambient Gold Aura Glow */}
-        <div className="absolute inset-0 rounded-full bg-[#D4AF37]/35 blur-md pointer-events-none transform scale-115" />
+        {/* Clean Sharp Golden Ring (cercle net, pas de flou) */}
+        <div className="absolute inset-0 rounded-full border-2 border-[#D4AF37] pointer-events-none" />
 
         {/* Outer Golden Circle Container — fond blanc, image "A" seul sans texte */}
         <div className="relative w-full h-full rounded-full bg-white p-[3px] border-2 border-[#D4AF37] shadow-[0_0_18px_rgba(212,175,55,0.45)] hover:scale-105 transition-transform duration-300 flex items-center justify-center overflow-hidden">
