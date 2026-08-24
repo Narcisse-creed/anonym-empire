@@ -825,7 +825,7 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
 
               <div>
                 <h3 className="text-2xl font-serif font-bold text-[#1A0F0A] mb-2 tracking-wide">
-                  ANONYM
+                  Espace Privé
                 </h3>
                 <p className="text-xs text-gray-600">
                   Veuillez saisir votre mot de passe.
