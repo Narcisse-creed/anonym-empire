@@ -25,7 +25,7 @@ export const UNIVERSE_CATEGORIES: UniverseCategory[] = [
     subtitle: 'Identité olfactive & ANONYM INVITATION',
     description: "L'univers olfactif ANONYM. Une fragrance qui vous est propre, reconnaissable, qui définit votre présence. Découvrez ANONYM INVITATION, la porte d'entrée vers cet univers d'exception.",
     iconName: 'Sparkles',
-    image: 'https://images.unsplash.com/photo-1541643600914-78b084683601?q=80&w=800&auto=format&fit=crop',
+    image: '/images/parfums-anonym-card.png',
     itemCount: 6,
   },
   {

@@ -30,7 +30,7 @@ const CARD_MEDIA: Record<string, { image: string; desc: string; itemCount?: numb
     itemCount: 8,
   },
   parfums: {
-    image: 'https://images.unsplash.com/photo-1541643600914-78b084683601?q=80&w=800&auto=format&fit=crop',
+    image: '/images/parfums-anonym-card.png',
     desc: "L'univers olfactif ANONYM INVITATION",
     itemCount: 6,
   },
