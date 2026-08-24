@@ -5,7 +5,7 @@ export const STORE_INFO: StoreInfo = {
   fullName: 'ANONYM',
   tagline: "L'art de se démarquer",
   values: ['Unicité', 'Élégance', 'Personnalisation'],
-  address: 'Zogbadjè, Abomey-Calavi',
+  address: 'Abomey-Calavi',
   city: 'Abomey-Calavi',
   country: 'Bénin',
   email: 'anonymemultiservices@gmail.com',
@@ -24,7 +24,7 @@ export const STORE_INFO: StoreInfo = {
     badge: 'Directrice Générale & CEO',
     quote: "Inspirée par l'excellence et le prestige royal, Lizie Fifamè ALLATIN dirige ANONYM depuis Abomey-Calavi avec une vision claire : immortaliser vos histoires à travers des bijoux gravés d'exception.",
     sectionTitle: 'La Fondatrice : Lizie Fifamè ALLATIN',
-    paragraph: "Basée à Abomey-Calavi (Zogbadjè, Bénin), ANONYM est une maison béninoise d'excellence dédiée aux bijoux personnalisés, la parfumerie et la conception de coffrets de prestige. Nous traduisons vos émotions, prénoms et dates mémorables en œuvres durables.",
+    paragraph: "Basée à Abomey-Calavi (Bénin), ANONYM est une maison béninoise d'excellence dédiée aux bijoux personnalisés, la parfumerie et la conception de coffrets de prestige. Nous traduisons vos émotions, prénoms et dates mémorables en œuvres durables.",
     commitments: [
       { icon: 'check',    label: 'Pour tous :',           text: 'Hommes, femmes, couples, enfants, bébés et animaux.' },
       { icon: 'award',    label: 'Garantie 1 An :',       text: 'Acier inoxydable 316L, ne rouille ni ne noircit au parfum.' },

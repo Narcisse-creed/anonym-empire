@@ -2917,7 +2917,7 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                       <textarea
                         rows={3}
                         value={storeFormData.founderSection?.paragraph || ''}
-                        placeholder="Basée à Abomey-Calavi (Zogbadjè, Bénin)..."
+                        placeholder="Basée à Abomey-Calavi (Bénin)..."
                         onChange={(e) =>
                           setStoreFormData({
                             ...storeFormData,

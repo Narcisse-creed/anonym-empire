@@ -34,17 +34,9 @@ export const Footer: React.FC<FooterProps> = ({ storeInfo, onOpenAdmin }) => {
             <CrownLogo size="md" />
             <p className="text-xs text-gray-600 font-sans">
               <EditableText
-                path="address"
-                value={storeInfo.address}
-                defaultValue="Abomey-Calavi"
-                as="span"
-                label="Adresse"
-              />
-              {', '}
-              <EditableText
                 path="city"
-                value={storeInfo.city}
-                defaultValue="Cotonou"
+                value={storeInfo.city || storeInfo.address}
+                defaultValue="Abomey-Calavi"
                 as="span"
                 label="Ville"
               />

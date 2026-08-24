@@ -53,7 +53,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ storeInfo }) => 
                   <div>
                     <EditableText path="pageTexts.contact.addressLabel" value={storeInfo.pageTexts?.contact?.addressLabel} defaultValue="Adresse Physique" as="h4" className="font-serif font-bold text-gray-900" label="Titre Adresse" />
                     <p className="text-xs text-gray-600 mt-0.5">
-                      <EditableText path="address" value={storeInfo.address} defaultValue="Zogbadjè" label="Adresse" />, <EditableText path="city" value={storeInfo.city} defaultValue="Cotonou" as="span" label="Ville" />, <EditableText path="country" value={storeInfo.country} defaultValue="Bénin" as="span" label="Pays" />
+                      <EditableText path="city" value={storeInfo.city || storeInfo.address} defaultValue="Abomey-Calavi" as="span" label="Ville" />, <EditableText path="country" value={storeInfo.country} defaultValue="Bénin" as="span" label="Pays" />
                     </p>
                   </div>
                 </div>
