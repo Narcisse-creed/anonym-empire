@@ -62,7 +62,8 @@ const ALL_ITEMS = [
   },
   ...UNIVERSE_CATEGORIES.map((cat) => ({
     id: cat.id,
-    title: cat.title.toUpperCase(),
+    // Force 'ANONYM' (sans le préfixe 'PARFUMS') pour la carte parfums
+    title: cat.id === 'parfums' ? 'ANONYM' : cat.title.toUpperCase(),
     subtitle: cat.subtitle,
     iconName: cat.iconName,
   })),
@@ -141,7 +142,7 @@ export const UniverseGrid: React.FC<UniverseGridProps> = ({
                       {/* Title */}
                       <EditableText
                         path={`pageTexts.universe.${item.id}.title`}
-                        value={storeInfo?.pageTexts?.[item.id]?.title}
+                        value={item.id === 'parfums' ? 'ANONYM' : storeInfo?.pageTexts?.[item.id]?.title}
                         defaultValue={item.title}
                         as="h3"
                         className="text-sm sm:text-base lg:text-lg font-serif font-bold text-white tracking-widest uppercase group-hover:text-[#D4AF37] transition-colors leading-tight"
