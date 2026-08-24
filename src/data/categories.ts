@@ -7,7 +7,7 @@ export const UNIVERSE_CATEGORIES: UniverseCategory[] = [
     subtitle: 'Colliers, bracelets, bagues & manchettes',
     description: 'Bijoux personnalisés sur mesure pour cadeaux, anniversaires, mariages, fiançailles et toutes les occasions précieuses. Chaque pièce est unique, gravée avec vos prénoms, dates et symboles.',
     iconName: 'Gem',
-    image: '/images/products/model-001.jpg',
+    image: '/images/bijoux-card.jpg',
     itemCount: 211,
   },
   {

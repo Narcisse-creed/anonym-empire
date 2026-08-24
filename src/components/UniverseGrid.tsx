@@ -20,7 +20,7 @@ const CARD_MEDIA: Record<string, { image: string; desc: string; itemCount?: numb
     desc: 'Maison de Création & Direction',
   },
   bijoux: {
-    image: '/images/products/model-001.jpg',
+    image: '/images/bijoux-card.jpg',
     desc: 'Colliers, bracelets, bagues & manchettes personnalisés',
     itemCount: 211,
   },
