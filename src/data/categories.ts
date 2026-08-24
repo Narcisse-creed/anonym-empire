@@ -16,7 +16,7 @@ export const UNIVERSE_CATEGORIES: UniverseCategory[] = [
     subtitle: 'Coffrets, boîtes & packaging professionnel',
     description: "Emballages personnalisés pour entreprises, restaurants, cosmétiques et événements. Affirmez votre identité professionnelle avec des packagings à votre image, adaptés à vos produits.",
     iconName: 'Package',
-    image: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?q=80&w=800&auto=format&fit=crop',
+    image: '/images/emballages-card.jpg',
     itemCount: 8,
   },
   {

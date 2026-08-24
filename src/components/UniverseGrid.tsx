@@ -25,7 +25,7 @@ const CARD_MEDIA: Record<string, { image: string; desc: string; itemCount?: numb
     itemCount: 211,
   },
   emballages: {
-    image: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?q=80&w=800&auto=format&fit=crop',
+    image: '/images/emballages-card.jpg',
     desc: 'Coffrets, boîtes & packaging professionnel de prestige',
     itemCount: 8,
   },
