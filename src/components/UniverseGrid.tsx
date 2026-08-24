@@ -35,7 +35,7 @@ const CARD_MEDIA: Record<string, { image: string; desc: string; itemCount?: numb
     itemCount: 6,
   },
   accessoires: {
-    image: 'https://images.unsplash.com/photo-1627123424574-724758594e93?q=80&w=800&auto=format&fit=crop',
+    image: '/images/accessoires-card.png',
     desc: 'Verres, tasses, stylos & objets de marque sur-mesure',
     itemCount: 12,
   },

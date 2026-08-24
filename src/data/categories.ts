@@ -34,7 +34,7 @@ export const UNIVERSE_CATEGORIES: UniverseCategory[] = [
     subtitle: 'Verres, porte-clés & objets de marque',
     description: "Accessoires personnalisables pour mariages, anniversaires, événements d'entreprise et dîners d'affaires. Donnez à chaque moment une identité particulière et mémorable.",
     iconName: 'KeyRound',
-    image: 'https://images.unsplash.com/photo-1627123424574-724758594e93?q=80&w=800&auto=format&fit=crop',
+    image: '/images/accessoires-card.png',
     itemCount: 12,
   },
 ];
