@@ -15,8 +15,19 @@ import { INITIAL_PRODUCTS } from '../data/products';
 import { INITIAL_SUBCATEGORIES_LVL1, INITIAL_SUBCATEGORIES_LVL2 } from '../data/categoriesData';
 import { STORE_INFO } from '../data/storeInfo';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+const supabaseUrl =
+  import.meta.env.VITE_SUPABASE_URL ||
+  import.meta.env.NEXT_PUBLIC_SUPABASE_URL ||
+  import.meta.env.SUPABASE_URL ||
+  'https://kyzyffmkdqakvhettrnx.supabase.co';
+
+const supabaseAnonKey =
+  import.meta.env.VITE_SUPABASE_ANON_KEY ||
+  import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  import.meta.env.SUPABASE_ANON_KEY ||
+  import.meta.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+  import.meta.env.SUPABASE_PUBLISHABLE_KEY ||
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt5enlmZm1rZHFha3ZoZXR0cm54Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc2NDU3MjUsImV4cCI6MjEwMzIyMTcyNX0.631UhAIQXBSQRGr490dKQLPkN16s-kV9jl_TV6xqG5g';
 
 let supabaseInstance: SupabaseClient | null = null;
 
