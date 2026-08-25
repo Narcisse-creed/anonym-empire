@@ -1,7 +1,7 @@
 import React from 'react';
 import { Product } from '../types';
 import { formatPriceFCFA, generateSingleProductWhatsAppMsg, buildWhatsAppLink } from '../utils/helpers';
-import { Eye, MessageCircle, ShoppingCart, ShieldCheck } from 'lucide-react';
+import { Eye, MessageCircle, ShoppingCart, ShieldCheck, Edit2, Trash2 } from 'lucide-react';
 import { AvailabilityBadge } from './AvailabilityBadge';
 
 interface ProductCardProps {
@@ -9,6 +9,9 @@ interface ProductCardProps {
   whatsappNumber: string;
   onQuickView: (product: Product) => void;
   onAddToCart: (product: Product) => void;
+  isEditMode?: boolean;
+  onEdit?: (product: Product) => void;
+  onDelete?: (product: Product) => void;
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({
@@ -16,6 +19,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   whatsappNumber,
   onQuickView,
   onAddToCart,
+  isEditMode = false,
+  onEdit,
+  onDelete,
 }) => {
   const isEpuise = product.availability === 'epuise';
   const whatsappMsg = generateSingleProductWhatsAppMsg(product);
@@ -25,11 +31,46 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const allImages = [product.imageUrl, ...(product.images || [])].filter(Boolean);
 
   return (
-    <div className={`group bg-white rounded-2xl overflow-hidden border transition-all duration-300 flex flex-col justify-between shadow-sm ${
-      isEpuise
-        ? 'border-gray-200 opacity-70'
-        : 'border-[#D4AF37]/20 hover:border-[#D4AF37] hover:shadow-[0_4px_30px_rgba(212,175,55,0.18)]'
-    }`}>
+    <div
+      className={`group relative bg-white rounded-2xl overflow-hidden border transition-all duration-300 flex flex-col justify-between shadow-sm ${
+        isEditMode ? 'ring-2 ring-[#D4AF37]/50 shadow-md' : ''
+      } ${
+        isEpuise
+          ? 'border-gray-200 opacity-70'
+          : 'border-[#D4AF37]/20 hover:border-[#D4AF37] hover:shadow-[0_4px_30px_rgba(212,175,55,0.18)]'
+      }`}
+    >
+      {/* Admin Live Edit Controls (Only in Edit Mode) */}
+      {isEditMode && (
+        <div className="absolute top-2 right-2 z-30 flex items-center gap-1.5 bg-black/85 p-1 rounded-xl shadow-lg border border-[#D4AF37]/60 backdrop-blur-md">
+          {onEdit && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(product);
+              }}
+              className="p-1.5 rounded-lg bg-[#D4AF37] text-black hover:bg-[#F3E5AB] transition-colors cursor-pointer"
+              title="Modifier ce produit (Édition Directe)"
+            >
+              <Edit2 className="w-3.5 h-3.5" />
+            </button>
+          )}
+          {onDelete && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(product);
+              }}
+              className="p-1.5 rounded-lg bg-rose-600 text-white hover:bg-rose-700 transition-colors cursor-pointer"
+              title="Supprimer ce produit"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Top Image Section */}
       <div
@@ -51,7 +92,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
 
         {/* Top Badges Row */}
-        <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none">
+        <div className="absolute top-3 left-3 flex items-center gap-1.5 pointer-events-none">
           <span className="font-mono text-[10px] font-bold text-black bg-[#D4AF37] px-2 py-0.5 rounded-md shadow-md">
             #{product.refCode}
           </span>
@@ -72,10 +113,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         )}
 
         {/* Quick View Button (only if not épuisé) */}
-        {!isEpuise && (
+        {!isEpuise && !isEditMode && (
           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/40 backdrop-blur-[2px]">
             <button
-              onClick={(e) => { e.stopPropagation(); onQuickView(product); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onQuickView(product);
+              }}
               className="inline-flex items-center gap-2 bg-[#D4AF37] text-black font-bold text-xs uppercase tracking-wider px-4 py-2.5 rounded-full shadow-lg transform translate-y-2 group-hover:translate-y-0 transition-all cursor-pointer"
             >
               <Eye className="w-4 h-4" />
@@ -142,11 +186,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           <div className="flex items-baseline justify-between mb-2.5">
             <span className="text-[10px] text-gray-500">Prix :</span>
             <div className="text-right">
-              <span className="text-base font-serif font-bold text-[#F3E5AB]">
+              <span className="text-base font-serif font-bold text-[#D4AF37]">
                 {formatPriceFCFA(product.price)}
               </span>
               {product.priceVariable && (
-                <span className="text-[9px] text-amber-300 block">*Variable</span>
+                <span className="text-[9px] text-amber-600 block">*Variable</span>
               )}
             </div>
           </div>

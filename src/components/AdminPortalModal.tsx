@@ -3290,6 +3290,357 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                     </div>
                   </div>
 
+                  {/* 4ter. PAGE BIJOUX — BLOC DESCRIPTION & HISTOIRE */}
+                  <div className="border border-gray-200 rounded-xl p-4 bg-white/40 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-bold text-[#D4AF37] uppercase tracking-wider">
+                        ✨ Page Bijoux — Bloc Histoire & Description
+                      </h4>
+                      <label className="flex items-center gap-2 cursor-pointer text-xs text-gray-700">
+                        <input
+                          type="checkbox"
+                          checked={storeFormData.pageTexts?.bijoux?.storyVisible !== false}
+                          onChange={(e) =>
+                            setStoreFormData({
+                              ...storeFormData,
+                              pageTexts: {
+                                ...storeFormData.pageTexts,
+                                bijoux: {
+                                  ...storeFormData.pageTexts?.bijoux,
+                                  storyVisible: e.target.checked,
+                                },
+                              },
+                            })
+                          }
+                          className="rounded text-[#D4AF37] focus:ring-[#D4AF37]"
+                        />
+                        <span>Afficher sur la page Bijoux</span>
+                      </label>
+                    </div>
+                    <div className="space-y-2.5 p-3 bg-white border border-gray-200 rounded-xl">
+                      <div>
+                        <label className="text-[11px] text-[#D4AF37] font-semibold block mb-1">Titre du Récit</label>
+                        <input
+                          type="text"
+                          value={storeFormData.pageTexts?.bijoux?.storyTitle || ''}
+                          placeholder="Une empreinte qui vous ressemble"
+                          onChange={(e) =>
+                            setStoreFormData({
+                              ...storeFormData,
+                              pageTexts: {
+                                ...storeFormData.pageTexts,
+                                bijoux: {
+                                  ...storeFormData.pageTexts?.bijoux,
+                                  storyTitle: e.target.value,
+                                },
+                              },
+                            })
+                          }
+                          className="w-full bg-white border border-gray-200 rounded p-2 text-xs text-[#1A0F0A]"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[11px] text-gray-600 block mb-1">Paragraphe (Histoire & Savoir-faire)</label>
+                        <textarea
+                          rows={3}
+                          value={storeFormData.pageTexts?.bijoux?.storyText1 || ''}
+                          placeholder="Chez ANONYM, chaque bijou commence par une histoire..."
+                          onChange={(e) =>
+                            setStoreFormData({
+                              ...storeFormData,
+                              pageTexts: {
+                                ...storeFormData.pageTexts,
+                                bijoux: {
+                                  ...storeFormData.pageTexts?.bijoux,
+                                  storyText1: e.target.value,
+                                },
+                              },
+                            })
+                          }
+                          className="w-full bg-white border border-gray-200 rounded p-2 text-xs text-[#1A0F0A]"
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[11px] text-gray-600 block mb-1">Photo 1 (URL)</label>
+                          <input
+                            type="text"
+                            value={storeFormData.pageTexts?.bijoux?.storyImageUrl1 || ''}
+                            placeholder="https://..."
+                            onChange={(e) =>
+                              setStoreFormData({
+                                ...storeFormData,
+                                pageTexts: {
+                                  ...storeFormData.pageTexts,
+                                  bijoux: {
+                                    ...storeFormData.pageTexts?.bijoux,
+                                    storyImageUrl1: e.target.value,
+                                  },
+                                },
+                              })
+                            }
+                            className="w-full bg-white border border-gray-200 rounded p-2 text-xs text-[#1A0F0A]"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[11px] text-gray-600 block mb-1">Photo 2 (URL)</label>
+                          <input
+                            type="text"
+                            value={storeFormData.pageTexts?.bijoux?.storyImageUrl2 || ''}
+                            placeholder="https://..."
+                            onChange={(e) =>
+                              setStoreFormData({
+                                ...storeFormData,
+                                pageTexts: {
+                                  ...storeFormData.pageTexts,
+                                  bijoux: {
+                                    ...storeFormData.pageTexts?.bijoux,
+                                    storyImageUrl2: e.target.value,
+                                  },
+                                },
+                              })
+                            }
+                            className="w-full bg-white border border-gray-200 rounded p-2 text-xs text-[#1A0F0A]"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 4quater. PAGE EMBALLAGES — BLOC DESCRIPTION & HISTOIRE */}
+                  <div className="border border-gray-200 rounded-xl p-4 bg-white/40 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-bold text-[#D4AF37] uppercase tracking-wider">
+                        ✨ Page Emballages — Bloc Histoire & Description
+                      </h4>
+                      <label className="flex items-center gap-2 cursor-pointer text-xs text-gray-700">
+                        <input
+                          type="checkbox"
+                          checked={storeFormData.pageTexts?.emballages?.storyVisible !== false}
+                          onChange={(e) =>
+                            setStoreFormData({
+                              ...storeFormData,
+                              pageTexts: {
+                                ...storeFormData.pageTexts,
+                                emballages: {
+                                  ...storeFormData.pageTexts?.emballages,
+                                  storyVisible: e.target.checked,
+                                },
+                              },
+                            })
+                          }
+                          className="rounded text-[#D4AF37] focus:ring-[#D4AF37]"
+                        />
+                        <span>Afficher sur la page Emballages</span>
+                      </label>
+                    </div>
+                    <div className="space-y-2.5 p-3 bg-white border border-gray-200 rounded-xl">
+                      <div>
+                        <label className="text-[11px] text-[#D4AF37] font-semibold block mb-1">Titre du Récit</label>
+                        <input
+                          type="text"
+                          value={storeFormData.pageTexts?.emballages?.storyTitle || ''}
+                          placeholder="Le premier geste d'une histoire"
+                          onChange={(e) =>
+                            setStoreFormData({
+                              ...storeFormData,
+                              pageTexts: {
+                                ...storeFormData.pageTexts,
+                                emballages: {
+                                  ...storeFormData.pageTexts?.emballages,
+                                  storyTitle: e.target.value,
+                                },
+                              },
+                            })
+                          }
+                          className="w-full bg-white border border-gray-200 rounded p-2 text-xs text-[#1A0F0A]"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[11px] text-gray-600 block mb-1">Paragraphe (Histoire & Philosophie)</label>
+                        <textarea
+                          rows={3}
+                          value={storeFormData.pageTexts?.emballages?.storyText1 || ''}
+                          placeholder="Un cadeau se raconte avant même d'être ouvert..."
+                          onChange={(e) =>
+                            setStoreFormData({
+                              ...storeFormData,
+                              pageTexts: {
+                                ...storeFormData.pageTexts,
+                                emballages: {
+                                  ...storeFormData.pageTexts?.emballages,
+                                  storyText1: e.target.value,
+                                },
+                              },
+                            })
+                          }
+                          className="w-full bg-white border border-gray-200 rounded p-2 text-xs text-[#1A0F0A]"
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[11px] text-gray-600 block mb-1">Photo 1 (URL)</label>
+                          <input
+                            type="text"
+                            value={storeFormData.pageTexts?.emballages?.storyImageUrl1 || ''}
+                            placeholder="https://..."
+                            onChange={(e) =>
+                              setStoreFormData({
+                                ...storeFormData,
+                                pageTexts: {
+                                  ...storeFormData.pageTexts,
+                                  emballages: {
+                                    ...storeFormData.pageTexts?.emballages,
+                                    storyImageUrl1: e.target.value,
+                                  },
+                                },
+                              })
+                            }
+                            className="w-full bg-white border border-gray-200 rounded p-2 text-xs text-[#1A0F0A]"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[11px] text-gray-600 block mb-1">Photo 2 (URL)</label>
+                          <input
+                            type="text"
+                            value={storeFormData.pageTexts?.emballages?.storyImageUrl2 || ''}
+                            placeholder="https://..."
+                            onChange={(e) =>
+                              setStoreFormData({
+                                ...storeFormData,
+                                pageTexts: {
+                                  ...storeFormData.pageTexts,
+                                  emballages: {
+                                    ...storeFormData.pageTexts?.emballages,
+                                    storyImageUrl2: e.target.value,
+                                  },
+                                },
+                              })
+                            }
+                            className="w-full bg-white border border-gray-200 rounded p-2 text-xs text-[#1A0F0A]"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 4quinquies. PAGE ACCESSOIRES — BLOC DESCRIPTION & HISTOIRE */}
+                  <div className="border border-gray-200 rounded-xl p-4 bg-white/40 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-bold text-[#D4AF37] uppercase tracking-wider">
+                        ✨ Page Accessoires — Bloc Histoire & Description
+                      </h4>
+                      <label className="flex items-center gap-2 cursor-pointer text-xs text-gray-700">
+                        <input
+                          type="checkbox"
+                          checked={storeFormData.pageTexts?.accessoires?.storyVisible !== false}
+                          onChange={(e) =>
+                            setStoreFormData({
+                              ...storeFormData,
+                              pageTexts: {
+                                ...storeFormData.pageTexts,
+                                accessoires: {
+                                  ...storeFormData.pageTexts?.accessoires,
+                                  storyVisible: e.target.checked,
+                                },
+                              },
+                            })
+                          }
+                          className="rounded text-[#D4AF37] focus:ring-[#D4AF37]"
+                        />
+                        <span>Afficher sur la page Accessoires</span>
+                      </label>
+                    </div>
+                    <div className="space-y-2.5 p-3 bg-white border border-gray-200 rounded-xl">
+                      <div>
+                        <label className="text-[11px] text-[#D4AF37] font-semibold block mb-1">Titre du Récit</label>
+                        <input
+                          type="text"
+                          value={storeFormData.pageTexts?.accessoires?.storyTitle || ''}
+                          placeholder="L'élégance au quotidien"
+                          onChange={(e) =>
+                            setStoreFormData({
+                              ...storeFormData,
+                              pageTexts: {
+                                ...storeFormData.pageTexts,
+                                accessoires: {
+                                  ...storeFormData.pageTexts?.accessoires,
+                                  storyTitle: e.target.value,
+                                },
+                              },
+                            })
+                          }
+                          className="w-full bg-white border border-gray-200 rounded p-2 text-xs text-[#1A0F0A]"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[11px] text-gray-600 block mb-1">Paragraphe (Histoire & Style de vie)</label>
+                        <textarea
+                          rows={3}
+                          value={storeFormData.pageTexts?.accessoires?.storyText1 || ''}
+                          placeholder="Au-delà des bijoux, ANONYM imagine des accessoires..."
+                          onChange={(e) =>
+                            setStoreFormData({
+                              ...storeFormData,
+                              pageTexts: {
+                                ...storeFormData.pageTexts,
+                                accessoires: {
+                                  ...storeFormData.pageTexts?.accessoires,
+                                  storyText1: e.target.value,
+                                },
+                              },
+                            })
+                          }
+                          className="w-full bg-white border border-gray-200 rounded p-2 text-xs text-[#1A0F0A]"
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[11px] text-gray-600 block mb-1">Photo 1 (URL)</label>
+                          <input
+                            type="text"
+                            value={storeFormData.pageTexts?.accessoires?.storyImageUrl1 || ''}
+                            placeholder="https://..."
+                            onChange={(e) =>
+                              setStoreFormData({
+                                ...storeFormData,
+                                pageTexts: {
+                                  ...storeFormData.pageTexts,
+                                  accessoires: {
+                                    ...storeFormData.pageTexts?.accessoires,
+                                    storyImageUrl1: e.target.value,
+                                  },
+                                },
+                              })
+                            }
+                            className="w-full bg-white border border-gray-200 rounded p-2 text-xs text-[#1A0F0A]"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[11px] text-gray-600 block mb-1">Photo 2 (URL)</label>
+                          <input
+                            type="text"
+                            value={storeFormData.pageTexts?.accessoires?.storyImageUrl2 || ''}
+                            placeholder="https://..."
+                            onChange={(e) =>
+                              setStoreFormData({
+                                ...storeFormData,
+                                pageTexts: {
+                                  ...storeFormData.pageTexts,
+                                  accessoires: {
+                                    ...storeFormData.pageTexts?.accessoires,
+                                    storyImageUrl2: e.target.value,
+                                  },
+                                },
+                              })
+                            }
+                            className="w-full bg-white border border-gray-200 rounded p-2 text-xs text-[#1A0F0A]"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* 5. DEMANDE DE DEVIS & FOOTER */}
                   <div className="border border-gray-200 rounded-xl p-4 bg-white/40 space-y-3">
                     <h4 className="text-xs font-bold text-[#F3E5AB] uppercase tracking-wider">5. Demande de Devis & Pied de Page (Footer)</h4>

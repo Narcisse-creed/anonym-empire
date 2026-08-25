@@ -51,6 +51,20 @@ import {
   saveRealisations,
 } from './utils/helpers';
 import { SubCategoryLevel1, SubCategoryLevel2 } from './types';
+import {
+  isSupabaseConfigured,
+  seedInitialDataIfNeeded,
+  fetchStoreInfoFromSupabase,
+  saveStoreInfoToSupabase,
+  fetchProductsFromSupabase,
+  saveProductsToSupabase,
+  fetchSubCategoriesLvl1FromSupabase,
+  saveSubCategoriesLvl1ToSupabase,
+  fetchSubCategoriesLvl2FromSupabase,
+  saveSubCategoriesLvl2ToSupabase,
+  fetchCollectionsFromSupabase,
+  saveCollectionsToSupabase,
+} from './services/supabase';
 
 interface AdminOuterErrorBoundaryProps {
   children: React.ReactNode;
@@ -147,16 +161,42 @@ export default function App() {
   const [activeSection, setActiveSection] = useState<string>('hero');
   const [adminPassword, setAdminPassword] = useState<string>(loadAdminPassword);
 
-  useEffect(() => { saveStoreInfo(storeInfo); }, [storeInfo]);
-  useEffect(() => { saveProducts(products); }, [products]);
-  useEffect(() => { saveCollections(collections); }, [collections]);
+  // Bootstrap from Supabase on mount (with automatic table seed if empty)
+  useEffect(() => {
+    if (isSupabaseConfigured()) {
+      seedInitialDataIfNeeded()
+        .then(() => {
+          return Promise.all([
+            fetchStoreInfoFromSupabase(),
+            fetchProductsFromSupabase(),
+            fetchSubCategoriesLvl1FromSupabase(),
+            fetchSubCategoriesLvl2FromSupabase(),
+            fetchCollectionsFromSupabase(),
+          ]);
+        })
+        .then(([sbStore, sbProds, sbL1, sbL2, sbCols]) => {
+          if (sbStore) setStoreInfo(sbStore);
+          if (sbProds && sbProds.length > 0) setProducts(sbProds);
+          if (sbL1 && sbL1.length > 0) setSubCategoriesLvl1(sbL1);
+          if (sbL2 && sbL2.length > 0) setSubCategoriesLvl2(sbL2);
+          if (sbCols && sbCols.length > 0) setCollections(sbCols);
+        })
+        .catch((err) => {
+          console.warn('Supabase data bootstrap warning:', err);
+        });
+    }
+  }, []);
+
+  useEffect(() => { saveStoreInfo(storeInfo); saveStoreInfoToSupabase(storeInfo); }, [storeInfo]);
+  useEffect(() => { saveProducts(products); saveProductsToSupabase(products); }, [products]);
+  useEffect(() => { saveCollections(collections); saveCollectionsToSupabase(collections); }, [collections]);
   useEffect(() => { saveReviews(reviews); }, [reviews]);
   useEffect(() => { saveNotifications(notifications); }, [notifications]);
   useEffect(() => { saveQuoteRequests(quoteRequests); }, [quoteRequests]);
   useEffect(() => { saveOrders(orders); }, [orders]);
   useEffect(() => { saveAnalytics(analytics); }, [analytics]);
-  useEffect(() => { saveSubCategoriesLvl1(subCategoriesLvl1); }, [subCategoriesLvl1]);
-  useEffect(() => { saveSubCategoriesLvl2(subCategoriesLvl2); }, [subCategoriesLvl2]);
+  useEffect(() => { saveSubCategoriesLvl1(subCategoriesLvl1); saveSubCategoriesLvl1ToSupabase(subCategoriesLvl1); }, [subCategoriesLvl1]);
+  useEffect(() => { saveSubCategoriesLvl2(subCategoriesLvl2); saveSubCategoriesLvl2ToSupabase(subCategoriesLvl2); }, [subCategoriesLvl2]);
   useEffect(() => { saveRealisations(realisations); }, [realisations]);
 
   useEffect(() => {
@@ -562,6 +602,16 @@ export default function App() {
                     subCategoriesLvl1={subCategoriesLvl1}
                     subCategoriesLvl2={subCategoriesLvl2}
                     storeInfo={storeInfo}
+                    isAdminLoggedIn={isAdminLoggedIn}
+                    onAddProduct={handleAddProduct}
+                    onUpdateProduct={handleUpdateProduct}
+                    onDeleteProduct={handleDeleteProduct}
+                    onAddSubCatLvl1={handleAddSubCatLvl1}
+                    onUpdateSubCatLvl1={handleUpdateSubCatLvl1}
+                    onDeleteSubCatLvl1={handleDeleteSubCatLvl1}
+                    onAddSubCatLvl2={handleAddSubCatLvl2}
+                    onUpdateSubCatLvl2={handleUpdateSubCatLvl2}
+                    onDeleteSubCatLvl2={handleDeleteSubCatLvl2}
                   />
 
                   {/* Dynamic sections for this catalog category */}

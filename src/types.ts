@@ -167,10 +167,20 @@ export interface PageTexts {
   bijoux?: {
     title?: string;
     description?: string;
+    storyTitle?: string;
+    storyText1?: string;
+    storyImageUrl1?: string;
+    storyImageUrl2?: string;
+    storyVisible?: boolean;
   };
   emballages?: {
     title?: string;
     description?: string;
+    storyTitle?: string;
+    storyText1?: string;
+    storyImageUrl1?: string;
+    storyImageUrl2?: string;
+    storyVisible?: boolean;
   };
   parfums?: {
     title?: string;
@@ -189,6 +199,11 @@ export interface PageTexts {
   accessoires?: {
     title?: string;
     description?: string;
+    storyTitle?: string;
+    storyText1?: string;
+    storyImageUrl1?: string;
+    storyImageUrl2?: string;
+    storyVisible?: boolean;
   };
   processus?: {
     title?: string;

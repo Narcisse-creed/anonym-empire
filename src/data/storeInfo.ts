@@ -41,10 +41,20 @@ export const STORE_INFO: StoreInfo = {
     bijoux: {
       title: 'Bijoux Personnalisés',
       description: "ANONYM crée des bijoux personnalisés sur mesure, adaptés aux cadeaux, anniversaires, mariages, fiançailles et toutes les occasions qui méritent d'être célébrées avec élégance. Chaque pièce est unique, à votre image.",
+      storyTitle: "Une empreinte qui vous ressemble",
+      storyText1: "Chez ANONYM, chaque bijou commence par une histoire — la vôtre. Prénoms gravés, symboles choisis, dates qui comptent : nous transformons vos souvenirs en pièces d'exception, façonnées en acier inoxydable 316L pour traverser le temps sans jamais perdre leur éclat. Que ce soit pour marquer un amour, célébrer une naissance ou s'offrir un bijou qui ne ressemble à aucun autre, chaque création est pensée sur-mesure, avec la précision d'une gravure laser millimétrée et l'exigence d'un savoir-faire artisanal.",
+      storyImageUrl1: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?q=80&w=800&auto=format&fit=crop',
+      storyImageUrl2: 'https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?q=80&w=800&auto=format&fit=crop',
+      storyVisible: true,
     },
     emballages: {
       title: 'Emballages Personnalisés',
       description: "ANONYM propose des emballages personnalisés destinés aux entreprises qui souhaitent affirmer leur identité et se distinguer. Restaurants, cosmétiques, événements — chaque emballage est conçu pour refléter votre image et valoriser vos produits.",
+      storyTitle: "Le premier geste d'une histoire",
+      storyText1: "Un cadeau se raconte avant même d'être ouvert. Nos emballages personnalisés sont pensés comme une extension de votre attention : rubans, finitions soignées, touches dorées et personnalisation sur-mesure pour que chaque boîte devienne, elle aussi, un objet à part entière. Parce que l'élégance se niche dans les détails, ANONYM habille vos cadeaux avec le même soin que vos bijoux — pour transformer un simple présent en moment mémorable.",
+      storyImageUrl1: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?q=80&w=800&auto=format&fit=crop',
+      storyImageUrl2: 'https://images.unsplash.com/photo-1607344645866-009c320b63e0?q=80&w=800&auto=format&fit=crop',
+      storyVisible: true,
     },
     parfums: {
       title: 'ANONYM',
@@ -60,6 +70,11 @@ export const STORE_INFO: StoreInfo = {
     accessoires: {
       title: 'Accessoires Personnalisables',
       description: "ANONYM propose des accessoires personnalisables pour occasions particulières ou professionnelles : mariages, anniversaires, manifestations sociales, dîners d'affaires. Verres personnalisés, porte-clés, objets de marque — chaque accessoire raconte votre histoire.",
+      storyTitle: "L'élégance au quotidien",
+      storyText1: "Au-delà des bijoux, ANONYM imagine des accessoires qui allient praticité et raffinement — pensés pour accompagner votre quotidien tout en portant votre signature. Chaque pièce peut être personnalisée pour devenir unique, à votre image ou à celle d'une personne chère. Une façon discrète, mais assumée, d'ajouter une touche d'exception à des objets de tous les jours.",
+      storyImageUrl1: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=800&auto=format&fit=crop',
+      storyImageUrl2: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?q=80&w=800&auto=format&fit=crop',
+      storyVisible: true,
     },
   },
 };
