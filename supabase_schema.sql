@@ -188,3 +188,15 @@ CREATE POLICY "Allow All Insert/Update/Delete reviews" ON public.reviews FOR ALL
 CREATE POLICY "Allow All Insert/Update/Delete quote_requests" ON public.quote_requests FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow All Insert/Update/Delete orders" ON public.orders FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow All Insert/Update/Delete analytics" ON public.analytics FOR ALL USING (true) WITH CHECK (true);
+
+-- ==============================================================================
+-- 11. BUCKET SUPABASE STORAGE : anonym-media
+-- ==============================================================================
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('anonym-media', 'anonym-media', true)
+ON CONFLICT (id) DO NOTHING;
+
+CREATE POLICY "Public Read Media" ON storage.objects FOR SELECT USING (bucket_id = 'anonym-media');
+CREATE POLICY "Allow Upload Media" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'anonym-media');
+CREATE POLICY "Allow Update Media" ON storage.objects FOR UPDATE USING (bucket_id = 'anonym-media');
+CREATE POLICY "Allow Delete Media" ON storage.objects FOR DELETE USING (bucket_id = 'anonym-media');

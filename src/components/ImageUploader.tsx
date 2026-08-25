@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { Upload, X, Image as ImageIcon, Link as LinkIcon, AlertCircle, RefreshCw } from 'lucide-react';
+import { Upload, X, Image as ImageIcon, Link as LinkIcon, AlertCircle, RefreshCw, Loader2 } from 'lucide-react';
+import { uploadMediaToSupabase } from '../services/supabase';
 
 export interface ImageUploaderProps {
   value?: string;
@@ -27,6 +28,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
   className = '',
 }) => {
   const [error, setError] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
   const [showUrlInput, setShowUrlInput] = useState<boolean>(false);
   const [urlInputValue, setUrlInputValue] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -37,7 +39,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
     processFile(file);
   };
 
-  const processFile = (file: File) => {
+  const processFile = async (file: File) => {
     setError(null);
 
     // 1. Validate MIME type (images only)
@@ -53,16 +55,33 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
       return;
     }
 
-    // 3. Convert to Data URL
+    setIsUploading(true);
+
+    try {
+      // Try uploading to Supabase Storage first
+      const publicUrl = await uploadMediaToSupabase(file);
+      if (publicUrl) {
+        onChange(publicUrl);
+        setIsUploading(false);
+        setError(null);
+        return;
+      }
+    } catch {
+      // Fall through to Base64 reader
+    }
+
+    // Fallback: Read as Data URL
     const reader = new FileReader();
     reader.onerror = () => {
       setError('Erreur lors de la lecture du fichier.');
+      setIsUploading(false);
     };
     reader.onload = (event) => {
       if (event.target?.result) {
         onChange(event.target.result as string);
         setError(null);
       }
+      setIsUploading(false);
     };
     reader.readAsDataURL(file);
   };
@@ -279,27 +298,47 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
       ) : (
         /* Dropzone / Upload button */
         <div
-          onClick={() => fileInputRef.current?.click()}
+          onClick={() => !isUploading && fileInputRef.current?.click()}
           onDrop={handleDrop}
           onDragOver={handleDragOver}
           className={`p-5 rounded-2xl bg-black/60 border-2 border-dashed ${
             error
               ? 'border-rose-500/80 bg-rose-950/10'
+              : isUploading
+              ? 'border-[#D4AF37] bg-[#141414]/80'
               : 'border-gray-800 hover:border-[#D4AF37]/60 hover:bg-[#141414]'
           } flex flex-col items-center justify-center text-center cursor-pointer transition-all space-y-2 group`}
         >
-          <div className="p-3 rounded-full bg-[#1A160C] border border-[#D4AF37]/40 text-[#D4AF37] group-hover:scale-110 transition-transform">
-            <Upload className="w-5 h-5" />
-          </div>
-          <div>
-            <span className="text-xs font-bold text-white block">
-              {placeholder}
-            </span>
-            <span className="text-[11px] text-gray-400 block mt-0.5">
-              Cliquez pour ouvrir la galerie photo ou glissez un fichier ici
-            </span>
-          </div>
-          {helperText && (
+          {isUploading ? (
+            <>
+              <div className="p-3 rounded-full bg-[#1A160C] border border-[#D4AF37]/40 text-[#D4AF37]">
+                <Loader2 className="w-5 h-5 animate-spin" />
+              </div>
+              <div>
+                <span className="text-xs font-bold text-[#D4AF37] block">
+                  Envoi vers le Cloud Supabase...
+                </span>
+                <span className="text-[11px] text-gray-400 block mt-0.5">
+                  Optimisation et stockage sécurisé
+                </span>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="p-3 rounded-full bg-[#1A160C] border border-[#D4AF37]/40 text-[#D4AF37] group-hover:scale-110 transition-transform">
+                <Upload className="w-5 h-5" />
+              </div>
+              <div>
+                <span className="text-xs font-bold text-white block">
+                  {placeholder}
+                </span>
+                <span className="text-[11px] text-gray-400 block mt-0.5">
+                  Cliquez pour ouvrir la galerie photo ou glissez un fichier ici
+                </span>
+              </div>
+            </>
+          )}
+          {helperText && !isUploading && (
             <span className="text-[10px] text-gray-500 font-mono block">
               {helperText}
             </span>

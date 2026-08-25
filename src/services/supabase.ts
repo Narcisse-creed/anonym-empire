@@ -396,3 +396,31 @@ export async function seedInitialDataIfNeeded(): Promise<void> {
     console.warn('Supabase initial seed check error:', err);
   }
 }
+
+// ── Storage Upload Helper ──────────────────────────────────────────────────
+export async function uploadMediaToSupabase(file: File, folder = 'uploads'): Promise<string | null> {
+  const sb = getSupabase();
+  if (!sb) return null;
+
+  try {
+    const ext = file.name.split('.').pop() || 'jpg';
+    const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${ext}`;
+
+    const { data, error } = await sb.storage.from('anonym-media').upload(fileName, file, {
+      cacheControl: '3600',
+      upsert: true,
+    });
+
+    if (error) {
+      console.warn('Supabase storage upload error:', error.message);
+      return null;
+    }
+
+    const { data: publicUrlData } = sb.storage.from('anonym-media').getPublicUrl(data.path);
+    return publicUrlData?.publicUrl || null;
+  } catch (err) {
+    console.warn('Supabase storage upload exception:', err);
+    return null;
+  }
+}
+
