@@ -822,6 +822,28 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
                             </button>
                           </div>
                         )}
+                        {/* Quick Availability Toggle */}
+                        {canLiveEdit && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const cycle = ['disponible', 'sur-commande', 'epuise'];
+                              const idx = cycle.indexOf(product.availability || 'disponible');
+                              const next = cycle[(idx + 1) % cycle.length] as any;
+                              onUpdateProduct?.({ ...product, availability: next });
+                            }}
+                            title="Changer la disponibilité"
+                            className={`absolute bottom-2 left-2 z-30 flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-[9px] font-bold border shadow backdrop-blur-sm ${
+                              product.availability === 'disponible' ? 'bg-emerald-900/90 border-emerald-600 text-emerald-300' :
+                              product.availability === 'epuise' ? 'bg-rose-900/90 border-rose-700 text-rose-300' :
+                              'bg-amber-900/90 border-amber-600 text-amber-300'
+                            }`}
+                          >
+                            {product.availability === 'disponible' ? '🟢' : product.availability === 'epuise' ? '🔴' : '🟡'}
+                            <span className="hidden sm:inline">{product.availability === 'disponible' ? 'Dispo' : product.availability === 'epuise' ? 'Épuisé' : 'Cmd'}</span>
+                          </button>
+                        )}
 
                         <div>
                           <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-gray-100 mb-3 border border-gray-200">
@@ -943,6 +965,24 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
                       <div className="flex items-center gap-2">
                         {canLiveEdit && (
                           <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const cycle = ['disponible', 'sur-commande', 'epuise'];
+                                const idx = cycle.indexOf(product.availability || 'disponible');
+                                const next = cycle[(idx + 1) % cycle.length] as any;
+                                onUpdateProduct?.({ ...product, availability: next });
+                              }}
+                              title="Changer la disponibilité rapidement"
+                              className={`px-2 py-1 rounded-lg text-[10px] font-bold border transition-all cursor-pointer ${
+                                product.availability === 'disponible' ? 'bg-emerald-900/80 border-emerald-600 text-emerald-300 hover:bg-emerald-800' :
+                                product.availability === 'epuise' ? 'bg-rose-900/80 border-rose-700 text-rose-300 hover:bg-rose-800' :
+                                'bg-amber-900/80 border-amber-600 text-amber-300 hover:bg-amber-800'
+                              }`}
+                            >
+                              {product.availability === 'disponible' ? '🟢 Dispo' : product.availability === 'epuise' ? '🔴 Épuisé' : '🟡 Cmd'}
+                            </button>
                             <button
                               type="button"
                               onClick={(e) => {

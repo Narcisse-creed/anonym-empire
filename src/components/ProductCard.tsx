@@ -1,7 +1,7 @@
 import React from 'react';
-import { Product } from '../types';
+import { Product, AvailabilityStatus } from '../types';
 import { formatPriceFCFA, generateSingleProductWhatsAppMsg, buildWhatsAppLink } from '../utils/helpers';
-import { Eye, MessageCircle, ShoppingCart, ShieldCheck, Edit2, Trash2 } from 'lucide-react';
+import { Eye, MessageCircle, ShoppingCart, ShieldCheck, Edit2, Trash2, ToggleLeft, ToggleRight } from 'lucide-react';
 import { AvailabilityBadge } from './AvailabilityBadge';
 
 interface ProductCardProps {
@@ -12,7 +12,10 @@ interface ProductCardProps {
   isEditMode?: boolean;
   onEdit?: (product: Product) => void;
   onDelete?: (product: Product) => void;
+  onToggleAvailability?: (product: Product, newStatus: AvailabilityStatus) => void;
 }
+
+const AVAILABILITY_CYCLE: AvailabilityStatus[] = ['disponible', 'sur-commande', 'epuise'];
 
 export const ProductCard: React.FC<ProductCardProps> = ({
   product,
@@ -22,6 +25,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   isEditMode = false,
   onEdit,
   onDelete,
+  onToggleAvailability,
 }) => {
   const isEpuise = product.availability === 'epuise';
   const whatsappMsg = generateSingleProductWhatsAppMsg(product);
@@ -29,6 +33,23 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
   // Collect all images for mini gallery indicator
   const allImages = [product.imageUrl, ...(product.images || [])].filter(Boolean);
+
+  const handleCycleAvailability = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!onToggleAvailability) return;
+    const current = product.availability || 'disponible';
+    const idx = AVAILABILITY_CYCLE.indexOf(current as AvailabilityStatus);
+    const next = AVAILABILITY_CYCLE[(idx + 1) % AVAILABILITY_CYCLE.length];
+    onToggleAvailability(product, next);
+  };
+
+  const availabilityLabel: Record<AvailabilityStatus, string> = {
+    disponible: '🟢 Dispo',
+    'sur-commande': '🟡 Cmd',
+    'en-arrivage': '🟡 Arriv.',
+    epuise: '🔴 Épuisé',
+    nouveau: '✨ Nouveau',
+  };
 
   return (
     <div
@@ -69,6 +90,31 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               <Trash2 className="w-3.5 h-3.5" />
             </button>
           )}
+        </div>
+      )}
+
+      {/* Quick Availability Toggle (Only in Edit Mode, bottom-left of image) */}
+      {isEditMode && onToggleAvailability && (
+        <div className="absolute bottom-[60%] left-2 z-30">
+          <button
+            type="button"
+            onClick={handleCycleAvailability}
+            title="Changer la disponibilité rapidement (clic pour alterner)"
+            className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold border shadow-lg backdrop-blur-md transition-all cursor-pointer ${
+              product.availability === 'disponible'
+                ? 'bg-emerald-900/90 border-emerald-600 text-emerald-300 hover:bg-emerald-800'
+                : product.availability === 'epuise'
+                ? 'bg-rose-900/90 border-rose-700 text-rose-300 hover:bg-rose-800'
+                : 'bg-amber-900/90 border-amber-600 text-amber-300 hover:bg-amber-800'
+            }`}
+          >
+            {product.availability === 'disponible' ? (
+              <ToggleRight className="w-3 h-3" />
+            ) : (
+              <ToggleLeft className="w-3 h-3" />
+            )}
+            <span>{availabilityLabel[product.availability as AvailabilityStatus] || '🟢 Dispo'}</span>
+          </button>
         </div>
       )}
 

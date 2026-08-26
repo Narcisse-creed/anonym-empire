@@ -12,6 +12,7 @@ import {
   AlignLeft,
   AlignCenter,
   AlignRight,
+  Highlighter,
   Image as ImageIcon,
 } from 'lucide-react';
 
@@ -35,6 +36,15 @@ const COLOR_PRESETS = [
   { name: 'Gris Chaud', color: '#4B5563' },
   { name: 'Émeraude', color: '#0F291E' },
   { name: 'Blanc Pur', color: '#FFFFFF' },
+];
+
+const HIGHLIGHT_PRESETS = [
+  { name: 'Doré Royal', color: '#D4AF37', text: '#000000' },
+  { name: 'Jaune Lumineux', color: '#FEF08A', text: '#000000' },
+  { name: 'Ambre Chaud', color: '#FDE68A', text: '#000000' },
+  { name: 'Émeraude Doux', color: '#A7F3D0', text: '#064E3B' },
+  { name: 'Rose Poudré', color: '#FBCFE8', text: '#831843' },
+  { name: 'Blanc Pur', color: '#FFFFFF', text: '#000000' },
 ];
 
 const FONT_PRESETS = [
@@ -72,6 +82,7 @@ export const EditableText: React.FC<EditableTextProps> = ({
   const [showColorPicker, setShowColorPicker] = useState<boolean>(false);
   const [showFontPicker, setShowFontPicker] = useState<boolean>(false);
   const [showSizePicker, setShowSizePicker] = useState<boolean>(false);
+  const [showHighlightPicker, setShowHighlightPicker] = useState<boolean>(false);
   const [isUploadingImage, setIsUploadingImage] = useState<boolean>(false);
 
   const editorRef = useRef<HTMLDivElement | null>(null);
@@ -113,6 +124,7 @@ export const EditableText: React.FC<EditableTextProps> = ({
     setShowColorPicker(false);
     setShowFontPicker(false);
     setShowSizePicker(false);
+    setShowHighlightPicker(false);
   };
 
   const handleCancel = (e?: React.MouseEvent) => {
@@ -122,6 +134,22 @@ export const EditableText: React.FC<EditableTextProps> = ({
     setShowColorPicker(false);
     setShowFontPicker(false);
     setShowSizePicker(false);
+    setShowHighlightPicker(false);
+  };
+
+  const applyHighlight = (bgColor: string, textColor: string) => {
+    const input = getInputEl();
+    if (!input) return;
+    const start = input.selectionStart || 0;
+    const end = input.selectionEnd || 0;
+    const selected = draftValue.substring(start, end);
+    if (selected) {
+      const formatted = `<mark style="background-color:${bgColor};color:${textColor};padding:0 2px;border-radius:3px">${selected}</mark>`;
+      setDraftValue(draftValue.substring(0, start) + formatted + draftValue.substring(end));
+    } else {
+      setDraftValue(`<mark style="background-color:${bgColor};color:${textColor};padding:0 2px;border-radius:3px">${draftValue}</mark>`);
+    }
+    setShowHighlightPicker(false);
   };
 
   const getInputEl = () => {
@@ -421,6 +449,40 @@ export const EditableText: React.FC<EditableTextProps> = ({
               <AlignRight className="w-3.5 h-3.5" />
             </button>
 
+            {/* Highlight selector dropdown */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowHighlightPicker(!showHighlightPicker);
+                  setShowColorPicker(false);
+                  setShowFontPicker(false);
+                  setShowSizePicker(false);
+                }}
+                className="p-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 hover:text-yellow-300 transition-colors flex items-center gap-1 cursor-pointer"
+                title="Surlignage (Highlight)"
+              >
+                <Highlighter className="w-3.5 h-3.5 text-yellow-300" />
+              </button>
+
+              {showHighlightPicker && (
+                <div className="absolute top-full left-0 mt-1 p-2 bg-black/95 border border-[#D4AF37]/60 rounded-xl shadow-2xl flex flex-col gap-1.5 z-[110] min-w-[160px]">
+                  <span className="text-[10px] text-gray-400 font-mono">Surlignage :</span>
+                  {HIGHLIGHT_PRESETS.map((h) => (
+                    <button
+                      key={h.color}
+                      type="button"
+                      onClick={() => applyHighlight(h.color, h.text)}
+                      className="flex items-center gap-2 px-2 py-1 rounded hover:bg-gray-800 text-left text-xs cursor-pointer"
+                    >
+                      <span className="w-3.5 h-3.5 rounded border border-gray-600 shrink-0" style={{ backgroundColor: h.color }} />
+                      <span className="text-gray-200 text-[11px]">{h.name}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {/* Color selector dropdown */}
             <div className="relative">
               <button
@@ -429,6 +491,7 @@ export const EditableText: React.FC<EditableTextProps> = ({
                   setShowColorPicker(!showColorPicker);
                   setShowFontPicker(false);
                   setShowSizePicker(false);
+                  setShowHighlightPicker(false);
                 }}
                 className="p-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 hover:text-[#D4AF37] transition-colors flex items-center gap-1 cursor-pointer"
                 title="Couleur du texte"
