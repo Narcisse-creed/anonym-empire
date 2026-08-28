@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useVisualEditor } from '../../context/VisualEditorContext';
 import { Camera, Check, X, Upload, RotateCcw, Image as ImageIcon } from 'lucide-react';
+import { optimizeImageFile } from '../../utils/imageOptimizer';
 
 interface EditableImageProps {
   src?: string;
@@ -27,48 +28,28 @@ export const EditableImage: React.FC<EditableImageProps> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [previewSrc, setPreviewSrc] = useState<string>(currentSrc);
   const [fileName, setFileName] = useState<string>('');
+  const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setFileName(file.name);
+    setIsProcessing(true);
 
-    // Read and compress image
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        let width = img.width;
-        let height = img.height;
-        const maxDimension = 1600;
-
-        if (width > maxDimension || height > maxDimension) {
-          if (width > height) {
-            height = Math.round((height * maxDimension) / width);
-            width = maxDimension;
-          } else {
-            width = Math.round((width * maxDimension) / height);
-            height = maxDimension;
-          }
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.drawImage(img, 0, 0, width, height);
-          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.88);
-          setPreviewSrc(compressedDataUrl);
-        } else {
-          setPreviewSrc(event.target?.result as string);
-        }
-      };
-      img.src = event.target?.result as string;
-    };
-    reader.readAsDataURL(file);
+    try {
+      const optimized = await optimizeImageFile(file, {
+        maxDimension: 1200,
+        quality: 0.82,
+        mimeType: 'image/jpeg',
+      });
+      setPreviewSrc(optimized);
+    } catch (err) {
+      console.warn('Error optimizing image in EditableImage:', err);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleSave = () => {

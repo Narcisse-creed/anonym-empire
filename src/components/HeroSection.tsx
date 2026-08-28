@@ -48,86 +48,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ storeInfo }) => {
           0%, 100% { opacity: 0.18; transform: scale(1.25); }
           50%       { opacity: 0.30; transform: scale(1.36); }
         }
-        @keyframes bicolorePartLeft {
-          0%, 42% {
-            color: #8C5A2B;
-          }
-          46% {
-            color: #F3E5AB;
-            text-shadow: 0 0 16px rgba(243, 229, 171, 0.75);
-          }
-          52%, 82% {
-            color: #2A1810;
-            text-shadow: none;
-          }
-          86% {
-            color: #F3E5AB;
-            text-shadow: 0 0 14px rgba(243, 229, 171, 0.6);
-          }
-          92%, 100% {
-            color: #8C5A2B;
-            text-shadow: none;
-          }
-        }
-        @keyframes bicolorePartRight {
-          0%, 42% {
-            color: #8C5A2B;
-          }
-          48% {
-            color: #F3E5AB;
-            text-shadow: 0 0 18px rgba(243, 229, 171, 0.85);
-          }
-          54%, 82% {
-            color: #D4AF37;
-            text-shadow: 0 2px 12px rgba(212, 175, 55, 0.28);
-          }
-          88% {
-            color: #F3E5AB;
-            text-shadow: 0 0 14px rgba(243, 229, 171, 0.6);
-          }
-          92%, 100% {
-            color: #8C5A2B;
-            text-shadow: none;
-          }
-        }
-        @keyframes shimmerSweepAcross {
-          0%, 41% {
-            transform: translateX(-150%) skewX(-20deg);
-            opacity: 0;
-          }
-          45% {
-            opacity: 0.95;
-          }
-          50% {
-            transform: translateX(200%) skewX(-20deg);
-            opacity: 0;
-          }
-          83% {
-            transform: translateX(-150%) skewX(-20deg);
-            opacity: 0;
-          }
-          87% {
-            opacity: 0.9;
-          }
-          92% {
-            transform: translateX(200%) skewX(-20deg);
-            opacity: 0;
-          }
-          100% {
-            transform: translateX(200%) skewX(-20deg);
-            opacity: 0;
-          }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .anonym-bicolore-left,
-          .anonym-bicolore-right {
-            animation: none !important;
-            color: #8C5A2B !important;
-          }
-          .anonym-shimmer-sweep {
-            display: none !important;
-          }
-        }
       `}</style>
 
       {/* Halo ambiant warm */}
@@ -198,38 +118,27 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ storeInfo }) => {
           </div>
         </motion.div>
 
-        {/* ANONYM — Animation 1 cascade + Cycle Bicolore */}
+        {/* ANONYM — Grand Titre Statique Ébène / Chocolat Noir */}
         <motion.h1
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1], delay: 0.45 }}
-          className="anonym-logo text-5xl sm:text-7xl md:text-8xl font-serif font-bold tracking-[0.16em] sm:tracking-[0.18em] uppercase leading-none mb-2 select-none"
+          className="anonym-logo text-5xl sm:text-7xl md:text-8xl font-serif font-bold tracking-[0.16em] sm:tracking-[0.18em] uppercase leading-none mb-2 select-none text-[#1F130B]"
         >
           <EditableText
             path="accueil.heroTitle"
             value={storeInfo.pageTexts?.accueil?.heroTitle}
             defaultValue="ANONYM"
             label="Grand Titre Hero"
-            renderDisplay={(val) => {
-              const text = val || 'ANONYM';
-              const mid = Math.ceil(text.length / 2);
-              const part1 = text.slice(0, mid);
-              const part2 = text.slice(mid);
-              return (
-                <span className="inline-block">
-                  <span className="anonym-part-a inline-block">
-                    {part1}
-                  </span>
-                  <span className="anonym-part-b inline-block">
-                    {part2}
-                  </span>
-                </span>
-              );
-            }}
+            renderDisplay={(val) => (
+              <span className="anonym-part-a inline-block text-[#1F130B]">
+                {val || 'ANONYM'}
+              </span>
+            )}
           />
         </motion.h1>
 
-        {/* SOULIGNEMENT DORÉ — Animation 4 (se dessine gauche → droite) */}
+        {/* SOULIGNEMENT DORÉ — Ligne épurée avec losange */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -260,15 +169,15 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ storeInfo }) => {
           />
         </motion.div>
 
-        {/* Encadré tagline "L'art de se démarquer" */}
+        {/* Encadré tagline "L'art de se démarquer" (légèrement agrandi et valorisé) */}
         <motion.div
           initial={{ opacity: 0, y: 12, scale: 0.97 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.65, ease: 'easeOut', delay: 1.15 }}
           className="mt-3 mb-8"
         >
-          <div className="inline-block border border-[#8C7A6B]/45 rounded-full px-7 py-2 sm:px-10 sm:py-2.5 bg-white/90 shadow-sm">
-            <span className="font-serif italic text-lg sm:text-xl md:text-2xl text-[#2C2018] tracking-wide">
+          <div className="inline-block border border-[#8C7A6B]/50 rounded-full px-8 py-2.5 sm:px-12 sm:py-3 bg-white/95 shadow-sm">
+            <span className="font-serif italic text-xl sm:text-2xl md:text-[26px] text-[#2C2018] tracking-wide font-normal">
               <EditableText
                 path="accueil.heroSubtitle"
                 value={storeInfo.pageTexts?.accueil?.heroSubtitle}

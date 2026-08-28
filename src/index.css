@@ -72,13 +72,19 @@ html {
   100% { background-position: 0% 50%; }
 }
 
-/* ── Logo "ANONYM" Titre & En-tête (Statique & Brun très foncé #1F130B) ── */
-.anonym-logo .anonym-part-a,
-.anonym-logo .anonym-part-b,
+/* ── Wordmark "ANONYM" (Statique & Brun Chocolat Très Foncé / Quasi Noir #1F130B) ── */
+.anonym-logo,
 .anonym-part-a,
 .anonym-part-b {
   color: #1F130B !important;
   display: inline-block;
+  animation: none !important;
+  text-shadow: none !important;
+  background: none !important;
+  -webkit-text-fill-color: #1F130B !important;
 }
+
+
+
 
 

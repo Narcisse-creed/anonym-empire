@@ -5,6 +5,7 @@ import { loadProducts, saveProducts, loadStoreInfo, saveStoreInfo, loadCollectio
 import { X, Lock, Key, Plus, Edit2, Edit3, Trash2, RotateCcw, Save, ShieldCheck, Download, Upload, ChevronUp, ChevronDown, Filter, Star, FileText, BarChart3, MessageSquare, Clock, CheckCircle, XCircle, Package, Settings, Layout, Eye, EyeOff, Search, ArrowUpDown, ArrowUp, ArrowDown, Image as ImageIcon, Users, TrendingUp, Sparkles, ShoppingBag } from 'lucide-react';
 import { ImageUploader } from './ImageUploader';
 import { useVisualEditor } from '../context/VisualEditorContext';
+import { optimizeImageFile } from '../utils/imageOptimizer';
 
 interface AdminPortalModalProps {
   isOpen: boolean;
@@ -567,16 +568,19 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
     });
   };
 
-  const handleCollectionImageFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCollectionImageFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      if (event.target?.result) {
-        setColFormData((prev) => ({ ...prev, coverImage: event.target?.result as string }));
-      }
-    };
-    reader.readAsDataURL(file);
+    try {
+      const dataUrl = await optimizeImageFile(file, {
+        maxDimension: 1200,
+        quality: 0.82,
+        mimeType: 'image/jpeg',
+      });
+      setColFormData((prev) => ({ ...prev, coverImage: dataUrl }));
+    } catch (err) {
+      console.warn('Collection image optimization error:', err);
+    }
   };
 
   // Edit / Add Form State
@@ -621,15 +625,19 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
     }
   };
 
-  const handleImageFileUploadAtIndex = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageFileUploadAtIndex = async (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const dataUrl = reader.result as string;
+      try {
+        const dataUrl = await optimizeImageFile(file, {
+          maxDimension: 1200,
+          quality: 0.82,
+          mimeType: 'image/jpeg',
+        });
         updateProductImageAtIndex(index, dataUrl);
-      };
-      reader.readAsDataURL(file);
+      } catch (err) {
+        console.warn('Product image optimization error:', err);
+      }
     }
   };
 
@@ -824,12 +832,9 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
               </div>
 
               <div>
-                <h3 className="text-2xl font-serif font-bold text-[#1A0F0A] mb-2 tracking-wide">
-                  Espace Privé
+                <h3 className="text-2xl font-serif font-bold text-[#1A0F0A] tracking-wider uppercase">
+                  ANONYM
                 </h3>
-                <p className="text-xs text-gray-600">
-                  Veuillez saisir votre mot de passe.
-                </p>
               </div>
 
               <form onSubmit={handleLoginSubmit} className="space-y-4">
@@ -844,13 +849,13 @@ export const AdminPortalModal: React.FC<AdminPortalModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setShowLoginPassword(!showLoginPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-[#D4AF37] p-1"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-[#D4AF37] p-1 cursor-pointer"
                     title={showLoginPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
                   >
                     {showLoginPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                   {loginError && (
-                    <p className="text-xs text-rose-400 mt-2">{loginError}</p>
+                    <p className="text-xs text-rose-500 font-medium mt-2">{loginError}</p>
                   )}
                 </div>
 

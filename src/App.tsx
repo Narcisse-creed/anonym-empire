@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { StoreInfo, Product, CartItem, CategoryId, Collection, Notification, QuoteRequest, Order, AnalyticsData, Review, RealisationCollection } from './types';
 import { STORE_INFO } from './data/storeInfo';
 import { INITIAL_PRODUCTS } from './data/products';
+import { CheckCircle, AlertTriangle, RefreshCw, Sparkles } from 'lucide-react';
 import { CrownLogo } from './components/CrownLogo';
 import { Navbar } from './components/Navbar';
 import { HeroSection } from './components/HeroSection';
@@ -57,13 +58,24 @@ import {
   fetchStoreInfoFromSupabase,
   saveStoreInfoToSupabase,
   fetchProductsFromSupabase,
+  saveSingleProductToSupabase,
+  deleteSingleProductFromSupabase,
   saveProductsToSupabase,
   fetchSubCategoriesLvl1FromSupabase,
+  saveSingleSubCategoryLvl1ToSupabase,
+  deleteSingleSubCategoryLvl1FromSupabase,
   saveSubCategoriesLvl1ToSupabase,
   fetchSubCategoriesLvl2FromSupabase,
+  saveSingleSubCategoryLvl2ToSupabase,
+  deleteSingleSubCategoryLvl2FromSupabase,
   saveSubCategoriesLvl2ToSupabase,
   fetchCollectionsFromSupabase,
+  saveSingleCollectionToSupabase,
+  deleteSingleCollectionFromSupabase,
   saveCollectionsToSupabase,
+  fetchRealisationsFromSupabase,
+  saveRealisationsToSupabase,
+  subscribeToDatabaseChanges,
 } from './services/supabase';
 
 interface AdminOuterErrorBoundaryProps {
@@ -160,43 +172,87 @@ export default function App() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [activeSection, setActiveSection] = useState<string>('hero');
   const [adminPassword, setAdminPassword] = useState<string>(loadAdminPassword);
+  const [syncToast, setSyncToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
 
-  // Bootstrap from Supabase on mount (with automatic table seed if empty)
-  useEffect(() => {
-    if (isSupabaseConfigured()) {
-      seedInitialDataIfNeeded()
-        .then(() => {
-          return Promise.all([
-            fetchStoreInfoFromSupabase(),
-            fetchProductsFromSupabase(),
-            fetchSubCategoriesLvl1FromSupabase(),
-            fetchSubCategoriesLvl2FromSupabase(),
-            fetchCollectionsFromSupabase(),
-          ]);
-        })
-        .then(([sbStore, sbProds, sbL1, sbL2, sbCols]) => {
-          if (sbStore) setStoreInfo(sbStore);
-          if (sbProds && sbProds.length > 0) setProducts(sbProds);
-          if (sbL1 && sbL1.length > 0) setSubCategoriesLvl1(sbL1);
-          if (sbL2 && sbL2.length > 0) setSubCategoriesLvl2(sbL2);
-          if (sbCols && sbCols.length > 0) setCollections(sbCols);
-        })
-        .catch((err) => {
-          console.warn('Supabase data bootstrap warning:', err);
-        });
+  const showSyncToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    setSyncToast({ message, type });
+    setTimeout(() => {
+      setSyncToast((prev) => (prev?.message === message ? null : prev));
+    }, 4500);
+  }, []);
+
+  // 1. Fetch fresh data from Supabase and synchronize local storage
+  const refreshAllDataFromSupabase = useCallback(async () => {
+    if (!isSupabaseConfigured()) return;
+    try {
+      const [sbStore, sbProds, sbL1, sbL2, sbCols, sbReals] = await Promise.all([
+        fetchStoreInfoFromSupabase(),
+        fetchProductsFromSupabase(),
+        fetchSubCategoriesLvl1FromSupabase(),
+        fetchSubCategoriesLvl2FromSupabase(),
+        fetchCollectionsFromSupabase(),
+        fetchRealisationsFromSupabase(),
+      ]);
+
+      if (sbStore) {
+        setStoreInfo(sbStore);
+        saveStoreInfo(sbStore);
+      }
+      if (sbProds && sbProds.length > 0) {
+        setProducts(sbProds);
+        saveProducts(sbProds);
+      }
+      if (sbL1 && sbL1.length > 0) {
+        setSubCategoriesLvl1(sbL1);
+        saveSubCategoriesLvl1(sbL1);
+      }
+      if (sbL2 && sbL2.length > 0) {
+        setSubCategoriesLvl2(sbL2);
+        saveSubCategoriesLvl2(sbL2);
+      }
+      if (sbCols && sbCols.length > 0) {
+        setCollections(sbCols);
+        saveCollections(sbCols);
+      }
+      if (sbReals && sbReals.length > 0) {
+        setRealisations(sbReals);
+        saveRealisations(sbReals);
+      }
+    } catch (err) {
+      console.warn('Supabase data refresh warning:', err);
     }
   }, []);
 
-  useEffect(() => { saveStoreInfo(storeInfo); saveStoreInfoToSupabase(storeInfo); }, [storeInfo]);
-  useEffect(() => { saveProducts(products); saveProductsToSupabase(products); }, [products]);
-  useEffect(() => { saveCollections(collections); saveCollectionsToSupabase(collections); }, [collections]);
+  // Bootstrap on Mount + Realtime Multi-Device synchronization
+  useEffect(() => {
+    if (isSupabaseConfigured()) {
+      seedInitialDataIfNeeded().then(() => {
+        refreshAllDataFromSupabase();
+      });
+
+      // Subscribe to Realtime changes across any other browser/device
+      const unsubscribe = subscribeToDatabaseChanges((table) => {
+        console.log(`⚡ Mise à jour Supabase détectée sur [${table}] — actualisation des données`);
+        refreshAllDataFromSupabase();
+      });
+
+      return () => {
+        unsubscribe();
+      };
+    }
+  }, [refreshAllDataFromSupabase]);
+
+  // Sync to local cache only (NEVER automatically overwrite Supabase on visitor mount)
+  useEffect(() => { saveStoreInfo(storeInfo); }, [storeInfo]);
+  useEffect(() => { saveProducts(products); }, [products]);
+  useEffect(() => { saveCollections(collections); }, [collections]);
   useEffect(() => { saveReviews(reviews); }, [reviews]);
   useEffect(() => { saveNotifications(notifications); }, [notifications]);
   useEffect(() => { saveQuoteRequests(quoteRequests); }, [quoteRequests]);
   useEffect(() => { saveOrders(orders); }, [orders]);
   useEffect(() => { saveAnalytics(analytics); }, [analytics]);
-  useEffect(() => { saveSubCategoriesLvl1(subCategoriesLvl1); saveSubCategoriesLvl1ToSupabase(subCategoriesLvl1); }, [subCategoriesLvl1]);
-  useEffect(() => { saveSubCategoriesLvl2(subCategoriesLvl2); saveSubCategoriesLvl2ToSupabase(subCategoriesLvl2); }, [subCategoriesLvl2]);
+  useEffect(() => { saveSubCategoriesLvl1(subCategoriesLvl1); }, [subCategoriesLvl1]);
+  useEffect(() => { saveSubCategoriesLvl2(subCategoriesLvl2); }, [subCategoriesLvl2]);
   useEffect(() => { saveRealisations(realisations); }, [realisations]);
 
   useEffect(() => {
@@ -338,123 +394,241 @@ export default function App() {
     setIsAdminOpen(false);
   };
 
-  const handleAddProduct = (newProduct: Omit<Product, 'id'>) => {
+  const handleAddProduct = async (newProduct: Omit<Product, 'id'>) => {
     const product: Product = { ...newProduct, id: 'prod-' + Date.now() };
     setProducts((prev) => [...prev, product]);
+    saveProducts([...products, product]);
+    const ok = await saveSingleProductToSupabase(product);
+    if (ok) {
+      showSyncToast('✅ Produit ajouté et synchronisé sur le Cloud !');
+    } else {
+      showSyncToast('⚠️ Enregistré localement, mais échec de synchronisation Cloud.', 'error');
+    }
   };
 
-  const handleUpdateProduct = (updatedProduct: Product) => {
-    setProducts((prev) => prev.map((p) => (p.id === updatedProduct.id ? updatedProduct : p)));
+  const handleUpdateProduct = async (updatedProduct: Product) => {
+    const nextList = products.map((p) => (p.id === updatedProduct.id ? updatedProduct : p));
+    setProducts(nextList);
+    saveProducts(nextList);
+    const ok = await saveSingleProductToSupabase(updatedProduct);
+    if (ok) {
+      showSyncToast('✅ Produit mis à jour et synchronisé sur le Cloud !');
+    } else {
+      showSyncToast('⚠️ Enregistré localement, mais échec de synchronisation Cloud.', 'error');
+    }
   };
 
-  const handleDeleteProduct = (productId: string) => {
-    setProducts((prev) => prev.filter((p) => p.id !== productId));
+  const handleDeleteProduct = async (productId: string) => {
+    const nextList = products.filter((p) => p.id !== productId);
+    setProducts(nextList);
+    saveProducts(nextList);
+    const ok = await deleteSingleProductFromSupabase(productId);
+    if (ok) {
+      showSyncToast('✅ Produit supprimé du Cloud.');
+    } else {
+      showSyncToast('⚠️ Supprimé localement, mais échec de suppression Cloud.', 'error');
+    }
   };
 
-  const handleResetProducts = () => {
+  const handleResetProducts = async () => {
     setProducts(INITIAL_PRODUCTS);
+    saveProducts(INITIAL_PRODUCTS);
+    const ok = await saveProductsToSupabase(INITIAL_PRODUCTS);
+    if (ok) {
+      showSyncToast('✅ Catalogue réinitialisé sur le Cloud.');
+    } else {
+      showSyncToast('⚠️ Réinitialisé localement, échec Cloud.', 'error');
+    }
   };
 
-  const handleUpdateStoreInfo = (info: StoreInfo) => {
+  const handleUpdateStoreInfo = async (info: StoreInfo) => {
     setStoreInfo(info);
+    saveStoreInfo(info);
+    const ok = await saveStoreInfoToSupabase(info);
+    if (ok) {
+      showSyncToast('✅ Paramètres et textes synchronisés sur le Cloud !');
+    } else {
+      showSyncToast('⚠️ Enregistré localement, mais échec de synchronisation Cloud.', 'error');
+    }
   };
 
   const handleChangeAdminPassword = (newPassword: string) => {
     setAdminPassword(newPassword);
     saveAdminPassword(newPassword);
+    showSyncToast('✅ Mot de passe administrateur mis à jour.');
   };
 
-  const handleAddCollection = (c: Omit<Collection, 'id' | 'createdAt' | 'order'>) => {
+  const handleAddCollection = async (c: Omit<Collection, 'id' | 'createdAt' | 'order'>) => {
     const collection: Collection = {
       ...c,
       id: 'col-' + Date.now(),
       order: collections.length,
       createdAt: new Date().toISOString(),
     };
-    setCollections((prev) => [...prev, collection]);
+    const nextCols = [...collections, collection];
+    setCollections(nextCols);
+    saveCollections(nextCols);
+    const ok = await saveSingleCollectionToSupabase(collection);
+    if (ok) {
+      showSyncToast('✅ Collection ajoutée et synchronisée !');
+    } else {
+      showSyncToast('⚠️ Enregistrée localement, échec Cloud.', 'error');
+    }
   };
 
-  const handleUpdateCollection = (updated: Collection) => {
-    setCollections((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
+  const handleUpdateCollection = async (updated: Collection) => {
+    const nextCols = collections.map((c) => (c.id === updated.id ? updated : c));
+    setCollections(nextCols);
+    saveCollections(nextCols);
+    const ok = await saveSingleCollectionToSupabase(updated);
+    if (ok) {
+      showSyncToast('✅ Collection mise à jour et synchronisée !');
+    } else {
+      showSyncToast('⚠️ Enregistrée localement, échec Cloud.', 'error');
+    }
   };
 
-  const handleReorderCollections = (newCollections: Collection[]) => {
+  const handleReorderCollections = async (newCollections: Collection[]) => {
     setCollections(newCollections);
     saveCollections(newCollections);
+    const ok = await saveCollectionsToSupabase(newCollections);
+    if (ok) {
+      showSyncToast('✅ Ordre des collections synchronisé !');
+    }
   };
 
-  const handleDeleteCollection = (id: string) => {
-    setCollections((prev) => prev.filter((c) => c.id !== id));
+  const handleDeleteCollection = async (id: string) => {
+    const nextCols = collections.filter((c) => c.id !== id);
+    setCollections(nextCols);
+    saveCollections(nextCols);
+    const ok = await deleteSingleCollectionFromSupabase(id);
+    if (ok) {
+      showSyncToast('✅ Collection supprimée du Cloud.');
+    }
   };
 
   // Level 1 SubCategories CRUD
-  const handleAddSubCatLvl1 = (cat: Omit<SubCategoryLevel1, 'id' | 'order'>) => {
+  const handleAddSubCatLvl1 = async (cat: Omit<SubCategoryLevel1, 'id' | 'order'>) => {
     const newCat: SubCategoryLevel1 = {
       ...cat,
       id: 'lvl1-' + Date.now(),
       order: subCategoriesLvl1.filter((c) => c.parentCategory === cat.parentCategory).length + 1,
     };
-    setSubCategoriesLvl1((prev) => [...prev, newCat]);
+    const nextList = [...subCategoriesLvl1, newCat];
+    setSubCategoriesLvl1(nextList);
+    saveSubCategoriesLvl1(nextList);
+    const ok = await saveSingleSubCategoryLvl1ToSupabase(newCat);
+    if (ok) {
+      showSyncToast('✅ Sous-catégorie niveau 1 synchronisée !');
+    }
   };
 
-  const handleUpdateSubCatLvl1 = (updated: SubCategoryLevel1) => {
-    setSubCategoriesLvl1((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
+  const handleUpdateSubCatLvl1 = async (updated: SubCategoryLevel1) => {
+    const nextList = subCategoriesLvl1.map((c) => (c.id === updated.id ? updated : c));
+    setSubCategoriesLvl1(nextList);
+    saveSubCategoriesLvl1(nextList);
+    const ok = await saveSingleSubCategoryLvl1ToSupabase(updated);
+    if (ok) {
+      showSyncToast('✅ Sous-catégorie mise à jour sur le Cloud !');
+    }
   };
 
-  const handleReorderSubCatsLvl1 = (reordered: SubCategoryLevel1[]) => {
+  const handleReorderSubCatsLvl1 = async (reordered: SubCategoryLevel1[]) => {
     setSubCategoriesLvl1(reordered);
     saveSubCategoriesLvl1(reordered);
+    await saveSubCategoriesLvl1ToSupabase(reordered);
   };
 
-  const handleDeleteSubCatLvl1 = (id: string) => {
-    setSubCategoriesLvl1((prev) => prev.filter((c) => c.id !== id));
-    setSubCategoriesLvl2((prev) => prev.filter((c) => c.level1Id !== id));
+  const handleDeleteSubCatLvl1 = async (id: string) => {
+    const nextL1 = subCategoriesLvl1.filter((c) => c.id !== id);
+    const nextL2 = subCategoriesLvl2.filter((c) => c.level1Id !== id);
+    setSubCategoriesLvl1(nextL1);
+    setSubCategoriesLvl2(nextL2);
+    saveSubCategoriesLvl1(nextL1);
+    saveSubCategoriesLvl2(nextL2);
+    await deleteSingleSubCategoryLvl1FromSupabase(id);
+    showSyncToast('✅ Sous-catégorie supprimée du Cloud.');
   };
 
   // Level 2 SubCategories CRUD
-  const handleAddSubCatLvl2 = (cat: Omit<SubCategoryLevel2, 'id' | 'order'>) => {
+  const handleAddSubCatLvl2 = async (cat: Omit<SubCategoryLevel2, 'id' | 'order'>) => {
     const newCat: SubCategoryLevel2 = {
       ...cat,
       id: 'lvl2-' + Date.now(),
       order: subCategoriesLvl2.filter((c) => c.level1Id === cat.level1Id).length + 1,
     };
-    setSubCategoriesLvl2((prev) => [...prev, newCat]);
+    const nextList = [...subCategoriesLvl2, newCat];
+    setSubCategoriesLvl2(nextList);
+    saveSubCategoriesLvl2(nextList);
+    const ok = await saveSingleSubCategoryLvl2ToSupabase(newCat);
+    if (ok) {
+      showSyncToast('✅ Sous-catégorie niveau 2 synchronisée !');
+    }
   };
 
-  const handleUpdateSubCatLvl2 = (updated: SubCategoryLevel2) => {
-    setSubCategoriesLvl2((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
+  const handleUpdateSubCatLvl2 = async (updated: SubCategoryLevel2) => {
+    const nextList = subCategoriesLvl2.map((c) => (c.id === updated.id ? updated : c));
+    setSubCategoriesLvl2(nextList);
+    saveSubCategoriesLvl2(nextList);
+    const ok = await saveSingleSubCategoryLvl2ToSupabase(updated);
+    if (ok) {
+      showSyncToast('✅ Sous-catégorie niveau 2 mise à jour !');
+    }
   };
 
-  const handleReorderSubCatsLvl2 = (reordered: SubCategoryLevel2[]) => {
+  const handleReorderSubCatsLvl2 = async (reordered: SubCategoryLevel2[]) => {
     setSubCategoriesLvl2(reordered);
     saveSubCategoriesLvl2(reordered);
+    await saveSubCategoriesLvl2ToSupabase(reordered);
   };
 
-  const handleDeleteSubCatLvl2 = (id: string) => {
-    setSubCategoriesLvl2((prev) => prev.filter((c) => c.id !== id));
+  const handleDeleteSubCatLvl2 = async (id: string) => {
+    const nextList = subCategoriesLvl2.filter((c) => c.id !== id);
+    setSubCategoriesLvl2(nextList);
+    saveSubCategoriesLvl2(nextList);
+    await deleteSingleSubCategoryLvl2FromSupabase(id);
+    showSyncToast('✅ Sous-catégorie niveau 2 supprimée.');
   };
 
   // Realisations CRUD
-  const handleAddRealisationCollection = (c: Omit<RealisationCollection, 'id' | 'createdAt' | 'order'>) => {
+  const handleAddRealisationCollection = async (c: Omit<RealisationCollection, 'id' | 'createdAt' | 'order'>) => {
     const col: RealisationCollection = {
       ...c,
       id: 'real-' + Date.now(),
       order: realisations.length,
       createdAt: new Date().toISOString(),
     };
-    setRealisations((prev) => [...prev, col]);
+    const nextList = [...realisations, col];
+    setRealisations(nextList);
+    saveRealisations(nextList);
+    const ok = await saveRealisationsToSupabase(nextList);
+    if (ok) {
+      showSyncToast('✅ Réalisation ajoutée et synchronisée sur le Cloud !');
+    }
   };
 
-  const handleUpdateRealisationCollection = (updated: RealisationCollection) => {
-    setRealisations((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
+  const handleUpdateRealisationCollection = async (updated: RealisationCollection) => {
+    const nextList = realisations.map((c) => (c.id === updated.id ? updated : c));
+    setRealisations(nextList);
+    saveRealisations(nextList);
+    const ok = await saveRealisationsToSupabase(nextList);
+    if (ok) {
+      showSyncToast('✅ Réalisation mise à jour et synchronisée !');
+    }
   };
 
-  const handleReorderRealisationCollections = (newCols: RealisationCollection[]) => {
+  const handleReorderRealisationCollections = async (newCols: RealisationCollection[]) => {
     setRealisations(newCols);
+    saveRealisations(newCols);
+    await saveRealisationsToSupabase(newCols);
   };
 
-  const handleDeleteRealisationCollection = (id: string) => {
-    setRealisations((prev) => prev.filter((c) => c.id !== id));
+  const handleDeleteRealisationCollection = async (id: string) => {
+    const nextList = realisations.filter((c) => c.id !== id);
+    setRealisations(nextList);
+    saveRealisations(nextList);
+    await saveRealisationsToSupabase(nextList);
+    showSyncToast('✅ Réalisation supprimée.');
   };
 
   const handleUpdateReview = (updated: Review) => {
@@ -744,6 +918,26 @@ export default function App() {
             onDeleteSubCatLvl2={handleDeleteSubCatLvl2}
           />
         </AdminOuterErrorBoundary>
+
+        {/* ── Realtime Sync Toast Notification ── */}
+        {syncToast && (
+          <div className="fixed bottom-6 right-6 z-[9999] animate-in fade-in slide-in-from-bottom-5 duration-200">
+            <div
+              className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-2xl backdrop-blur-md border text-xs font-semibold ${
+                syncToast.type === 'error'
+                  ? 'bg-rose-950/95 border-rose-600 text-rose-100'
+                  : 'bg-black/90 border-[#D4AF37] text-white'
+              }`}
+            >
+              {syncToast.type === 'error' ? (
+                <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+              ) : (
+                <CheckCircle className="w-4 h-4 text-[#D4AF37] shrink-0" />
+              )}
+              <span>{syncToast.message}</span>
+            </div>
+          </div>
+        )}
       </div>
     </VisualEditorProvider>
   );

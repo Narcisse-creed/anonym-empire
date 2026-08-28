@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Upload, X, Image as ImageIcon, Link as LinkIcon, AlertCircle, RefreshCw, Loader2 } from 'lucide-react';
 import { uploadMediaToSupabase } from '../services/supabase';
+import { optimizeImageFile } from '../utils/imageOptimizer';
 
 export interface ImageUploaderProps {
   value?: string;
@@ -58,7 +59,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
     setIsUploading(true);
 
     try {
-      // Try uploading to Supabase Storage first
+      // 1. Try uploading to Supabase Storage first
       const publicUrl = await uploadMediaToSupabase(file);
       if (publicUrl) {
         onChange(publicUrl);
@@ -67,23 +68,23 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
         return;
       }
     } catch {
-      // Fall through to Base64 reader
+      // Fall through to compressed Data URL
     }
 
-    // Fallback: Read as Data URL
-    const reader = new FileReader();
-    reader.onerror = () => {
-      setError('Erreur lors de la lecture du fichier.');
+    // 2. High-performance Client-Side Compression (< 80KB)
+    try {
+      const optimizedDataUrl = await optimizeImageFile(file, {
+        maxDimension: 1200,
+        quality: 0.82,
+        mimeType: 'image/jpeg',
+      });
+      onChange(optimizedDataUrl);
       setIsUploading(false);
-    };
-    reader.onload = (event) => {
-      if (event.target?.result) {
-        onChange(event.target.result as string);
-        setError(null);
-      }
+      setError(null);
+    } catch (err: any) {
+      setError(err?.message || 'Erreur lors du traitement de l\'image.');
       setIsUploading(false);
-    };
-    reader.readAsDataURL(file);
+    }
   };
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
